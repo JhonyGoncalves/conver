@@ -1,0 +1,72 @@
+# Conver
+
+Conversor universal para Windows (imagens, vídeo, áudio, PDF, downloads, OCR, remover fundo), em Rust com interface egui.
+Repositório público: https://github.com/JhonyGoncalves/conver (licença MIT). O código, os comentários, a interface e
+as mensagens de commit são em **português**.
+
+## Comandos
+
+```powershell
+cargo run --release                                   # rodar (precisa das ferramentas de Conver\bin, veja abaixo)
+cargo test --release -- --nocapture --test-threads 1  # todos os testes (sempre com 1 thread: usam porta TCP, registro, áudio)
+cargo test --release -- --nocapture remove_background # um teste só
+powershell -ExecutionPolicy Bypass -File build.ps1 -Repo JhonyGoncalves/conver   # gera dist\ (portátil, instalador, SHA256)
+```
+
+Antes dos testes, ponha `Conver\bin` no PATH na mesma sessão: `$env:PATH = "$PWD\Conver\bin;$env:PATH"`.
+
+## Pasta `Conver\` (fora do git)
+
+Tem tudo o que vai junto no download e é usada também pelo `cargo run`/testes (achada via `CARGO_MANIFEST_DIR`):
+- `bin\ffmpeg.exe` (7.1.1, gyan full, GPLv3), `bin\yt-dlp.exe`, `bin\onnxruntime.dll` (1.22.0 oficial da Microsoft)
+- `modelos\silueta.onnx` (modelo rembg do removedor de fundo)
+
+`tools::find_tool` / `tools::find_tool_file` procuram em `exe_dir\bin`, `exe_dir` e `CARGO_MANIFEST_DIR\Conver\bin`.
+Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de `%APPDATA%\Conver` (`tools::app_dir`).
+
+## Arquitetura
+
+- `src/main.rs`: janela, menu lateral (`NAV`), `Config` (serde, salva em `config.json`) e tela de Configurações.
+- Telas: `pages.rs` (imagem, `ImgTool`, `IMG_TOOLS`), `media_page.rs` (vídeo/áudio), `extras*.rs` (demais ferramentas).
+- Lógica: `imaging.rs` (`ImageOp`, `process_and_save`), `video.rs`/`media*.rs` (FFmpeg como processo separado),
+  `download.rs` (yt-dlp), `pdf.rs` (lopdf), `ocr.rs` (Windows.Media.Ocr), `bgremove.rs` (ort), `recorder.rs`,
+  `info.rs`, `qr.rs`, `rename.rs`, `watch.rs`, `history.rs`, `notify.rs`.
+- `job.rs`: trabalhos em segundo plano com progresso e cancelamento. `widgets.rs`/`theme.rs`: componentes e paleta
+  (linho #e8ebe4, carvão #494947, cinábrio #f13030; tema claro e escuro).
+- `integration.rs`: menu do botão direito (registro do usuário), verificação de atualizações (API do GitHub),
+  instância única (TCP 127.0.0.1:47815, protocolo `CONVER/1`; `PathBuf` vazio = só focar a janela).
+- Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas).
+
+## Idiomas (i18n)
+
+- O texto em português escrito no código **é a chave**. Todo texto que aparece na tela passa por `i18n::tr(...)`.
+- `i18n/keys.txt` lista as chaves; cada `i18n/<código>.txt` tem linhas `número|tradução` alinhadas com ela,
+  embutidas no exe via `include_str!`. 20 idiomas em `i18n::LANGS`.
+- Ao adicionar ou mudar textos: `python i18n/extrair.py` (reaproveita as traduções existentes), depois traduzir as
+  linhas novas nos 19 arquivos e rodar o teste `i18n_files`, que aponta o que falta.
+- `tr()` também traduz mensagens montadas (moldes com `{}`, prefixos ✔ ✖ ⚠, separadores `"   "`, `" • "`, `": "`),
+  deixando nomes de arquivo e números como estão.
+- Árabe, urdu e persa: `reshape_line` + `unicode-bidi` (ordem visual, parênteses espelhados). Fontes CJK vêm do
+  Windows (`theme.rs`).
+
+## Armadilhas conhecidas
+
+- **Não edite arquivos-fonte com PowerShell** (`Set-Content`/`Get-Content -Raw` estragam UTF-8). Use as ferramentas
+  de edição ou Python com `encoding='utf-8'`. Em Python, use strings raw para caminhos com `\` (ex.: `Conver\bin`
+  vira backspace).
+- egui 0.31: `Margin` é i8, `CornerRadius` é u8, `rect_stroke` precisa de `StrokeKind`.
+- `ort` usa `load-dynamic`: `bgremove::model()` precisa rodar **antes** de criar qualquer tensor, senão o Windows
+  carrega o `onnxruntime.dll` antigo do System32 ("does not export OrtGetApiBase"). O link estático falha com o
+  VS local (LNK1120).
+- `widgets.rs`: o `egui::Label::new(text).truncate()` da lista de arquivos não deve receber `tr()`.
+- O teste `recorder_devices` grava de verdade; sem microfone com som ele só verifica a detecção de silêncio.
+- Não tire capturas de tela nem simule cliques com o usuário usando o PC (já houve cliques no navegador dele).
+
+## Release
+
+1. Subir `version` no `Cargo.toml` (o `build.ps1` e o instalador leem dali) e atualizar `CHANGELOG.md` e `README.md`.
+2. Rodar os testes e o `build.ps1` (Inno Setup 6 em `installer\conver.iss`); conferir o conteúdo do zip.
+3. Commit (mensagem por arquivo, `git commit -F`) e push em `main`.
+4. `gh release create vX.Y.Z dist\Conver-X.Y.Z-instalador.exe dist\Conver-X.Y.Z-portatil.zip dist\Conver-X.Y.Z-SHA256.txt --title "Conver X.Y.Z" --notes-file <notas>`
+   (`gh` fica em `C:\Program Files\GitHub CLI\gh.exe`).
+5. Componentes de terceiros novos vão para `THIRD-PARTY.md` e `licenses\` (copiados para `Conver\licencas`).
