@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 1.3.1
+
+### Correções
+- Linha de comando e MCP: depois de **PDF → imagens** ou **PDF pesquisável (OCR)**, o `conver-cli` terminava com erro (0xC0000005) mesmo com o trabalho feito, em computadores com placa de vídeo AMD. A API de PDF do Windows usa a placa de vídeo, e o driver quebrava ao ser descarregado no fim do programa. Agora o Conver encerra sem passar por essa etapa, na linha de comando e ao fechar a janela.
+
 ## 1.3.0
 
 ### Novidades

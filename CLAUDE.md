@@ -56,7 +56,9 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP).
   Transcrição e separação são `#[ignore]` (baixam modelos): rode com `--include-ignored`. O teste `integrations`
-  falha se o Conver estiver aberto (a porta da instância única fica ocupada).
+  falha se o Conver estiver aberto (a porta da instância única fica ocupada). Com placa AMD, o processo de teste
+  termina com 0xC0000005 depois de `pdf_tools` (o driver `atidxx64.dll`, usado pela API de PDF do Windows, quebra ao
+  ser descarregado): julgue pela linha `test result`. O app e a CLI evitam isso com `tools::exit_now`.
 
 ## Idiomas (i18n)
 

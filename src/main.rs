@@ -1082,7 +1082,7 @@ fn main() -> eframe::Result {
             }
         }
         let rest: Vec<String> = args[1..].iter().map(|a| a.to_string_lossy().into_owned()).collect();
-        std::process::exit(cli::main(rest));
+        tools::exit_now(cli::main(rest));
     }
     // atualização da versão portátil: este é o Conver.exe novo, rodando da pasta temporária
     if args.first().and_then(|a| a.to_str()) == Some("--aplicar-atualizacao") {
@@ -1115,7 +1115,12 @@ fn main() -> eframe::Result {
             .with_icon(Arc::new(icon)),
         ..Default::default()
     };
-    eframe::run_native("Conver", options, Box::new(move |cc| Ok(Box::new(ConverApp::new(cc, inbox)))))
+    let r = eframe::run_native("Conver", options, Box::new(move |cc| Ok(Box::new(ConverApp::new(cc, inbox)))));
+    // a janela já fechou e o app (com as gravações e o ffmpeg) já foi descartado: veja `tools::exit_now`
+    if r.is_ok() {
+        tools::exit_now(0);
+    }
+    r
 }
 
 #[cfg(test)]

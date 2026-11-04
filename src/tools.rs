@@ -3,6 +3,24 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+/// Encerra o processo já, sem a etapa em que o Windows descarrega as DLLs.
+///
+/// A API de PDF do Windows (PDF → imagens, PDF pesquisável) desenha as páginas com Direct3D; o driver de vídeo da
+/// AMD (atidxx64.dll) quebra quando é descarregado no fim do processo (0xC0000005), e quem chamou o conver-cli
+/// recebia erro mesmo com o trabalho feito. Chame só depois que tudo o que importa já terminou (arquivos fechados,
+/// ffmpeg encerrado, configuração salva).
+pub fn exit_now(code: i32) -> ! {
+    use std::io::Write;
+    let _ = std::io::stdout().flush();
+    let _ = std::io::stderr().flush();
+    // SAFETY: GetCurrentProcess devolve um pseudo-handle sempre válido para o próprio processo
+    unsafe {
+        use windows::Win32::System::Threading::{GetCurrentProcess, TerminateProcess};
+        let _ = TerminateProcess(GetCurrentProcess(), code as u32);
+    }
+    std::process::exit(code) // só se o TerminateProcess falhar
+}
+
 pub fn exe_dir() -> PathBuf {
     std::env::current_exe()
         .ok()
