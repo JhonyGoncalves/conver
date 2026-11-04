@@ -1,6 +1,6 @@
 # Lista de mudanças
 
-## Próxima versão
+## 1.4.0
 
 ### Novidades
 - **Fluxos de automação por nodes** (nova seção Automação no menu): monte uma sequência de ferramentas ligando nodes num quadro. O resultado de um node passa para o próximo, e todas as ferramentas do Conver viram nodes. Há também nodes de entrada, de texto, de filtro (por tipo, extensão ou tamanho) e de "Salvar em pasta". O quadro permite arrastar, aproximar e afastar, e salva sozinho; arrastar arquivos para a janela os coloca na entrada. Dois fluxos de exemplo vêm prontos.
