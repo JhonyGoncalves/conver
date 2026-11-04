@@ -1,11 +1,14 @@
 #![windows_subsystem = "windows"]
 //! Conver — conversor universal.
 
+mod ai;
 mod bgremove;
+mod cli;
 mod download;
 mod extras;
 mod extras2;
 mod extras3;
+mod extras4;
 mod history;
 mod i18n;
 mod imaging;
@@ -17,13 +20,20 @@ mod media_extra;
 mod media_page;
 mod notify;
 mod ocr;
+mod ops;
 mod pages;
 mod pdf;
+mod pdf_extra;
+mod presets;
 mod qr;
 mod recorder;
 mod rename;
+mod screenrec;
+mod separate;
 mod theme;
 mod tools;
+mod transcribe;
+mod upscale;
 mod video;
 mod watch;
 mod widgets;
@@ -40,6 +50,7 @@ use serde::{Deserialize, Serialize};
 
 use extras::{HistoryPage, QrPage, RenamePage};
 use extras2::{PdfPage, PdfTool, WatchPage};
+use extras4::{PresetsPage, ScreenPage, SeparatePage, TranscribePage};
 use extras3::{InfoPage, OcrPage, RecorderPage};
 use job::Job;
 use media_page::{MTool, MediaPage};
@@ -110,9 +121,13 @@ enum Page {
     Qr,
     History,
     Settings,
+    Transcribe,
+    Separate,
+    Screen,
+    Presets,
 }
 
-const IMG_TOOLS: [ImgTool; 9] = [
+const IMG_TOOLS: [ImgTool; 10] = [
     ImgTool::Resize,
     ImgTool::Compress,
     ImgTool::Quality,
@@ -122,6 +137,7 @@ const IMG_TOOLS: [ImgTool; 9] = [
     ImgTool::Pdf,
     ImgTool::Adjust,
     ImgTool::RemoveBg,
+    ImgTool::Upscale,
 ];
 
 const MEDIA_TOOLS: [MTool; 15] = [
@@ -151,6 +167,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Img(ImgTool::Quality), "Diminuir qualidade"),
             (Page::Img(ImgTool::Convert), "Converter formato"),
             (Page::Img(ImgTool::RemoveBg), "Remover fundo"),
+            (Page::Img(ImgTool::Upscale), "Ampliar com IA"),
             (Page::Img(ImgTool::Transform), "Girar / recortar"),
             (Page::Img(ImgTool::Adjust), "Ajustes de cor"),
             (Page::Img(ImgTool::Strip), "Remover metadados"),
@@ -171,12 +188,15 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Media(MTool::Subtitles), "Queimar legenda"),
             (Page::Media(MTool::Music), "Música de fundo"),
             (Page::Media(MTool::AudioFrames), "Remover áudio / frames"),
+            (Page::Screen, "Gravar a tela"),
         ],
     ),
     (
         "ÁUDIO",
         &[
             (Page::Recorder, "Gravador de áudio"),
+            (Page::Transcribe, "Transcrever / legendar"),
+            (Page::Separate, "Separar voz e instrumental"),
             (Page::Media(MTool::AConvert), "Converter formato"),
             (Page::Media(MTool::ATrim), "Cortar áudio"),
             (Page::Media(MTool::AMerge), "Juntar áudios"),
@@ -184,11 +204,23 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Media(MTool::ACompress), "Comprimir"),
         ],
     ),
-    ("PDF", &[(Page::Pdf(PdfTool::Merge), "Juntar PDFs"), (Page::Pdf(PdfTool::Split), "Dividir PDF")]),
+    (
+        "PDF",
+        &[
+            (Page::Pdf(PdfTool::Merge), "Juntar PDFs"),
+            (Page::Pdf(PdfTool::Split), "Dividir PDF"),
+            (Page::Pdf(PdfTool::Compress), "Comprimir PDF"),
+            (Page::Pdf(PdfTool::ToImages), "PDF → imagens"),
+            (Page::Pdf(PdfTool::Ocr), "PDF pesquisável (OCR)"),
+            (Page::Pdf(PdfTool::Protect), "Proteger com senha"),
+            (Page::Pdf(PdfTool::Unlock), "Tirar senha"),
+        ],
+    ),
     ("DOWNLOAD", &[(Page::Download, "Vídeos e músicas")]),
     (
         "FERRAMENTAS",
         &[
+            (Page::Presets, "Predefinições"),
             (Page::Info, "Informações do arquivo"),
             (Page::Watch, "Pasta vigiada"),
             (Page::Rename, "Renomear em lote"),
@@ -228,6 +260,10 @@ struct ConverApp {
     recorder: RecorderPage,
     ocr: OcrPage,
     info: InfoPage,
+    transcribe: TranscribePage,
+    separate: SeparatePage,
+    screen: ScreenPage,
+    presets: PresetsPage,
     about: Arc<Mutex<Option<About>>>,
     inbox: Arc<Mutex<Vec<PathBuf>>>,
     update: Arc<Mutex<UpdateState>>,
@@ -274,7 +310,7 @@ impl ConverApp {
             durs: Durations::new(ctx),
             images: IMG_TOOLS.iter().map(|t| (*t, ImagePage::new(*t))).collect(),
             medias: MEDIA_TOOLS.iter().map(|t| (*t, MediaPage::new(*t))).collect(),
-            pdfs: [PdfTool::Merge, PdfTool::Split].iter().map(|t| (*t, PdfPage::new(*t))).collect(),
+            pdfs: PdfTool::ALL.iter().map(|t| (*t, PdfPage::new(*t))).collect(),
             watch: WatchPage::new(),
             rename: RenamePage::new(),
             qr: QrPage::new(),
@@ -282,6 +318,10 @@ impl ConverApp {
             recorder: RecorderPage::new(),
             ocr: OcrPage::new(),
             info: InfoPage::new(),
+            transcribe: TranscribePage::new(),
+            separate: SeparatePage::new(),
+            screen: ScreenPage::new(),
+            presets: PresetsPage::new(),
             about,
             inbox,
             update: Arc::new(Mutex::new(UpdateState::Idle)),
@@ -331,6 +371,9 @@ impl ConverApp {
             Page::Rename => Some(&mut self.rename.queue),
             Page::Ocr => Some(&mut self.ocr.queue),
             Page::Info => Some(&mut self.info.queue),
+            Page::Transcribe => Some(&mut self.transcribe.queue),
+            Page::Separate => Some(&mut self.separate.queue),
+            Page::Presets => Some(&mut self.presets.queue),
             _ => None,
         }
     }
@@ -405,6 +448,7 @@ impl ConverApp {
                         let label = match page {
                             Page::Watch if self.watch.running() => "Pasta vigiada  ●",
                             Page::Recorder if self.recorder.recording() => "Gravador de áudio  ●",
+                            Page::Screen if self.screen.recording() => "Gravar a tela  ●",
                             _ => label,
                         };
                         if nav_item(ui, &p, label, self.page == *page) {
@@ -532,6 +576,30 @@ impl ConverApp {
             row(ui, &p, "Projeto:", |ui| {
                 ui.hyperlink_to(crate::i18n::tr(integration::repo_url().replace("https://", "")), integration::repo_url());
             });
+        });
+        ui.add_space(4.0);
+
+        card(ui, &p, |ui| {
+            ui.label(RichText::new(crate::i18n::tr("Automação (agentes de IA e linha de comando)")).family(bold()).size(16.0).color(p.text));
+            ui.add_space(4.0);
+            widgets::hint(ui, &p, "Agentes de IA (Claude, Cursor, VS Code…) podem usar todas as ferramentas do Conver pelo MCP. Cole a configuração abaixo no arquivo de MCP do seu agente.");
+            let cli = tools::exe_dir().join("conver-cli.exe");
+            row(ui, &p, "Programa:", |ui| ui.add(egui::Label::new(RichText::new(cli.display().to_string()).color(p.text)).truncate()));
+            let snippet = serde_json::to_string_pretty(&serde_json::json!({ "mcpServers": { "conver": { "command": cli.display().to_string(), "args": ["mcp"] } } })).unwrap_or_default();
+            ui.add(egui::TextEdit::multiline(&mut snippet.as_str()).code_editor().desired_rows(6).desired_width(f32::INFINITY));
+            ui.horizontal(|ui| {
+                if widgets::secondary(ui, &p, "Copiar configuração do MCP", true) {
+                    let _ = arboard::Clipboard::new().and_then(|mut c| c.set_text(snippet.clone()));
+                }
+                if widgets::secondary(ui, &p, "Copiar exemplo de linha de comando", true) {
+                    let ex = format!("\"{}\" image_convert foto.png --format webp", cli.display());
+                    let _ = arboard::Clipboard::new().and_then(|mut c| c.set_text(ex));
+                }
+            });
+            if !cli.is_file() {
+                widgets::hint(ui, &p, "⚠ conver-cli.exe não está ao lado do Conver.exe (ele vem no instalador e na versão portátil).");
+            }
+            widgets::hint(ui, &p, "Na linha de comando: conver-cli help  •  conver-cli <ferramenta> arquivos… --opção valor");
         });
         ui.add_space(4.0);
 
@@ -764,6 +832,10 @@ impl eframe::App for ConverApp {
                         Page::Recorder => self.recorder.ui(ui, &p),
                         Page::Ocr => self.ocr.ui(ui, &p, &self.thumbs),
                         Page::Info => self.info.ui(ui, &p),
+                        Page::Transcribe => self.transcribe.ui(ui, &p, &self.durs),
+                        Page::Separate => self.separate.ui(ui, &p, &self.durs),
+                        Page::Screen => self.screen.ui(ui, &p),
+                        Page::Presets => self.presets.ui(ui, &p),
                         Page::Settings => self.settings_ui(ui),
                     }
                 });
@@ -777,6 +849,16 @@ impl eframe::App for ConverApp {
 
 fn main() -> eframe::Result {
     let args: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();
+    // linha de comando e MCP (chamados pelo conver-cli.exe, que repassa o terminal)
+    if args.first().and_then(|a| a.to_str()) == Some("--cli") {
+        if let Ok(cfg) = std::fs::read_to_string(tools::app_dir().join("config.json")) {
+            if let Some(lang) = serde_json::from_str::<serde_json::Value>(&cfg).ok().and_then(|v| v["lang"].as_str().map(String::from)) {
+                i18n::set(&lang);
+            }
+        }
+        let rest: Vec<String> = args[1..].iter().map(|a| a.to_string_lossy().into_owned()).collect();
+        std::process::exit(cli::main(rest));
+    }
     // usados pelo instalador
     match args.first().and_then(|a| a.to_str()) {
         Some("--registrar-menu") => {
@@ -816,3 +898,5 @@ mod tests_new2;
 mod tests_v1;
 #[cfg(test)]
 mod tests_v11;
+#[cfg(test)]
+mod tests_v12;

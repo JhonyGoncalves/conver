@@ -160,6 +160,8 @@ pub enum ImageOp {
     RemoveBg { bg: Background, hard: bool },
     /// Brilho, contraste e saturação de -100 a 100, mais um filtro pronto.
     Adjust { brightness: i16, contrast: i16, saturation: i16, filter: Filter },
+    /// Amplia 2× ou 4× com IA.
+    Upscale { scale: u32 },
 }
 
 /// O que fica no lugar do fundo removido.
@@ -574,6 +576,19 @@ pub fn process(path: &Path, op: &ImageOp) -> Result<Output, String> {
                 suffix: "_ajustada".into(),
                 info: what,
                 dims: (w, h),
+            })
+        }
+        ImageOp::Upscale { scale } => {
+            let out = crate::upscale::upscale(&img, *scale, &crate::upscale::hook_progress, &crate::upscale::hook_cancelled)?;
+            let dims = (out.width(), out.height());
+            // GIF e ICO não comportam imagens grandes: viram PNG
+            let fmt = if matches!(src_fmt, Fmt::Gif | Fmt::Ico | Fmt::Bmp) { Fmt::Png } else { src_fmt };
+            Ok(Output {
+                bytes: encode(&out, fmt, Some(95))?,
+                fmt,
+                suffix: format!("_{scale}x"),
+                info: format!("{w}x{h} → {}x{} (IA {scale}×)", dims.0, dims.1),
+                dims,
             })
         }
     }

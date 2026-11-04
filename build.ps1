@@ -22,6 +22,8 @@ $target = (cargo metadata --format-version 1 --no-deps | ConvertFrom-Json).targe
 # 2. pasta Conver\ com o programa, as ferramentas e as licenças
 New-Item -ItemType Directory -Force Conver\bin, Conver\licencas | Out-Null
 Copy-Item "$target\release\conver.exe" Conver\Conver.exe -Force
+# linha de comando e servidor MCP (para scripts e agentes de IA)
+Copy-Item "$target\release\conver-cli.exe" Conver\conver-cli.exe -Force
 foreach ($tool in "ffmpeg", "yt-dlp") {
     if (-not (Test-Path "Conver\bin\$tool.exe")) {
         $found = Get-Command "$tool.exe" -ErrorAction SilentlyContinue
@@ -33,6 +35,10 @@ foreach ($tool in "ffmpeg", "yt-dlp") {
 $extras = @{
     "Conver\bin\onnxruntime.dll"  = "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-win-x64-1.22.0.zip (lib\onnxruntime.dll)"
     "Conver\modelos\silueta.onnx" = "https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx"
+    # ampliar com IA: realesr-general-x4v3.pth oficial (xinntao/Real-ESRGAN v0.2.5.0) exportado para ONNX
+    "Conver\modelos\realesr-general-x4v3.onnx" = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth (exportar para ONNX)"
+    # transcrever: whisper-cli.exe e DLLs do whisper-bin-x64.zip (os modelos são baixados pelo app)
+    "Conver\bin\whisper\whisper-cli.exe" = "https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.2/whisper-bin-x64.zip (whisper-cli.exe, whisper.dll, ggml*.dll)"
 }
 foreach ($f in $extras.Keys) {
     if (-not (Test-Path $f)) { throw "falta $f - baixe de $($extras[$f])" }

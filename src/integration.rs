@@ -114,7 +114,7 @@ pub fn single_instance(args: &[PathBuf], inbox: Arc<Mutex<Vec<PathBuf>>>) -> boo
 
 // ------------------------------------------------------------- atualizações
 
-fn agent() -> ureq::Agent {
+pub(crate) fn agent() -> ureq::Agent {
     ureq::AgentBuilder::new()
         .timeout(std::time::Duration::from_secs(20))
         .user_agent(&format!("Conver/{}", env!("CARGO_PKG_VERSION")))

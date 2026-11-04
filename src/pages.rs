@@ -87,6 +87,7 @@ pub enum ImgTool {
     Pdf,
     Adjust,
     RemoveBg,
+    Upscale,
 }
 
 #[derive(Clone)]
@@ -187,6 +188,7 @@ pub struct ImagePage {
     bg: Background,
     bg_color: [u8; 3],
     hard: bool,
+    scale: u32,
 }
 
 impl ImagePage {
@@ -198,7 +200,7 @@ impl ImagePage {
             out: OutDir::same_as_source(),
             job: Job::default(),
             preview: ResultPreview::new(),
-            show_result: tool != ImgTool::Pdf,
+            show_result: tool != ImgTool::Pdf && tool != ImgTool::Upscale,
             pct: 50,
             px_mode: false,
             w: String::new(),
@@ -220,6 +222,7 @@ impl ImagePage {
             bg: Background::Transparente,
             bg_color: [0xF1, 0x30, 0x30],
             hard: true,
+            scale: 2,
         }
     }
 
@@ -255,6 +258,11 @@ impl ImagePage {
                 "Remover fundo",
                 "Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.",
                 "Remover fundo",
+            ),
+            ImgTool::Upscale => (
+                "Ampliar com IA",
+                "Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os detalhes. Roda no seu PC, sem internet.",
+                "Ampliar",
             ),
             ImgTool::Adjust => (
                 "Ajustes de cor",
@@ -300,6 +308,7 @@ impl ImagePage {
             }
             ImgTool::Strip => ImageOp::StripMeta,
             ImgTool::RemoveBg => ImageOp::RemoveBg { bg: self.bg, hard: self.hard },
+            ImgTool::Upscale => ImageOp::Upscale { scale: self.scale },
             ImgTool::Adjust => ImageOp::Adjust {
                 brightness: self.brightness,
                 contrast: self.contrast,
@@ -400,6 +409,15 @@ impl ImagePage {
                 hint(ui, p, "Transparente salva em PNG. A primeira imagem demora alguns segundos enquanto o modelo carrega.");
                 if crate::bgremove::model_path().is_none() {
                     ui.label(RichText::new(crate::i18n::tr("⚠ Modelo de IA não encontrado: coloque o silueta.onnx na pasta modelos.")).color(p.accent));
+                }
+            }
+            ImgTool::Upscale => {
+                row(ui, p, "Ampliar:", |ui| {
+                    segmented(ui, p, &mut self.scale, &[(2, "2×"), (4, "4×")]);
+                });
+                hint(ui, p, "Ótimo para fotos pequenas, prints e imagens antigas. Imagens grandes levam mais tempo (a prévia também).");
+                if crate::ai::find_model(crate::upscale::MODEL_FILE).is_none() {
+                    ui.label(RichText::new(crate::i18n::tr("⚠ Modelo de IA não encontrado: coloque o realesr-general-x4v3.onnx na pasta modelos.")).color(p.accent));
                 }
             }
             ImgTool::Adjust => {
@@ -547,7 +565,9 @@ impl ImagePage {
                     let files = self.queue.files.clone();
                     let out = self.out.path.clone();
                     self.job.start(ui.ctx(), move |ctl| {
-                        run_batch(ctl, title, &files, |src, _| imaging::process_and_save(src, &op, out.as_deref()));
+                        run_batch(ctl, title, &files, |src, progress| {
+                            crate::upscale::with_progress(progress, &|| ctl.cancelled(), || imaging::process_and_save(src, &op, out.as_deref()))
+                        });
                     });
                 }
                 Err(e) => alert(e),

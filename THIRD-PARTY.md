@@ -30,6 +30,23 @@ O Conver não é derivado do FFmpeg: ele apenas executa o `ffmpeg.exe` como um p
 - Arquivo: `modelos\silueta.onnx` (SHA-256 `75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb`)
 - Origem: projeto [rembg](https://github.com/danielgatis/rembg) (licença MIT), versão reduzida do [U²-Net](https://github.com/xuebinqin/U-2-Net) (licença Apache 2.0)
 
+## whisper.cpp — MIT
+
+- Arquivos: `bin\whisper\whisper-cli.exe`, `whisper.dll`, `ggml*.dll`
+- Versão: 1.9.2, compilação oficial (<https://github.com/ggml-org/whisper.cpp/releases/tag/v1.9.2>)
+- Licença: MIT — texto em `licencas\whisper.cpp-LICENSE.txt`
+- Os modelos do Whisper (OpenAI, licença MIT) não vêm no download: são baixados de <https://huggingface.co/ggerganov/whisper.cpp> na primeira transcrição, conferindo o SHA-256.
+
+## Modelo Real-ESRGAN "general x4v3" (ampliar com IA)
+
+- Arquivo: `modelos\realesr-general-x4v3.onnx` (SHA-256 `3439a9e4cd26c4cdfff28f82f00411a7a4f06e7f72a1efdc664479f1e2bf0690`)
+- Origem: `realesr-general-x4v3.pth` oficial do [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.5.0) (Xintao Wang, licença BSD-3 — texto em `licencas\Real-ESRGAN-LICENSE.txt`), convertido para ONNX sem alterações nos pesos.
+
+## Modelo UVR MDX-Net "Inst HQ 3" (separar voz e instrumental)
+
+- Não vem no download: é baixado de <https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models> no primeiro uso, conferindo o SHA-256 (`317554b07fe1ea5279a77f2b1520a41ea4b93432560c4ffd08792c30fddf9adc`).
+- Projeto: [Ultimate Vocal Remover](https://github.com/Anjok07/ultimatevocalremovergui) (licença MIT).
+
 ## Bibliotecas Rust
 
-O Conver usa bibliotecas Rust de código aberto (egui/eframe, image, lopdf, ort, ar-reshaper, unicode-bidi, rfd, serde, ureq, windows-rs e outras), quase todas sob MIT e/ou Apache 2.0. A lista completa, com versões, está no arquivo `Cargo.lock` do repositório.
+O Conver usa bibliotecas Rust de código aberto (egui/eframe, image, lopdf, ort, realfft, sha2, ar-reshaper, unicode-bidi, rfd, serde, ureq, windows-rs e outras), quase todas sob MIT e/ou Apache 2.0. A lista completa, com versões, está no arquivo `Cargo.lock` do repositório.

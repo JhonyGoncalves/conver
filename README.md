@@ -32,6 +32,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 ## O que o Conver faz
 
 **Imagem**
+- **Ampliar com IA** (2× ou 4×, Real-ESRGAN): fotos pequenas, prints e imagens antigas sem borrar
 - **Remover fundo** com IA, no próprio computador e sem internet: fundo transparente (PNG) ou de uma cor, borda definida ou suave
 - Redimensionar (porcentagem ou pixels), comprimir, diminuir qualidade e converter entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO
 - Girar, espelhar e recortar (1:1, 4:3, 16:9, 9:16…)
@@ -47,13 +48,18 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
 - Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
 - Remover o áudio ou extrair frames
+- **Gravar a tela** (inteira, uma janela ou uma área) em MP4, com ou sem microfone
 
 **Áudio**
 - Gravador de áudio (microfone) em MP3, WAV ou M4A
+- **Transcrever / legendar** com o Whisper, sem internet: fala → texto (.txt) e legendas (.srt/.vtt), em dezenas de idiomas
+- **Separar voz e instrumental** com IA (karaokê ou só a voz)
 - Converter (MP3, WAV, FLAC, OGG, M4A, OPUS), cortar, juntar, normalizar volume e comprimir
 
 **PDF**
 - Juntar PDFs e dividir (páginas como `1-3, 7` ou uma página por arquivo)
+- **Comprimir PDF**, **PDF → imagens** (PNG/JPG), **proteger com senha** e **tirar a senha**
+- **PDF pesquisável (OCR)**: o texto de PDFs escaneados passa a poder ser pesquisado e copiado
 
 **Downloads**
 - YouTube, YouTube Music, TikTok, Instagram, X/Twitter, Facebook, Dailymotion, SoundCloud e centenas de outros sites (via [yt-dlp](https://github.com/yt-dlp/yt-dlp))
@@ -67,6 +73,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Renomear em lote (com prévia e desfazer)
 - Gerador de QR Code
 - Histórico de conversões e downloads
+- **Predefinições**: salve suas configurações favoritas (ex.: "WhatsApp até 16 MB") e use com um clique
 
 **No dia a dia**
 - Arraste arquivos para a janela (ou para o ícone do Conver) e eles vão para a ferramenta certa
@@ -77,9 +84,38 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 
 ![Configurações do Conver](docs/configuracoes.png)
 
+## Automação: linha de comando e agentes de IA (MCP)
+
+Tudo o que o Conver faz também funciona sem abrir a janela, pelo `conver-cli.exe` (fica ao lado do `Conver.exe`):
+
+```powershell
+conver-cli list                                        # todas as ferramentas
+conver-cli help video_compress                         # opções de uma ferramenta
+conver-cli image_convert fotos\*.png --format webp
+conver-cli video_compress aula.mp4 --target_mb 50 --resolution 720p
+conver-cli transcribe entrevista.mp3 --language pt --formats srt,txt
+conver-cli preset "WhatsApp (vídeo até 16 MB)" video.mp4
+conver-cli pdf_ocr digitalizado.pdf --json             # resultado em JSON
+```
+
+**Agentes de IA** (Claude Desktop, Claude Code, Cursor, VS Code e outros compatíveis com MCP) podem usar as mais de 40 ferramentas do Conver. Adicione ao arquivo de configuração de MCP do agente (o caminho certo aparece em Configurações → Automação, com um botão para copiar):
+
+```json
+{
+  "mcpServers": {
+    "conver": {
+      "command": "C:\\Users\\voce\\AppData\\Local\\Programs\\Conver\\conver-cli.exe",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+O servidor MCP usa stdio, informa o progresso das tarefas longas, aceita cancelamento e devolve os caminhos de cada arquivo gerado (e o texto, no OCR e na transcrição).
+
 ## Privacidade
 
-Tudo é feito no seu computador. O Conver só acessa a internet quando você usa os downloads, quando atualiza o yt-dlp e, se a opção estiver ligada, para ver se há uma versão nova (uma consulta à API do GitHub). Não há telemetria.
+Tudo é feito no seu computador. O Conver só acessa a internet quando você usa os downloads, quando atualiza o yt-dlp, na primeira vez que usa a transcrição ou a separação de voz (para baixar o modelo de IA, conferindo a assinatura) e, se a opção estiver ligada, para ver se há uma versão nova (uma consulta à API do GitHub). Não há telemetria.
 
 Use os downloads apenas para conteúdos que você tem direito de baixar.
 
@@ -93,6 +129,8 @@ winget install Rustlang.Rustup Gyan.FFmpeg JRSoftware.InnoSetup
 # 2. coloque em Conver\bin o yt-dlp.exe (https://github.com/yt-dlp/yt-dlp/releases) e o onnxruntime.dll
 #    (pasta lib do onnxruntime-win-x64-1.22.0.zip, https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0)
 #    e em Conver\modelos o silueta.onnx (https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
+#    e o realesr-general-x4v3.onnx (exportado do .pth oficial do Real-ESRGAN v0.2.5.0)
+#    e em Conver\bin\whisper o whisper-cli.exe e as DLLs do whisper-bin-x64.zip (whisper.cpp v1.9.2)
 # 3. compile e gere a versão portátil e o instalador em dist\
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
@@ -109,7 +147,11 @@ Para só rodar durante o desenvolvimento: `cargo run --release` (com `ffmpeg.exe
 | `src/video.rs`, `media.rs`, `media_extra.rs` | Vídeo e áudio com o FFmpeg |
 | `src/download.rs` | Downloads com o yt-dlp |
 | `src/pdf.rs`, `ocr.rs`, `info.rs`, `recorder.rs` | PDF, OCR, informações e gravador |
-| `src/bgremove.rs` | Removedor de fundo (modelo ONNX) |
+| `src/bgremove.rs`, `upscale.rs`, `separate.rs`, `ai.rs` | IA: remover fundo, ampliar, separar voz; ONNX Runtime e download de modelos |
+| `src/transcribe.rs` | Transcrição com o whisper.cpp |
+| `src/pdf_extra.rs` | Comprimir, senha, PDF → imagens e OCR de PDF |
+| `src/screenrec.rs` | Gravação de tela |
+| `src/ops.rs`, `cli.rs`, `presets.rs` | Núcleo das ferramentas (JSON), linha de comando, servidor MCP e predefinições |
 | `src/i18n.rs`, `i18n/*.txt` | Idiomas: o texto em português do código é a chave; cada idioma tem linhas `número\|tradução` alinhadas com `i18n/keys.txt` |
 | `src/integration.rs` | Menu do botão direito, atualizações, instância única |
 | `installer/conver.iss` | Script do instalador (Inno Setup) |
@@ -126,4 +168,4 @@ Também ajuda muito dar uma ⭐ no repositório, relatar problemas e sugerir fer
 
 ## Licença
 
-O código do Conver está sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3), o yt-dlp (Unlicense), o ONNX Runtime (MIT) e o modelo silueta (MIT/Apache 2.0) como componentes separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).
+O código do Conver está sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3), o yt-dlp (Unlicense), o ONNX Runtime (MIT), o whisper.cpp (MIT) e os modelos silueta (MIT/Apache 2.0) e Real-ESRGAN (BSD-3) como componentes separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).

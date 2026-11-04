@@ -1,5 +1,21 @@
 # Lista de mudanças
 
+## 1.2.0
+
+### Novidades
+- **Automação com agentes de IA (MCP)**: o `conver-cli mcp` é um servidor MCP com mais de 40 ferramentas (todas as do Conver), para Claude, Cursor, VS Code e outros agentes. Informa o progresso, aceita cancelamento e devolve os caminhos dos arquivos gerados. A configuração pronta para copiar fica em Configurações → Automação.
+- **Linha de comando**: `conver-cli <ferramenta> arquivos… --opção valor` para scripts e arquivos .bat (curingas como `*.jpg`, saída em JSON com `--json`, `conver-cli help <ferramenta>`).
+- **Predefinições**: salve configurações favoritas e use com um clique, pela linha de comando ou pelo MCP. Já vêm prontas: Instagram (1080 px), Fotos para a web, WhatsApp (vídeo até 16 MB), Discord (vídeo até 10 MB), Podcast (MP3 mono) e Legendas automáticas.
+- **Ampliar com IA** (2× ou 4×, Real-ESRGAN), sem internet.
+- **Transcrever / legendar** com o Whisper (whisper.cpp), sem internet: texto (.txt) e legendas (.srt/.vtt), detecção do idioma e tradução para o inglês. Três modelos: rápido (82 MB), equilibrado (264 MB) e preciso (574 MB), baixados na primeira vez.
+- **Separar voz e instrumental** com IA (UVR MDX-Net): karaokê ou só a voz, em WAV, FLAC ou MP3.
+- **Gravar a tela**: tela inteira, uma janela ou uma área, em MP4, com microfone opcional.
+- **PDF**: comprimir (recomprime as imagens de dentro), PDF → imagens (PNG/JPG, 96 a 300 dpi), proteger com senha (AES-128, com permissões de impressão e cópia), tirar a senha e **PDF pesquisável** (OCR do Windows numa camada de texto invisível).
+
+### Melhorias
+- Modelos de IA baixados sob demanda, sempre conferindo o SHA-256.
+- Os textos novos estão traduzidos para os 20 idiomas.
+
 ## 1.1.0
 
 ### Novidades

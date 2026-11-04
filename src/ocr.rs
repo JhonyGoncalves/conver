@@ -11,7 +11,7 @@ use windows::core::HSTRING;
 
 use crate::{imaging, tools};
 
-fn init() {
+pub(crate) fn init() {
     // SAFETY: inicializa o WinRT nesta thread; chamar de novo só devolve um aviso.
     unsafe {
         let _ = RoInitialize(RO_INIT_MULTITHREADED);
@@ -31,15 +31,49 @@ pub fn languages() -> Vec<(String, String)> {
         .collect()
 }
 
-/// Lê o texto da imagem. `lang` vazio = idiomas do perfil do usuário.
-pub fn recognize(path: &Path, lang: &str) -> Result<String, String> {
+/// Reconhecedor para o idioma (`lang` vazio = idiomas do perfil do usuário).
+pub fn engine(lang: &str) -> Result<OcrEngine, String> {
     init();
-    let engine = if lang.is_empty() {
-        OcrEngine::TryCreateFromUserProfileLanguages().map_err(err)?
+    if lang.is_empty() {
+        OcrEngine::TryCreateFromUserProfileLanguages().map_err(err)
     } else {
         let l = Language::CreateLanguage(&HSTRING::from(lang)).map_err(err)?;
-        OcrEngine::TryCreateFromLanguage(&l).map_err(|_| format!("o idioma {lang} não está instalado para OCR no Windows."))?
-    };
+        OcrEngine::TryCreateFromLanguage(&l).map_err(|_| format!("o idioma {lang} não está instalado para OCR no Windows."))
+    }
+}
+
+/// Uma palavra reconhecida e sua caixa (em pixels da imagem: x, y, largura, altura).
+pub struct Word {
+    pub text: String,
+    pub rect: (f32, f32, f32, f32),
+}
+
+/// Palavras de uma imagem já decodificada (SoftwareBitmap do Windows).
+pub fn words(engine: &OcrEngine, bitmap: &windows::Graphics::Imaging::SoftwareBitmap) -> Result<Vec<Vec<Word>>, String> {
+    (|| -> windows::core::Result<Vec<Vec<Word>>> {
+        let result = engine.RecognizeAsync(bitmap)?.join()?;
+        let mut lines = Vec::new();
+        for line in result.Lines()? {
+            let mut ws = Vec::new();
+            for w in line.Words()? {
+                let r = w.BoundingRect()?;
+                ws.push(Word { text: w.Text()?.to_string(), rect: (r.X, r.Y, r.Width, r.Height) });
+            }
+            lines.push(ws);
+        }
+        Ok(lines)
+    })()
+    .map_err(err)
+}
+
+pub fn max_dimension() -> u32 {
+    init();
+    OcrEngine::MaxImageDimension().unwrap_or(2600)
+}
+
+/// Lê o texto da imagem. `lang` vazio = idiomas do perfil do usuário.
+pub fn recognize(path: &Path, lang: &str) -> Result<String, String> {
+    let engine = engine(lang)?;
 
     // o OCR do Windows tem limite de tamanho e lê poucos formatos: entrega sempre um PNG do tamanho certo
     let img = imaging::load(path)?;

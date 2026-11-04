@@ -13,12 +13,22 @@ use crate::theme::Palette;
 use crate::video::{VFmt, VLevel};
 use crate::watch::{self, Action, Options};
 use crate::widgets::{self, Act, FileQueue, OutDir, card, hint, row, segmented};
-use crate::{pdf, tools};
+use crate::{pdf, pdf_extra, tools};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PdfTool {
     Merge,
     Split,
+    Compress,
+    ToImages,
+    Protect,
+    Unlock,
+    Ocr,
+}
+
+impl PdfTool {
+    pub const ALL: [PdfTool; 7] =
+        [PdfTool::Merge, PdfTool::Split, PdfTool::Compress, PdfTool::ToImages, PdfTool::Protect, PdfTool::Unlock, PdfTool::Ocr];
 }
 
 pub struct PdfPage {
@@ -30,6 +40,17 @@ pub struct PdfPage {
     each_page: bool,
     ranges: String,
     pages: HashMap<PathBuf, Option<usize>>,
+    level: Level,
+    img_png: bool,
+    dpi: u32,
+    password: String,
+    password2: String,
+    owner: String,
+    allow_print: bool,
+    allow_copy: bool,
+    ocr_langs: Option<Vec<(String, String)>>,
+    ocr_lang: usize,
+    skip_text: bool,
 }
 
 impl PdfPage {
@@ -44,6 +65,17 @@ impl PdfPage {
             each_page: false,
             ranges: "1-3".into(),
             pages: HashMap::new(),
+            level: Level::Media,
+            img_png: true,
+            dpi: 150,
+            password: String::new(),
+            password2: String::new(),
+            owner: String::new(),
+            allow_print: true,
+            allow_copy: false,
+            ocr_langs: None,
+            ocr_lang: 0,
+            skip_text: true,
         }
     }
 
@@ -58,6 +90,23 @@ impl PdfPage {
                 "Dividir PDF",
                 "Extraia páginas específicas (ex.: 1-3, 7) ou separe cada página num PDF próprio.",
                 "Dividir",
+            ),
+            PdfTool::Compress => (
+                "Comprimir PDF",
+                "Deixe PDFs menores recomprimindo as imagens de dentro deles (fotos, páginas escaneadas).",
+                "Comprimir",
+            ),
+            PdfTool::ToImages => ("PDF para imagens", "Salve as páginas do PDF como imagens PNG ou JPG.", "Converter"),
+            PdfTool::Protect => (
+                "Proteger PDF com senha",
+                "Coloque uma senha para abrir o PDF e escolha se ele pode ser impresso ou copiado.",
+                "Proteger",
+            ),
+            PdfTool::Unlock => ("Tirar senha do PDF", "Remova a senha de um PDF seu (é preciso saber a senha atual).", "Tirar senha"),
+            PdfTool::Ocr => (
+                "PDF pesquisável (OCR)",
+                "Reconhece o texto de PDFs escaneados com o OCR do Windows: depois dá para pesquisar, selecionar e copiar.",
+                "Reconhecer texto",
             ),
         };
         widgets::header(ui, p, title, subtitle);
@@ -97,6 +146,75 @@ impl PdfPage {
                     hint(ui, p, &format!("O PDF selecionado tem {n} páginas."));
                 }
             }
+            PdfTool::Compress => {
+                row(ui, p, "Nível:", |ui| {
+                    segmented(ui, p, &mut self.level, &[(Level::Leve, "Leve"), (Level::Media, "Média"), (Level::Forte, "Forte")]);
+                });
+                hint(ui, p, "Leve = quase sem perda  •  Forte = imagens com até 1200 px, bem menores. O texto não perde qualidade.");
+            }
+            PdfTool::ToImages => {
+                row(ui, p, "Formato:", |ui| {
+                    segmented(ui, p, &mut self.img_png, &[(true, "PNG"), (false, "JPG")]);
+                });
+                row(ui, p, "Resolução:", |ui| {
+                    segmented(ui, p, &mut self.dpi, &[(96, "96 dpi (tela)"), (150, "150 dpi"), (300, "300 dpi (impressão)")]);
+                });
+                row(ui, p, "Páginas:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.ranges).hint_text(crate::i18n::tr("todas")).desired_width(200.0));
+                    hint(ui, p, "vazio = todas  •  ex.: 1-3, 7");
+                });
+                row(ui, p, "Senha:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.password).password(true).hint_text(crate::i18n::tr("só se o PDF tiver")).desired_width(200.0));
+                });
+                hint(ui, p, "As imagens são salvas numa pasta <nome do PDF>_imagens.");
+            }
+            PdfTool::Protect => {
+                row(ui, p, "Senha:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.password).password(true).desired_width(200.0));
+                });
+                row(ui, p, "Repita a senha:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.password2).password(true).desired_width(200.0));
+                    if !self.password2.is_empty() && self.password != self.password2 {
+                        ui.label(RichText::new(crate::i18n::tr("as senhas não conferem")).color(p.accent));
+                    }
+                });
+                row(ui, p, "Permitir:", |ui| {
+                    ui.checkbox(&mut self.allow_print, crate::i18n::tr("Imprimir"));
+                    ui.add_space(8.0);
+                    ui.checkbox(&mut self.allow_copy, crate::i18n::tr("Copiar o texto"));
+                });
+                row(ui, p, "Senha do dono:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.owner).password(true).hint_text(crate::i18n::tr("opcional")).desired_width(200.0));
+                    hint(ui, p, "libera tudo para quem souber");
+                });
+                hint(ui, p, "Guarde a senha: sem ela não há como abrir o PDF.");
+            }
+            PdfTool::Unlock => {
+                row(ui, p, "Senha atual:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.password).password(true).desired_width(200.0));
+                });
+                hint(ui, p, "Use só em PDFs seus ou que você tem autorização para alterar.");
+            }
+            PdfTool::Ocr => {
+                if self.ocr_langs.is_none() {
+                    self.ocr_langs = Some(crate::ocr::languages());
+                }
+                let langs = self.ocr_langs.clone().unwrap_or_default();
+                row(ui, p, "Idioma do texto:", |ui| {
+                    let auto = crate::i18n::tr("Automático (idiomas do Windows)");
+                    let current = if self.ocr_lang == 0 { auto.clone() } else { langs.get(self.ocr_lang - 1).map(|l| l.1.clone()).unwrap_or_default() };
+                    egui::ComboBox::from_id_salt("pdf_ocr_lang").selected_text(current).width(260.0).show_ui(ui, |ui| {
+                        ui.selectable_value(&mut self.ocr_lang, 0, auto);
+                        for (i, (_, name)) in langs.iter().enumerate() {
+                            ui.selectable_value(&mut self.ocr_lang, i + 1, name);
+                        }
+                    });
+                });
+                row(ui, p, "Páginas com texto:", |ui| {
+                    segmented(ui, p, &mut self.skip_text, &[(true, "Pular"), (false, "Reconhecer de novo")]);
+                });
+                hint(ui, p, "A aparência do PDF não muda: o texto reconhecido fica numa camada invisível por cima das páginas.");
+            }
         });
         if selected.is_some() && selected_pages.is_none() {
             ui.label(RichText::new(crate::i18n::tr("Não foi possível ler o PDF selecionado (pode estar danificado ou protegido).")).color(p.accent));
@@ -104,9 +222,13 @@ impl PdfPage {
         ui.add_space(4.0);
         self.out.ui(ui, p);
 
+        let has = !self.queue.files.is_empty();
         let can = match self.tool {
             PdfTool::Merge => self.queue.files.len() >= 2,
-            PdfTool::Split => !self.queue.files.is_empty() && (self.each_page || !self.ranges.trim().is_empty()),
+            PdfTool::Split => has && (self.each_page || !self.ranges.trim().is_empty()),
+            PdfTool::Protect => has && !self.password.is_empty() && self.password == self.password2,
+            PdfTool::Unlock => has && !self.password.is_empty(),
+            _ => has,
         };
         match widgets::action_bar(ui, p, &self.job, action, can) {
             Act::Start => {
@@ -132,6 +254,47 @@ impl PdfPage {
                         self.job.start(ui.ctx(), move |ctl| {
                             run_batch(ctl, title, &files, |src, progress| {
                                 pdf::split(src, out.as_deref(), ranges.as_deref(), progress, &|| ctl.cancelled())
+                            });
+                        });
+                    }
+                    PdfTool::Compress => {
+                        let level = self.level;
+                        self.job.start(ui.ctx(), move |ctl| {
+                            run_batch(ctl, title, &files, |src, progress| pdf_extra::compress(src, out.as_deref(), level, progress, &|| ctl.cancelled()));
+                        });
+                    }
+                    PdfTool::ToImages => {
+                        let (fmt, dpi) = (if self.img_png { pdf_extra::PageFmt::Png } else { pdf_extra::PageFmt::Jpg }, self.dpi);
+                        let (ranges, pw) = (self.ranges.trim().to_string(), self.password.clone());
+                        self.job.start(ui.ctx(), move |ctl| {
+                            run_batch(ctl, title, &files, |src, progress| {
+                                let r = (!ranges.is_empty()).then_some(ranges.as_str());
+                                pdf_extra::to_images(src, out.as_deref(), fmt, dpi, r, &pw, progress, &|| ctl.cancelled())
+                            });
+                        });
+                    }
+                    PdfTool::Protect => {
+                        let (pw, owner, print, copy) = (self.password.clone(), self.owner.clone(), self.allow_print, self.allow_copy);
+                        self.job.start(ui.ctx(), move |ctl| {
+                            run_batch(ctl, title, &files, |src, _| pdf_extra::protect(src, out.as_deref(), &pw, &owner, print, copy));
+                        });
+                    }
+                    PdfTool::Unlock => {
+                        let pw = self.password.clone();
+                        self.job.start(ui.ctx(), move |ctl| {
+                            run_batch(ctl, title, &files, |src, _| pdf_extra::unlock(src, out.as_deref(), &pw));
+                        });
+                    }
+                    PdfTool::Ocr => {
+                        let lang = if self.ocr_lang == 0 {
+                            String::new()
+                        } else {
+                            self.ocr_langs.as_ref().and_then(|l| l.get(self.ocr_lang - 1)).map(|l| l.0.clone()).unwrap_or_default()
+                        };
+                        let skip = self.skip_text;
+                        self.job.start(ui.ctx(), move |ctl| {
+                            run_batch(ctl, title, &files, |src, progress| {
+                                pdf_extra::make_searchable(src, out.as_deref(), &lang, skip, progress, &|| ctl.cancelled())
                             });
                         });
                     }

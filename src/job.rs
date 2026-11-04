@@ -81,6 +81,11 @@ pub struct Ctl {
 }
 
 impl Ctl {
+    /// Controle sem janela (linha de comando e MCP): o estado fica no `job`, que pode ser lido de fora.
+    pub fn headless(job: &Job) -> Ctl {
+        Ctl { job: job.clone(), ctx: eframe::egui::Context::default() }
+    }
+
     fn update(&self, f: impl FnOnce(&mut JobState)) {
         f(&mut self.job.state());
         self.ctx.request_repaint();

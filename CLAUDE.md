@@ -18,8 +18,11 @@ Antes dos testes, ponha `Conver\bin` no PATH na mesma sessão: `$env:PATH = "$PW
 ## Pasta `Conver\` (fora do git)
 
 Tem tudo o que vai junto no download e é usada também pelo `cargo run`/testes (achada via `CARGO_MANIFEST_DIR`):
-- `bin\ffmpeg.exe` (7.1.1, gyan full, GPLv3), `bin\yt-dlp.exe`, `bin\onnxruntime.dll` (1.22.0 oficial da Microsoft)
-- `modelos\silueta.onnx` (modelo rembg do removedor de fundo)
+- `bin\ffmpeg.exe` (7.1.1, gyan full, GPLv3), `bin\yt-dlp.exe`, `bin\onnxruntime.dll` (1.22.0 oficial da Microsoft),
+  `bin\whisper\` (whisper-cli.exe + DLLs do whisper.cpp 1.9.2)
+- `modelos\silueta.onnx` (remover fundo) e `modelos\realesr-general-x4v3.onnx` (ampliar)
+- `conver-cli.exe` (copiado pelo `build.ps1` de `target\release`)
+- Modelos grandes (Whisper, UVR) não vão no download: são baixados para `%APPDATA%\Conver\modelos` no primeiro uso.
 
 `tools::find_tool` / `tools::find_tool_file` procuram em `exe_dir\bin`, `exe_dir` e `CARGO_MANIFEST_DIR\Conver\bin`.
 Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de `%APPDATA%\Conver` (`tools::app_dir`).
@@ -35,13 +38,27 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   (linho #e8ebe4, carvão #494947, cinábrio #f13030; tema claro e escuro).
 - `integration.rs`: menu do botão direito (registro do usuário), verificação de atualizações (API do GitHub),
   instância única (TCP 127.0.0.1:47815, protocolo `CONVER/1`; `PathBuf` vazio = só focar a janela).
-- Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas).
+- `ops.rs`: **núcleo de todas as ferramentas** como operações com argumentos JSON e JSON Schema (nomes e descrições
+  em inglês, para agentes). Usado pela linha de comando, pelo MCP e pelas predefinições. Ferramenta nova = função
+  `t_*` + entrada em `TOOLS` (e a tela, se tiver).
+- `cli.rs`: modo `--cli` do Conver.exe — linha de comando e servidor MCP (`mcp`: JSON-RPC por stdio, uma thread por
+  chamada, progresso e cancelamento). `src/bin/conver-cli.rs` é um executável de console mínimo que repassa os
+  argumentos e o terminal para `Conver.exe --cli` (o Conver.exe é de janela e o Windows não esperaria por ele).
+- `presets.rs`: predefinições (ferramenta + argumentos) em `predefinicoes.json`. Telas novas em `extras4.rs`.
+- IA: `ai.rs` (ambiente ONNX compartilhado e download de modelos com SHA-256), `upscale.rs` (Real-ESRGAN em blocos),
+  `separate.rs` (UVR MDX-Net com STFT própria via realfft), `transcribe.rs` (whisper-cli em `bin\whisper`).
+- `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
+  PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
+- Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP).
+  Transcrição e separação são `#[ignore]` (baixam modelos): rode com `--include-ignored`. O teste `integrations`
+  falha se o Conver estiver aberto (a porta da instância única fica ocupada).
 
 ## Idiomas (i18n)
 
 - O texto em português escrito no código **é a chave**. Todo texto que aparece na tela passa por `i18n::tr(...)`.
 - `i18n/keys.txt` lista as chaves; cada `i18n/<código>.txt` tem linhas `número|tradução` alinhadas com ela,
   embutidas no exe via `include_str!`. 20 idiomas em `i18n::LANGS`.
+- `cli.rs` e `presets.rs` ficam fora da extração; de `ops.rs` só entram os títulos das ferramentas (2º texto do `tool!`).
 - Ao adicionar ou mudar textos: `python i18n/extrair.py` (reaproveita as traduções existentes), depois traduzir as
   linhas novas nos 19 arquivos e rodar o teste `i18n_files`, que aponta o que falta.
 - `tr()` também traduz mensagens montadas (moldes com `{}`, prefixos ✔ ✖ ⚠, separadores `"   "`, `" • "`, `": "`),

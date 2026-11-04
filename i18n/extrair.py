@@ -39,11 +39,19 @@ INTERNAL = {
     "Kids", "Count", "Catalog", "Root", "ERROR: ", "sign in", "pipe:1", "out_time_us=", "(audio)", "Audio:", "Video:",
     "Firefox", "Edge", "Chrome", "Brave", "Opera", "Charcoal", "Cinnabar", "C:\\Windows", "/select,", "hflip,vflip",
     "bestaudio/best", "bv*+ba/b", "+faststart", "Flash", "ffmpeg:", "yt-dlp:", "Conver/{}", "Conver {}",
+    "Program Manager", "Helvetica", "WinAnsiEncoding", "Font", "Type1", "FConverOcr", "Image", "Subtype", "DeviceRGB",
+    "DeviceGray", "ICCBased", "StdCF", "Videos", "Filter", "Width", "Height", "Encoding", "Resources", "Contents",
+    "pipe:0", "mcpServers", "ET\\nQ\\n", "UVR-MDX-NET-Inst_HQ_3.onnx",
 }
+# arquivos que não têm texto de tela: linha de comando/MCP (respondem em JSON e no terminal) e dados
+SKIP_FILES = {"cli.rs", "presets.rs"}
 CODE = re.compile(
     r"\bfn |\blet |=>|&\[|\|c\||format!\(|\.push\(|\)\?|<<|/Type|endstream|xref|startxref|%%EOF|\bcm /Im0|starts_with|"
-    r"to_string|\{page_id\}|%1|\.\./|^file '|:charenc|log-level|^pt\.\*|^res,|^WIFI:|^\{v:\.|^\{stem\}"
+    r"to_string|\{page_id\}|%1|\.\./|^file '|:charenc|log-level|^pt\.\*|^res,|^WIFI:|^\{v:\.|^\{stem\}|"
+    r"T[fjzm]|^q\n|^Q\n|BT\n|progress =|conver_tmp|ggml-|huggingface|^audio=|^title=|^/FConverOcr"
 )
+# em ops.rs só os nomes das ferramentas aparecem na tela (o resto é para agentes, em inglês, e mensagens da linha de comando)
+TOOL_TITLE = re.compile(r'tool!\(\s*"[a-z_]+",\s*"((?:[^"\\]|\\.)*)"')
 
 
 # títulos das seções do menu, em maiúsculas (passariam por nomes de formato)
@@ -74,9 +82,16 @@ def is_ui(s):
 def keys_from_source():
     keys, seen = [], set()
     for f in sorted(os.listdir(SRC)):
-        if not f.endswith(".rs") or f.startswith("tests") or f == "i18n.rs":
+        if not f.endswith(".rs") or f.startswith("tests") or f == "i18n.rs" or f in SKIP_FILES:
             continue
         text = open(os.path.join(SRC, f), encoding="utf-8-sig").read()
+        if f == "ops.rs":
+            for m in TOOL_TITLE.finditer(text):
+                s = unescape(m.group(1))
+                if s not in seen:
+                    seen.add(s)
+                    keys.append(s)
+            continue
         # sem comentários de linha (// …), que podem ter aspas
         text = re.sub(r"(?m)^\s*//.*$", "", text)
         for m in LIT.finditer(text):

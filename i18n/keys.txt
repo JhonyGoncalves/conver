@@ -1,6 +1,10 @@
-o modelo de remoção de fundo não foi encontrado (pasta modelos).
+não foi possível baixar o modelo {} ({e}).
+Cancelado.
+o download do modelo parou ({e}).
+o modelo {} baixado não confere com a assinatura esperada; tente de novo.
 onnxruntime.dll não encontrado (pasta bin).
 não foi possível carregar o modelo: {e}
+o modelo de remoção de fundo não foi encontrado (pasta modelos).
 resposta inesperada do modelo.
 320 kbps
 192 kbps
@@ -9,7 +13,6 @@ yt-dlp não encontrado (deveria estar na pasta bin).
 ffmpeg não encontrado (deveria estar na pasta bin).
 Melhor
 não foi possível iniciar o yt-dlp: {e}
-Cancelado.
 Processando com o ffmpeg…
 {prefix}Baixando: {title}   {speed}
 este site pediu login. Em "Login do navegador", escolha o navegador em que você está logado no site e tente de novo.
@@ -79,6 +82,21 @@ Juntar
 Dividir PDF
 Extraia páginas específicas (ex.: 1-3, 7) ou separe cada página num PDF próprio.
 Dividir
+Comprimir PDF
+Deixe PDFs menores recomprimindo as imagens de dentro deles (fotos, páginas escaneadas).
+Comprimir
+PDF para imagens
+Salve as páginas do PDF como imagens PNG ou JPG.
+Converter
+Proteger PDF com senha
+Coloque uma senha para abrir o PDF e escolha se ele pode ser impresso ou copiado.
+Proteger
+Tirar senha do PDF
+Remova a senha de um PDF seu (é preciso saber a senha atual).
+Tirar senha
+PDF pesquisável (OCR)
+Reconhece o texto de PDFs escaneados com o OCR do Windows: depois dá para pesquisar, selecionar e copiar.
+Reconhecer texto
 Nome do PDF:
 O PDF final terá {total_pages} páginas. Use ↑ e ↓ para mudar a ordem.
 Modo:
@@ -88,6 +106,35 @@ Páginas:
 "10-" = da 10 até o fim
 As páginas são salvas numa pasta <nome do PDF>_paginas.
 O PDF selecionado tem {n} páginas.
+Nível:
+Leve
+Forte
+Leve = quase sem perda  •  Forte = imagens com até 1200 px, bem menores. O texto não perde qualidade.
+Formato:
+Resolução:
+96 dpi (tela)
+150 dpi
+300 dpi (impressão)
+vazio = todas  •  ex.: 1-3, 7
+Senha:
+só se o PDF tiver
+As imagens são salvas numa pasta <nome do PDF>_imagens.
+Repita a senha:
+as senhas não conferem
+Permitir:
+Imprimir
+Copiar o texto
+Senha do dono:
+libera tudo para quem souber
+Guarde a senha: sem ela não há como abrir o PDF.
+Senha atual:
+Use só em PDFs seus ou que você tem autorização para alterar.
+Idioma do texto:
+Automático (idiomas do Windows)
+Páginas com texto:
+Pular
+Reconhecer de novo
+A aparência do PDF não muda: o texto reconhecido fica numa camada invisível por cima das páginas.
 Não foi possível ler o PDF selecionado (pode estar danificado ou protegido).
 {} PDFs
 {n} páginas • {}
@@ -98,7 +145,6 @@ nenhuma escolhida
 Escolher…
 Pasta para vigiar
 O que fazer:
-Nível:
 Converter para:
 Processar também os arquivos que já estão na pasta
 Os resultados vão para a subpasta "{}". Os originais não são alterados.
@@ -112,7 +158,6 @@ Grave o microfone (ou outra entrada de áudio do PC) direto em MP3, WAV ou M4A.
 Microfone:
 nenhuma entrada de áudio encontrada
 Atualizar lista
-Formato:
 WAV (sem perda)
 Salvar em:
 Pasta das gravações
@@ -137,7 +182,6 @@ Clique em "Ler texto" para reconhecer o texto desta imagem.
 Nenhum texto encontrado nesta imagem.
 O texto aparece aqui. Você pode corrigir antes de copiar.
 Idioma:
-Automático (idiomas do Windows)
 Print:
 Colar imagem (Ctrl+V)
 tire um print com Win+Shift+S e cole aqui
@@ -155,8 +199,63 @@ Copiar tudo
 ✔ Informações copiadas.
 Ver no mapa
 ⚠ Esta foto tem a localização de onde foi tirada. Use "Remover metadados" antes de compartilhar.
-Leve
-Forte
+✔ Modelo {} pronto neste computador.
+O modelo {} é baixado uma vez, na primeira vez que você usar (a assinatura é conferida).
+Áudios e vídeos
+Transcrever / legendar
+Transforme a fala de áudios e vídeos em texto e legendas (SRT/VTT) com o Whisper, no seu PC e sem internet.
+Modelo:
+Idioma falado:
+Traduzir para o inglês
+Salvar como:
+Texto (.txt)
+Legenda (.srt)
+Legenda web (.vtt)
+A legenda .srt fica com o mesmo nome do vídeo: o Queimar legenda e os players a encontram sozinhos.
+Transcrever
+Músicas
+Separar voz e instrumental
+Tire a voz de uma música (karaokê) ou isole a voz com inteligência artificial, no seu PC.
+Salvar:
+MP3 320 kbps
+Leva cerca de 15 a 30 segundos por minuto de música, dependendo do computador.
+Separar
+Gravar a tela
+Grave a tela inteira, uma janela ou uma área em MP4, com ou sem o microfone.
+Gravar:
+Tela inteira
+Uma janela
+Uma área
+Janela:
+nenhuma janela encontrada
+Área (px):
+Largura
+Altura
+Quadros por segundo:
+Sem áudio
+Opções:
+Mostrar o cursor
+Minimizar o Conver ao começar
+Assistir
+Para parar, volte ao Conver (ele fica na barra de tarefas) e clique em Parar.
+Predefinições
+Suas configurações favoritas, prontas para usar com um clique, pela linha de comando ou por um agente de IA (MCP).
+Nenhuma predefinição ainda. Crie a primeira abaixo.
+Apagar
+Fechar formulário
++ Nova predefinição
+Restaurar as que vêm prontas
+Nome:
+Descrição:
+Ferramenta:
+Salvar predefinição
+✔ Predefinição salva: {}
+Linha de comando: conver-cli preset "{}" arquivos…
+Usar predefinição
+Usando: {}
+Concluído: {} ok, {} com erro.
+Salvo em: {}
+Erro.
 Sem recorte
 Nenhum
 Preto e branco
@@ -179,6 +278,7 @@ nenhum metadado encontrado
 fundo removido • {kept:.0}% da imagem mantida
 saturação
 {name} {v:+}
+{w}x{h} → {}x{} (IA {scale}×)
 Tamanho da imagem
 A4 retrato
 A4 paisagem
@@ -232,14 +332,13 @@ Pronto.
 Cancelando…
 Iniciando…
 Erro inesperado.
-Erro.
 Downloads
 IMAGEM
 Redimensionar
-Comprimir
 Diminuir qualidade
 Converter formato
 Remover fundo
+Ampliar com IA
 Girar / recortar
 Ajustes de cor
 Remover metadados
@@ -256,12 +355,15 @@ Remover áudio / frames
 Cortar áudio
 Juntar áudios
 Normalizar volume
+PDF → imagens
+Proteger com senha
 DOWNLOAD
 Vídeos e músicas
 FERRAMENTAS
 conversor universal
 Pasta vigiada  ●
 Gravador de áudio  ●
+Gravar a tela  ●
 ⚙  Configurações
 🕘  Histórico
 Configurações
@@ -285,6 +387,13 @@ Versão:
 não encontrado
 verificando…
 Projeto:
+Automação (agentes de IA e linha de comando)
+Agentes de IA (Claude, Cursor, VS Code…) podem usar todas as ferramentas do Conver pelo MCP. Cole a configuração abaixo no arquivo de MCP do seu agente.
+Programa:
+Copiar configuração do MCP
+Copiar exemplo de linha de comando
+"{}" image_convert foto.png --format webp
+Na linha de comando: conver-cli help  •  conver-cli <ferramenta> arquivos… --opção valor
 Integração com o Windows
 Mostrar "Abrir com Conver" no menu do botão direito (imagens, vídeos, áudios e PDFs)
 Não foi possível alterar o menu: {e}
@@ -336,7 +445,6 @@ adicione pelo menos 2 arquivos.
 {} arquivos • {} • {}
 Converter formato de vídeo
 Converta entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ou extraia o áudio em MP3.
-Converter
 Comprimir vídeo
 Deixe vídeos menores escolhendo um nível de compressão ou o tamanho final em MB.
 Cortar trecho de vídeo
@@ -363,7 +471,6 @@ Grave uma legenda (.srt, .ass ou .vtt) dentro do vídeo, para aparecer em qualqu
 Legendar
 Coloque uma música no vídeo, misturada com o som original ou no lugar dele.
 Una várias músicas ou gravações num arquivo só, na ordem da lista.
-Áudios e vídeos
 Vídeos
 Início inválido. Use o formato 00:01:30 (ou só segundos).
 Fim inválido. Use o formato 00:02:45 (ou só segundos).
@@ -425,7 +532,6 @@ Largura:
 480 px
 640 px
 800 px
-Quadros por segundo:
 GIFs ficam grandes rápido: trechos curtos, 480 px e 12 fps costumam ficar abaixo de 5 MB.
 Girar:
 Não girar
@@ -466,17 +572,27 @@ escolha a música.
 Conver — pronto
 Conver — erro
 o idioma {lang} não está instalado para OCR no Windows.
+Converter imagem
+Comprimir imagem
+Girar e recortar
+Ajustar cores
+Imagens para PDF
+Converter vídeo
+Velocidade
+Legendas no vídeo
+Converter áudio
+Download
+Microfones e janelas
+Listar predefinições
 Cancelado pelo usuário.
 [{}/{n}] {name}
 ✔ {name}   {info}
 Concluído: {ok} de {n} arquivo(s).
-Salvo em: {}
 Processando…
 ✔ {}   {info}
 Concluído.
 Redimensionar imagem
 Altere as dimensões de uma ou várias imagens, por porcentagem ou em pixels.
-Comprimir imagem
 Reduza o tamanho do arquivo mantendo o formato (JPG, PNG, WEBP…).
 Escolha de 1 a 100. JPG e WEBP mantêm o formato; os demais viram JPG (ou WEBP, se tiverem transparência).
 Converter formato de imagem
@@ -486,8 +602,9 @@ Gire, espelhe ou recorte as imagens numa proporção pronta (o recorte é centra
 Apaga informações escondidas da foto (EXIF, localização GPS, câmera, data) sem perder qualidade.
 Remover
 Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.
+Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os detalhes. Roda no seu PC, sem internet.
+Ampliar
 Mude brilho, contraste e saturação ou aplique um filtro pronto. Confira na prévia antes de salvar.
-Imagens para PDF
 Junte várias imagens num único PDF, uma por página, na ordem da lista.
 Criar PDF
 Largura e altura devem ser números inteiros positivos.
@@ -495,8 +612,6 @@ Informe a largura e/ou a altura em pixels.
 sem prévia
 Porcentagem
 Pixels
-Largura
-Altura
 Manter proporção
 Com a proporção mantida, a imagem cabe dentro da largura/altura informada.
 Leve = quase sem perda visível  •  Forte = arquivo bem menor
@@ -513,6 +628,9 @@ Definida
 Suave (cabelo, pelos)
 Transparente salva em PNG. A primeira imagem demora alguns segundos enquanto o modelo carrega.
 ⚠ Modelo de IA não encontrado: coloque o silueta.onnx na pasta modelos.
+Ampliar:
+Ótimo para fotos pequenas, prints e imagens antigas. Imagens grandes levam mais tempo (a prévia também).
+⚠ Modelo de IA não encontrado: coloque o realesr-general-x4v3.onnx na pasta modelos.
 Brilho:
 Contraste:
 Saturação:
@@ -548,7 +666,6 @@ Baixe apenas conteúdos que você tem direito de baixar.
 Escolha uma pasta de saída válida.
 [link {}/{n}] 
 {prefix}Buscando informações…
-Download
  ({failed} link(s) com erro)
 Concluído: {total} arquivo(s) baixado(s){errors}.
 {}: não foi possível abrir o PDF ({e})
@@ -559,6 +676,20 @@ a página {a} não existe (o PDF tem {total}).
 informe as páginas, por exemplo 1-3, 7
 {} de {total} páginas
 {total} PDFs na pasta {}
+{} está protegido por senha; tire a senha antes.
+o PDF já estava otimizado (sem redução)
+{changed} imagem(ns) recomprimida(s) • {}
+informe a senha.
+{} já está protegido por senha.
+não foi possível proteger: {e}
+protegido com senha (AES-128)
+senha incorreta.
+senha removida
+PDF protegido: informe a senha.
+não foi possível abrir o PDF ({})
+{} imagem(ns) na pasta {}
+{done} página(s) com texto reconhecido • {words_total} palavras
+ • {skipped} já tinham texto
 texto grande demais para um QR Code.
 ffmpeg não encontrado.
 não foi possível iniciar o ffmpeg: {e}
@@ -566,7 +697,47 @@ a gravação parou.
 nenhum som chegou deste microfone. Escolha outra entrada na lista (ex.: "Microfone (…)").
 nome repetido
 já existe um arquivo com esse nome
+nada foi gravado.
+UVR MDX-Net (67 MB)
+Voz e instrumental
+Só a voz
+Só o instrumental (karaokê)
+falha ao salvar: {}
+o áudio é curto demais (menos de meio segundo).
+{} • {dur}
 {} → {} ({sign}{:.0}%)
+Rápido (82 MB)
+Equilibrado (264 MB)
+Preciso (574 MB)
+Whisper base (82 MB)
+Whisper small (264 MB)
+Whisper large-v3 turbo (574 MB)
+Detectar automaticamente
+Português
+Inglês
+Espanhol
+Francês
+Alemão
+Italiano
+Russo
+Chinês
+Japonês
+Coreano
+Árabe
+Hindi
+Turco
+Polonês
+Ucraniano
+Holandês
+Indonésio
+Vietnamita
+Persa
+não foi possível iniciar o Whisper: {e}
+falha no Whisper: {}
+o Whisper não gerou nenhum arquivo.
+{words} palavras • {}
+o modelo de ampliação não foi encontrado (pasta modelos).
+a imagem ficaria com mais de {MAX_SIDE} pixels de lado; diminua-a antes ou use 2×.
 MP3 (só áudio)
 falha no ffmpeg: {}
 {mb} MB é pequeno demais para {:.0}s de vídeo (mínimo ≈ {:.1} MB).

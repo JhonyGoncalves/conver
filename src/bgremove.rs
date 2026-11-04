@@ -8,8 +8,6 @@ use image::{DynamicImage, GrayImage, imageops::FilterType};
 use ort::session::Session;
 use ort::value::Tensor;
 
-use crate::tools;
-
 const SIZE: usize = 320;
 pub const MODEL_FILE: &str = "silueta.onnx";
 
@@ -17,34 +15,12 @@ static MODEL: OnceLock<Result<Mutex<Session>, String>> = OnceLock::new();
 
 /// Onde o modelo pode estar: `modelos\` ao lado do Conver.exe (ou, durante o desenvolvimento, na pasta do projeto).
 pub fn model_path() -> Option<PathBuf> {
-    let dir = tools::exe_dir();
-    [
-        dir.join("modelos").join(MODEL_FILE),
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Conver").join("modelos").join(MODEL_FILE),
-    ]
-    .into_iter()
-    .find(|p| p.is_file())
+    crate::ai::find_model(MODEL_FILE)
 }
 
 fn load() -> Result<Mutex<Session>, String> {
     let path = model_path().ok_or("o modelo de remoção de fundo não foi encontrado (pasta modelos).")?;
-    let threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).min(8);
-    static ENV: OnceLock<Result<ort::environment::Environment, String>> = OnceLock::new();
-    let env = ENV
-        .get_or_init(|| {
-            // ONNX Runtime oficial da Microsoft, em bin\onnxruntime.dll
-            let dll = tools::find_tool_file("onnxruntime.dll").ok_or("onnxruntime.dll não encontrado (pasta bin).")?;
-            ort::init_from(&dll).map_err(|e| e.to_string())?.with_name("conver").build().map_err(|e| e.to_string())
-        })
-        .as_ref()
-        .map_err(Clone::clone)?;
-    let session = Session::builder(env)
-        .map_err(|e| e.to_string())?
-        .with_intra_threads(threads)
-        .map_err(|e| e.to_string())?
-        .commit_from_file(&path)
-        .map_err(|e| format!("não foi possível carregar o modelo: {e}"))?;
-    Ok(Mutex::new(session))
+    Ok(Mutex::new(crate::ai::session(&path)?))
 }
 
 fn model() -> Result<&'static Mutex<Session>, String> {
