@@ -118,7 +118,7 @@ impl PdfPage {
         card(ui, p, |ui| match self.tool {
             PdfTool::Merge => {
                 row(ui, p, "Nome do PDF:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.name).desired_width(240.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.name).margin(crate::widgets::FIELD_MARGIN).desired_width(240.0));
                     ui.label(RichText::new(crate::i18n::tr(".pdf")).color(p.muted));
                 });
                 if !self.queue.files.is_empty() {
@@ -131,7 +131,7 @@ impl PdfPage {
                 });
                 if !self.each_page {
                     row(ui, p, "Páginas:", |ui| {
-                        ui.add(egui::TextEdit::singleline(&mut self.ranges).hint_text(crate::i18n::tr("1-3, 7, 10-")).desired_width(200.0));
+                        ui.add(egui::TextEdit::singleline(&mut self.ranges).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("1-3, 7, 10-")).desired_width(200.0));
                         hint(ui, p, "\"10-\" = da 10 até o fim");
                     });
                     if let Some(n) = selected_pages {
@@ -160,20 +160,20 @@ impl PdfPage {
                     segmented(ui, p, &mut self.dpi, &[(96, "96 dpi (tela)"), (150, "150 dpi"), (300, "300 dpi (impressão)")]);
                 });
                 row(ui, p, "Páginas:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.ranges).hint_text(crate::i18n::tr("todas")).desired_width(200.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.ranges).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("todas")).desired_width(200.0));
                     hint(ui, p, "vazio = todas  •  ex.: 1-3, 7");
                 });
                 row(ui, p, "Senha:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.password).password(true).hint_text(crate::i18n::tr("só se o PDF tiver")).desired_width(200.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.password).margin(crate::widgets::FIELD_MARGIN).password(true).hint_text(crate::i18n::tr("só se o PDF tiver")).desired_width(200.0));
                 });
                 hint(ui, p, "As imagens são salvas numa pasta <nome do PDF>_imagens.");
             }
             PdfTool::Protect => {
                 row(ui, p, "Senha:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.password).password(true).desired_width(200.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.password).margin(crate::widgets::FIELD_MARGIN).password(true).desired_width(200.0));
                 });
                 row(ui, p, "Repita a senha:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.password2).password(true).desired_width(200.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.password2).margin(crate::widgets::FIELD_MARGIN).password(true).desired_width(200.0));
                     if !self.password2.is_empty() && self.password != self.password2 {
                         ui.label(RichText::new(crate::i18n::tr("as senhas não conferem")).color(p.accent));
                     }
@@ -184,14 +184,14 @@ impl PdfPage {
                     ui.checkbox(&mut self.allow_copy, crate::i18n::tr("Copiar o texto"));
                 });
                 row(ui, p, "Senha do dono:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.owner).password(true).hint_text(crate::i18n::tr("opcional")).desired_width(200.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.owner).margin(crate::widgets::FIELD_MARGIN).password(true).hint_text(crate::i18n::tr("opcional")).desired_width(200.0));
                     hint(ui, p, "libera tudo para quem souber");
                 });
                 hint(ui, p, "Guarde a senha: sem ela não há como abrir o PDF.");
             }
             PdfTool::Unlock => {
                 row(ui, p, "Senha atual:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.password).password(true).desired_width(200.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.password).margin(crate::widgets::FIELD_MARGIN).password(true).desired_width(200.0));
                 });
                 hint(ui, p, "Use só em PDFs seus ou que você tem autorização para alterar.");
             }

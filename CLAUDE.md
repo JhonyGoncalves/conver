@@ -83,6 +83,10 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
 - `widgets.rs`: o `egui::Label::new(text).truncate()` da lista de arquivos não deve receber `tr()`.
 - O teste `recorder_devices` grava de verdade; sem microfone com som ele só verifica a detecção de silêncio.
 - Não tire capturas de tela nem simule cliques com o usuário usando o PC (já houve cliques no navegador dele).
+- Para revisar o visual sem cliques, use o modo de captura da compilação de depuração (`src/captura.rs`):
+  `CONVER_CAPTURA=<pasta>` + `CONVER_CENAS=img_resize:claro:pt,v_compress:escuro:ar` (+ `CONVER_ARQUIVOS`,
+  `CONVER_BUSCA`) e rode `target\debug\conver.exe`. Ele abre cada tela, salva a captura da própria janela e fecha,
+  sem salvar a configuração e sem passar pela instância única.
 
 ## Release
 

@@ -33,7 +33,7 @@ impl Palette {
                 input: CHARCOAL,
                 border: Color32::from_rgb(0x52, 0x52, 0x4F),
                 text: LINEN,
-                muted: Color32::from_rgb(0xA8, 0xAB, 0xA3),
+                muted: Color32::from_rgb(0xB8, 0xBB, 0xB3),
                 accent: CINNABAR,
                 accent_soft: Color32::from_rgb(0x5A, 0x2E, 0x2C),
                 on_accent: Color32::WHITE,
@@ -48,11 +48,11 @@ impl Palette {
                 input: Color32::WHITE,
                 border: Color32::from_rgb(0xCC, 0xD0, 0xC6),
                 text: CHARCOAL,
-                muted: Color32::from_rgb(0x7C, 0x7D, 0x78),
+                muted: Color32::from_rgb(0x61, 0x62, 0x5D),
                 accent: CINNABAR,
                 accent_soft: Color32::from_rgb(0xF6, 0xD3, 0xCF),
                 on_accent: Color32::WHITE,
-                ok: Color32::from_rgb(0x2E, 0x8B, 0x3E),
+                ok: Color32::from_rgb(0x26, 0x7A, 0x34),
             }
         }
     }
@@ -134,6 +134,9 @@ pub fn apply(ctx: &egui::Context, p: &Palette) {
         s.spacing.item_spacing = egui::vec2(8.0, 8.0);
         s.spacing.button_padding = egui::vec2(12.0, 6.0);
         s.spacing.interact_size.y = 30.0;
+        // caixas de seleção maiores: com 14px e cantos de 5px elas pareciam bolinhas
+        s.spacing.icon_width = 16.0;
+        s.spacing.icon_width_inner = 10.0;
         s.spacing.slider_width = 260.0;
         s.text_styles = [
             (TextStyle::Heading, FontId::new(26.0, bold())),

@@ -17,6 +17,9 @@ use crate::tools;
 
 // ---------------------------------------------------------------- básicos
 
+/// Margem dos campos de texto: com ela o campo tem a mesma altura (30px) que botões e menus.
+pub const FIELD_MARGIN: Margin = Margin::symmetric(8, 6);
+
 pub fn card<R>(ui: &mut Ui, p: &Palette, add: impl FnOnce(&mut Ui) -> R) -> R {
     Frame::default()
         .fill(p.card)
@@ -455,6 +458,102 @@ fn dashed_border(painter: &egui::Painter, rect: Rect, color: Color32) {
     }
 }
 
+// ------------------------------------------------------- nível de áudio ao vivo
+
+/// Altura relativa (0..1) de um nível 0..1 numa escala de −60 a 0 dB.
+fn level_frac(v: f32) -> f32 {
+    ((crate::recorder::db(v) + 60.0) / 60.0).clamp(0.0, 1.0)
+}
+
+/// Forma de onda dos últimos segundos, rolando da direita para a esquerda; blocos que estouraram em cinábrio.
+pub fn waveform(ui: &mut Ui, p: &Palette, lv: &crate::recorder::Levels, height: f32) {
+    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), height), Sense::hover());
+    let painter = ui.painter_at(rect);
+    painter.rect_filled(rect, 8, p.input);
+    painter.rect_stroke(rect, 8, Stroke::new(1.0f32, p.border), StrokeKind::Inside);
+    let inner = rect.shrink2(vec2(8.0, 6.0));
+    let (mid, half) = (inner.center().y, inner.height() / 2.0);
+    // linhas de −6 dB: acima delas o som está perto de estourar
+    let guide = level_frac(0.5) * half;
+    for y in [mid - guide, mid + guide] {
+        painter.add(egui::Shape::dashed_line(&[egui::pos2(inner.left(), y), egui::pos2(inner.right(), y)], Stroke::new(1.0f32, p.border), 4.0, 4.0));
+    }
+    painter.line_segment([egui::pos2(inner.left(), mid), egui::pos2(inner.right(), mid)], Stroke::new(1.0f32, p.border));
+    if lv.blocks.is_empty() {
+        painter.text(rect.center(), Align2::CENTER_CENTER, crate::i18n::tr("A faixa de áudio aparece aqui"), FontId::proportional(13.0), p.muted);
+        return;
+    }
+    let step = 3.0;
+    let n = (inner.width() / step) as usize;
+    let shown: Vec<&crate::recorder::Block> = lv.blocks.iter().rev().take(n).collect();
+    for (i, b) in shown.iter().enumerate() {
+        let x = inner.right() - i as f32 * step - 1.0;
+        let h = (level_frac(b.peak) * half).max(0.5);
+        let color = if b.clipped { p.accent } else { p.muted };
+        painter.line_segment([egui::pos2(x, mid - h), egui::pos2(x, mid + h)], Stroke::new(2.0f32, color));
+    }
+}
+
+/// Medidor de nível (−60 a 0 dB) com marca de pico e valor em dB; fica cinábrio quando estoura.
+pub fn level_meter(ui: &mut Ui, p: &Palette, lv: &crate::recorder::Levels) {
+    use crate::recorder::db;
+    let clipped = lv.clipped_recently(2500);
+    let now = lv.recent_peak(100);
+    ui.horizontal(|ui| {
+        let w = (ui.available_width() - 86.0).max(120.0);
+        let (area, _) = ui.allocate_exact_size(vec2(w, 30.0), Sense::hover());
+        let bar = Rect::from_min_size(area.min + vec2(0.0, 3.0), vec2(w, 10.0));
+        let painter = ui.painter();
+        painter.rect_filled(bar, 5, p.input);
+        painter.rect_stroke(bar, 5, Stroke::new(1.0f32, p.border), StrokeKind::Inside);
+        let d = db(now);
+        let color = if clipped || d > -3.0 {
+            p.accent
+        } else if d < -45.0 {
+            p.muted
+        } else {
+            p.ok
+        };
+        let fw = bar.width() * level_frac(now);
+        if fw > 1.0 {
+            painter.rect_filled(Rect::from_min_size(bar.min, vec2(fw, bar.height())), 5, color);
+        }
+        let hx = bar.left() + bar.width() * level_frac(lv.peak_hold());
+        if hx > bar.left() + 2.0 {
+            painter.line_segment([egui::pos2(hx, bar.top() - 2.0), egui::pos2(hx, bar.bottom() + 2.0)], Stroke::new(2.0f32, p.text));
+        }
+        // escala embaixo da barra
+        for (v, label) in [(-60.0f32, "-60"), (-40.0, "-40"), (-20.0, "-20"), (-6.0, "-6"), (0.0, "0 dB")] {
+            let x = bar.left() + bar.width() * ((v + 60.0) / 60.0);
+            let align = if v == -60.0 { Align2::LEFT_TOP } else if v == 0.0 { Align2::RIGHT_TOP } else { Align2::CENTER_TOP };
+            painter.text(egui::pos2(x, bar.bottom() + 3.0), align, crate::i18n::tr(label), FontId::proportional(10.5), p.muted);
+        }
+        let text = if lv.blocks.is_empty() || d <= -90.0 { "—".to_string() } else { format!("{d:.1} dB") };
+        ui.allocate_ui_with_layout(vec2(80.0, 30.0), Layout::right_to_left(Align::Min), |ui| {
+            ui.label(RichText::new(crate::i18n::tr(text)).monospace().color(p.text));
+        });
+    });
+}
+
+/// Frase sobre o nível atual: (é problema?, texto).
+pub fn level_advice(lv: &crate::recorder::Levels) -> (Option<bool>, &'static str) {
+    use crate::recorder::db;
+    if lv.blocks.len() < 10 {
+        return (None, "Aguardando o som do microfone…");
+    }
+    let recent = db(lv.recent_peak(2500));
+    if recent < -45.0 {
+        (Some(true), "⚠ Quase nenhum som: fale mais perto ou aumente o volume do microfone no Windows.")
+    } else if recent > -3.0 {
+        // alto ou estourado: o vermelho da faixa e do medidor já avisa
+        (None, "")
+    } else if recent < -24.0 {
+        (None, "Um pouco baixo: fale mais perto do microfone.")
+    } else {
+        (Some(false), "✔ Nível bom.")
+    }
+}
+
 // ----------------------------------------------------------- pasta de saída
 
 pub struct OutDir {
@@ -532,7 +631,8 @@ pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: b
             ProgressBar::new(st.progress)
                 .desired_width(ui.available_width() - 8.0)
                 .desired_height(10.0)
-                .fill(p.accent)
+                // parada em 0 a barra não desenha a bolinha vermelha do começo
+                .fill(if st.progress > 0.0 { p.accent } else { Color32::TRANSPARENT })
                 .corner_radius(5),
         );
     });

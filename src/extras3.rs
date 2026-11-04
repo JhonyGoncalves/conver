@@ -9,7 +9,7 @@ use eframe::egui::{self, Align, Layout, RichText, Ui, vec2};
 use crate::info::{self, Info};
 use crate::job::{Job, LogKind};
 use crate::media::AFmt;
-use crate::recorder::{self, Recording};
+use crate::recorder::{self, Meter, Monitor, Recording};
 use crate::theme::{Palette, bold};
 use crate::widgets::{self, Act, FileQueue, Thumbs, card, hint, row, segmented};
 use crate::{history, imaging, ocr, tools, video};
@@ -26,6 +26,10 @@ pub struct RecorderPage {
     fmt: AFmt,
     folder: PathBuf,
     rec: Option<Recording>,
+    /// "Testar microfone": só mostra o nível, sem gravar.
+    monitor: Option<Monitor>,
+    /// Níveis da última gravação, para a faixa continuar na tela depois de parar.
+    last_meter: Option<Meter>,
     msg: Option<(bool, String)>,
     last: Option<PathBuf>,
 }
@@ -39,6 +43,8 @@ impl RecorderPage {
             fmt: AFmt::Mp3,
             folder: music.unwrap_or_else(tools::exe_dir),
             rec: None,
+            monitor: None,
+            last_meter: None,
             msg: None,
             last: None,
         }
@@ -48,9 +54,33 @@ impl RecorderPage {
         self.rec.is_some()
     }
 
+    /// Modo de captura: alimenta o medidor com um som gerado (fala com picos que estouram), sem microfone.
+    pub fn demo(&mut self, ctx: &egui::Context) {
+        let input: Vec<String> = ["-re", "-f", "lavfi", "-i", crate::captura::DEMO_AUDIO].map(String::from).to_vec();
+        // com a lista já carregada, a tela não troca o som gerado pelo microfone de verdade
+        if self.devices.is_none() {
+            self.devices = Some(recorder::devices());
+        }
+        let device = self.devices.as_ref().and_then(|d| d.get(self.device).cloned()).unwrap_or_default();
+        let ctx = ctx.clone();
+        self.monitor = Monitor::start_input(&input, &device, move || ctx.request_repaint()).ok();
+    }
+
+    fn start_monitor(&mut self, ctx: &egui::Context, device: &str) {
+        let ctx = ctx.clone();
+        match Monitor::start(device, move || ctx.request_repaint()) {
+            Ok(m) => {
+                self.monitor = Some(m);
+                self.msg = None;
+            }
+            Err(e) => self.msg = Some((false, format!("✖ {e}"))),
+        }
+    }
+
     fn stop(&mut self) {
         let Some(rec) = self.rec.take() else { return };
         let secs = rec.seconds();
+        self.last_meter = Some(rec.meter.clone());
         let device = self.devices.as_ref().and_then(|d| d.get(self.device).cloned()).unwrap_or_default();
         match rec.stop() {
             Ok(path) => {
@@ -78,7 +108,20 @@ impl RecorderPage {
             Some(Ok(false)) => self.stop(),
             _ => {}
         }
+        if let Some(Err(e)) = self.monitor.as_mut().map(|m| m.check()) {
+            self.monitor = None;
+            self.msg = Some((false, format!("✖ {e}")));
+        }
         let devices = self.devices.clone().unwrap_or_default();
+        // trocou o microfone durante o teste: passa a escutar o novo
+        let current = devices.get(self.device.min(devices.len().saturating_sub(1))).cloned();
+        if let (Some(m), Some(cur)) = (&self.monitor, &current) {
+            if &m.device != cur {
+                let cur = cur.clone();
+                self.monitor = None;
+                self.start_monitor(ui.ctx(), &cur);
+            }
+        }
         card(ui, p, |ui| {
             ui.add_enabled_ui(!recording, |ui| {
                 row(ui, p, "Microfone:", |ui| {
@@ -111,36 +154,87 @@ impl RecorderPage {
         });
         ui.add_space(8.0);
         card(ui, p, |ui| {
+            let monitoring = self.monitor.is_some();
+            let secs = self.rec.as_ref().map(|r| r.seconds()).unwrap_or(0.0);
             ui.vertical_centered(|ui| {
-                let secs = self.rec.as_ref().map(|r| r.seconds()).unwrap_or(0.0);
-                let (dot, color) = if recording { ("●  Gravando", p.accent) } else { ("Pronto para gravar", p.muted) };
+                let (dot, color) = if recording {
+                    ("●  Gravando", p.accent)
+                } else if monitoring {
+                    ("Testando o microfone (nada é gravado)", p.text)
+                } else {
+                    ("Pronto para gravar", p.muted)
+                };
                 ui.label(RichText::new(crate::i18n::tr(dot)).family(bold()).color(color));
                 ui.label(RichText::new(crate::i18n::tr(video::fmt_time(secs))).family(bold()).size(52.0).color(p.text));
-                if self.rec.as_ref().is_some_and(|r| r.silent()) {
-                    ui.label(
-                        RichText::new(crate::i18n::tr("⚠ Nenhum som está chegando desta entrada. Pare e escolha outro microfone na lista."))
-                            .color(p.accent),
-                    );
+            });
+            // faixa de áudio e medidor: da gravação, do teste ou da última gravação
+            let meter = self.rec.as_ref().map(|r| r.meter.clone()).or_else(|| self.monitor.as_ref().map(|m| m.meter.clone())).or_else(|| self.last_meter.clone());
+            let empty = recorder::Levels::default();
+            let guard = meter.as_ref().map(|m| m.lock().unwrap());
+            let lv = guard.as_deref().unwrap_or(&empty);
+            widgets::waveform(ui, p, lv, 96.0);
+            ui.add_space(6.0);
+            widgets::level_meter(ui, p, lv);
+            let live = recording || monitoring;
+            ui.horizontal(|ui| {
+                if live {
+                    let (bad, text) = widgets::level_advice(lv);
+                    let color = match bad {
+                        Some(true) => p.accent,
+                        Some(false) => p.ok,
+                        None => p.muted,
+                    };
+                    if !text.is_empty() {
+                        ui.label(RichText::new(crate::i18n::tr(text)).color(color));
+                    }
+                } else if meter.is_some() {
+                    hint(ui, p, "Faixa da última gravação.");
+                } else {
+                    hint(ui, p, "Use \"Testar microfone\" para ver o nível antes de gravar.");
                 }
-                ui.add_space(6.0);
+            });
+            drop(guard);
+            if self.rec.as_ref().is_some_and(|r| r.silent()) {
+                ui.label(
+                    RichText::new(crate::i18n::tr("⚠ Nenhum som está chegando desta entrada. Pare e escolha outro microfone na lista."))
+                        .color(p.accent),
+                );
+            }
+            ui.add_space(6.0);
+            ui.horizontal(|ui| {
+                // centraliza os botões
+                let w = if recording { 150.0 } else { 150.0 + 8.0 + 170.0 };
+                ui.add_space(((ui.available_width() - w) / 2.0).max(0.0));
                 if recording {
                     if widgets::primary(ui, p, "■  Parar", true) {
                         self.stop();
                     }
-                } else if widgets::primary(ui, p, "●  Gravar", !devices.is_empty()) {
-                    let stamp: String = tools::now_string().chars().map(|c| if c.is_ascii_digit() { c } else { '-' }).collect();
-                    let dst = tools::unique_path(self.folder.join(format!("gravacao_{stamp}.{}", self.fmt.ext())));
-                    let ctx = ui.ctx().clone();
-                    match Recording::start(&devices[self.device], self.fmt, &dst, move || ctx.request_repaint()) {
-                        Ok(rec) => {
-                            self.rec = Some(rec);
-                            self.msg = None;
+                } else {
+                    if widgets::primary(ui, p, "●  Gravar", !devices.is_empty()) {
+                        self.monitor = None; // libera o microfone
+                        let stamp: String = tools::now_string().chars().map(|c| if c.is_ascii_digit() { c } else { '-' }).collect();
+                        let dst = tools::unique_path(self.folder.join(format!("gravacao_{stamp}.{}", self.fmt.ext())));
+                        let ctx = ui.ctx().clone();
+                        match Recording::start(&devices[self.device], self.fmt, &dst, move || ctx.request_repaint()) {
+                            Ok(rec) => {
+                                self.rec = Some(rec);
+                                self.msg = None;
+                            }
+                            Err(e) => self.msg = Some((false, format!("✖ {e}"))),
                         }
-                        Err(e) => self.msg = Some((false, format!("✖ {e}"))),
+                    }
+                    let label = if monitoring { "Parar o teste" } else { "Testar microfone" };
+                    if widgets::secondary(ui, p, label, !devices.is_empty()) {
+                        if monitoring {
+                            self.monitor = None;
+                        } else if let Some(cur) = current.clone() {
+                            self.last_meter = None;
+                            self.start_monitor(ui.ctx(), &cur);
+                        }
                     }
                 }
-                ui.add_space(4.0);
             });
+            ui.add_space(4.0);
         });
         if let Some((good, text)) = &self.msg {
             ui.horizontal(|ui| {
@@ -156,8 +250,8 @@ impl RecorderPage {
             });
         }
         hint(ui, p, "Dica: se a lista estiver vazia, confira em Configurações do Windows › Privacidade › Microfone se os apps podem usar o microfone.");
-        if recording {
-            ui.ctx().request_repaint_after(std::time::Duration::from_millis(250));
+        if recording || self.monitor.is_some() {
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
         }
     }
 }

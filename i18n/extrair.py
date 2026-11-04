@@ -44,7 +44,7 @@ INTERNAL = {
     "pipe:0", "mcpServers", "ET\\nQ\\n", "UVR-MDX-NET-Inst_HQ_3.onnx",
 }
 # arquivos que não têm texto de tela: linha de comando/MCP (respondem em JSON e no terminal) e dados
-SKIP_FILES = {"cli.rs", "presets.rs", "search.rs"}
+SKIP_FILES = {"cli.rs", "presets.rs", "search.rs", "captura.rs"}
 CODE = re.compile(
     r"\bfn |\blet |=>|&\[|\|c\||format!\(|\.push\(|\)\?|<<|/Type|endstream|xref|startxref|%%EOF|\bcm /Im0|starts_with|"
     r"to_string|\{page_id\}|%1|\.\./|^file '|:charenc|log-level|^pt\.\*|^res,|^WIFI:|^\{v:\.|^\{stem\}|"

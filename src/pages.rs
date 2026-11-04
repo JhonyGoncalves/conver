@@ -328,10 +328,10 @@ impl ImagePage {
                 if self.px_mode {
                     row(ui, p, "Tamanho:", |ui| {
                         ui.label(crate::i18n::tr("Largura"));
-                        ui.add(egui::TextEdit::singleline(&mut self.w).hint_text(crate::i18n::tr("px")).desired_width(70.0));
+                        ui.add(egui::TextEdit::singleline(&mut self.w).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("px")).desired_width(70.0));
                         ui.add_space(8.0);
                         ui.label(crate::i18n::tr("Altura"));
-                        ui.add(egui::TextEdit::singleline(&mut self.h).hint_text(crate::i18n::tr("px")).desired_width(70.0));
+                        ui.add(egui::TextEdit::singleline(&mut self.h).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("px")).desired_width(70.0));
                         ui.add_space(8.0);
                         ui.checkbox(&mut self.keep, crate::i18n::tr("Manter proporção"));
                     });
@@ -440,7 +440,7 @@ impl ImagePage {
                     segmented(ui, p, &mut self.page, &opts);
                 });
                 row(ui, p, "Nome do PDF:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.pdf_name).desired_width(240.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.pdf_name).margin(crate::widgets::FIELD_MARGIN).desired_width(240.0));
                     ui.label(RichText::new(crate::i18n::tr(".pdf")).color(p.muted));
                 });
                 hint(ui, p, "Use ↑ e ↓ na lista para mudar a ordem das páginas.");

@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use eframe::egui::{self, RichText, Ui};
+use eframe::egui::{self, Align2, FontId, RichText, Sense, Stroke, StrokeKind, TextureHandle, TextureOptions, Ui, vec2};
 use serde_json::{Map, Value};
 
 use crate::job::{Job, LogKind};
@@ -167,6 +167,8 @@ pub struct ScreenPage {
     rec: Option<ScreenRecording>,
     msg: Option<(bool, String)>,
     last: Option<PathBuf>,
+    preview: screenrec::Preview,
+    preview_tex: Option<TextureHandle>,
 }
 
 impl ScreenPage {
@@ -186,11 +188,83 @@ impl ScreenPage {
             rec: None,
             msg: None,
             last: None,
+            preview: screenrec::Preview::new(),
+            preview_tex: None,
         }
     }
 
     pub fn recording(&self) -> bool {
         self.rec.is_some()
+    }
+
+    /// Modo de captura: prévia da própria janela do Conver (não mostra o resto da tela do usuário).
+    pub fn demo(&mut self) {
+        self.windows = screenrec::windows();
+        if let Some(i) = self.windows.iter().position(|w| w == "Conver") {
+            self.kind = AreaKind::Janela;
+            self.window = i;
+            self.mics = Some(Vec::new());
+        }
+    }
+
+    /// O que está escolhido para gravar (`None`: janela escolhida, mas a lista está vazia).
+    fn area(&self) -> Option<Area> {
+        Some(match self.kind {
+            AreaKind::Tela => Area::TelaInteira,
+            AreaKind::Janela => Area::Janela(self.windows.get(self.window)?.clone()),
+            AreaKind::Regiao => Area::Regiao { x: self.region.0, y: self.region.1, w: self.region.2, h: self.region.3 },
+        })
+    }
+
+    /// Prévia ao vivo do que vai ser gravado, encaixada em `size`.
+    fn preview_ui(&mut self, ui: &mut Ui, p: &Palette, size: egui::Vec2, recording: bool) {
+        let (rect, _) = ui.allocate_exact_size(size, Sense::hover());
+        let painter = ui.painter_at(rect.expand(2.0));
+        painter.rect_filled(rect, 8, p.input);
+        let Some(area) = self.area() else {
+            painter.text(rect.center(), Align2::CENTER_CENTER, crate::i18n::tr("Escolha uma janela"), FontId::proportional(13.0), p.muted);
+            return;
+        };
+        self.preview.slow.store(recording, std::sync::atomic::Ordering::Relaxed);
+        if self.preview.touch(ui.ctx(), area) {
+            self.preview_tex = None;
+        }
+        let mut source = None;
+        if let Some(g) = self.preview.frame.lock().unwrap().as_ref() {
+            let img = egui::ColorImage::from_rgba_unmultiplied([g.width as usize, g.height as usize], &g.rgba);
+            match &mut self.preview_tex {
+                Some(t) if t.size() == img.size => t.set(img, TextureOptions::LINEAR),
+                _ => self.preview_tex = Some(ui.ctx().load_texture("screen_preview", img, TextureOptions::LINEAR)),
+            }
+            source = Some(g.source);
+        }
+        let missing = self.preview.missing.load(std::sync::atomic::Ordering::Relaxed);
+        match &self.preview_tex {
+            Some(tex) if !missing => {
+                let s = tex.size_vec2();
+                let fit = widgets::fit((s.x, s.y), rect.shrink(6.0).size());
+                let r = egui::Rect::from_center_size(rect.center(), fit);
+                painter.image(tex.id(), r, egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)), egui::Color32::WHITE);
+                painter.rect_stroke(r, 0, Stroke::new(1.0f32, p.border), StrokeKind::Outside);
+                if let Some((w, h)) = source {
+                    let label = crate::i18n::tr(format!("{w}×{h}"));
+                    let galley = painter.layout_no_wrap(label, FontId::proportional(11.5), p.on_accent);
+                    let pill = egui::Rect::from_min_size(r.right_bottom() - vec2(galley.size().x + 16.0, 26.0), galley.size() + vec2(12.0, 6.0));
+                    painter.rect_filled(pill, 5, egui::Color32::from_black_alpha(150));
+                    painter.galley(pill.min + vec2(6.0, 3.0), galley, p.on_accent);
+                }
+                if recording {
+                    painter.rect_stroke(r, 0, Stroke::new(2.0f32, p.accent), StrokeKind::Outside);
+                    let pill = egui::Rect::from_min_size(r.left_top() + vec2(8.0, 8.0), vec2(64.0, 22.0));
+                    painter.rect_filled(pill, 6, p.accent);
+                    painter.text(pill.center(), Align2::CENTER_CENTER, crate::i18n::tr("●  REC"), FontId::new(11.5, crate::theme::bold()), p.on_accent);
+                }
+            }
+            _ => {
+                let text = if missing { "A janela está minimizada ou foi fechada." } else { "Carregando a prévia…" };
+                painter.text(rect.center(), Align2::CENTER_CENTER, crate::i18n::tr(text), FontId::proportional(13.0), p.muted);
+            }
+        }
     }
 
     fn stop(&mut self) {
@@ -292,24 +366,24 @@ impl ScreenPage {
         });
         ui.add_space(8.0);
         card(ui, p, |ui| {
-            ui.vertical_centered(|ui| {
-                let secs = self.rec.as_ref().map(|r| r.seconds()).unwrap_or(0.0);
-                let (dot, color) = if recording { ("●  Gravando", p.accent) } else { ("Pronto para gravar", p.muted) };
-                ui.label(RichText::new(crate::i18n::tr(dot)).family(bold()).color(color));
-                ui.label(RichText::new(video::fmt_time(secs)).family(bold()).size(52.0).color(p.text));
+            ui.horizontal(|ui| {
+                let side = 230.0;
+                let pw = (ui.available_width() - side - 14.0).max(240.0);
+                let ph = (pw * 9.0 / 16.0).min(300.0);
+                self.preview_ui(ui, p, vec2(pw, ph), recording);
                 ui.add_space(6.0);
-                if recording {
-                    if widgets::primary(ui, p, "■  Parar", true) {
-                        self.stop();
-                    }
-                } else {
-                    let can = self.kind != AreaKind::Janela || !self.windows.is_empty();
-                    if widgets::primary(ui, p, "●  Gravar", can) {
-                        let area = match self.kind {
-                            AreaKind::Tela => Area::TelaInteira,
-                            AreaKind::Janela => Area::Janela(self.windows[self.window].clone()),
-                            AreaKind::Regiao => Area::Regiao { x: self.region.0, y: self.region.1, w: self.region.2, h: self.region.3 },
-                        };
+                ui.allocate_ui_with_layout(vec2(side, ph), egui::Layout::top_down(egui::Align::Center), |ui| {
+                    ui.add_space((ph - 150.0).max(0.0) / 2.0);
+                    let secs = self.rec.as_ref().map(|r| r.seconds()).unwrap_or(0.0);
+                    let (dot, color) = if recording { ("●  Gravando", p.accent) } else { ("Pronto para gravar", p.muted) };
+                    ui.label(RichText::new(crate::i18n::tr(dot)).family(bold()).color(color));
+                    ui.label(RichText::new(crate::i18n::tr(video::fmt_time(secs))).family(bold()).size(52.0).color(p.text));
+                    ui.add_space(6.0);
+                    if recording {
+                        if widgets::primary(ui, p, "■  Parar", true) {
+                            self.stop();
+                        }
+                    } else if let (true, Some(area)) = (widgets::primary(ui, p, "●  Gravar", self.area().is_some()), self.area()) {
                         let o = screenrec::Options { area, fps: self.fps, mic: (self.mic > 0).then(|| mics[self.mic - 1].clone()), cursor: self.cursor };
                         let stamp: String = tools::now_string().chars().map(|c| if c.is_ascii_digit() { c } else { '-' }).collect();
                         let dst = tools::unique_path(self.folder.join(format!("gravacao_tela_{stamp}.mp4")));
@@ -325,8 +399,7 @@ impl ScreenPage {
                             Err(e) => self.msg = Some((false, format!("✖ {e}"))),
                         }
                     }
-                }
-                ui.add_space(4.0);
+                });
             });
         });
         if let Some((good, text)) = &self.msg {
@@ -440,14 +513,14 @@ impl PresetsPage {
                     }
                     "array" => {
                         let mut s = cur.as_array().map(|a| a.iter().filter_map(Value::as_str).collect::<Vec<_>>().join(", ")).unwrap_or_default();
-                        if ui.add(egui::TextEdit::singleline(&mut s).desired_width(200.0)).changed() || args.contains_key(k) {
+                        if ui.add(egui::TextEdit::singleline(&mut s).margin(crate::widgets::FIELD_MARGIN).desired_width(200.0)).changed() || args.contains_key(k) {
                             let list: Vec<Value> = s.split(',').map(str::trim).filter(|x| !x.is_empty()).map(|x| Value::String(x.into())).collect();
                             args.insert(k.clone(), Value::Array(list));
                         }
                     }
                     _ => {
                         let mut s = cur.as_str().map(String::from).unwrap_or_default();
-                        ui.add(egui::TextEdit::singleline(&mut s).desired_width(200.0));
+                        ui.add(egui::TextEdit::singleline(&mut s).margin(crate::widgets::FIELD_MARGIN).desired_width(200.0));
                         if s.is_empty() {
                             args.remove(k);
                         } else {
@@ -514,10 +587,10 @@ impl PresetsPage {
             ui.add_space(4.0);
             card(ui, p, |ui| {
                 row(ui, p, "Nome:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.new_name).desired_width(260.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.new_name).margin(crate::widgets::FIELD_MARGIN).desired_width(260.0));
                 });
                 row(ui, p, "Descrição:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.new_desc).desired_width(420.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.new_desc).margin(crate::widgets::FIELD_MARGIN).desired_width(420.0));
                 });
                 row(ui, p, "Ferramenta:", |ui| {
                     let before = self.new_tool;

@@ -83,16 +83,16 @@ impl RenamePage {
         let r = &mut self.rules;
         card(ui, p, |ui| {
             row(ui, p, "Nome base:", |ui| {
-                ui.add(egui::TextEdit::singleline(&mut r.base).hint_text(crate::i18n::tr("vazio = manter o nome atual")).desired_width(240.0));
+                ui.add(egui::TextEdit::singleline(&mut r.base).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("vazio = manter o nome atual")).desired_width(240.0));
             });
             row(ui, p, "Trocar texto:", |ui| {
-                ui.add(egui::TextEdit::singleline(&mut r.find).hint_text(crate::i18n::tr("procurar")).desired_width(150.0));
+                ui.add(egui::TextEdit::singleline(&mut r.find).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("procurar")).desired_width(150.0));
                 ui.label(crate::i18n::tr("por"));
-                ui.add(egui::TextEdit::singleline(&mut r.replace).hint_text(crate::i18n::tr("substituir")).desired_width(150.0));
+                ui.add(egui::TextEdit::singleline(&mut r.replace).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("substituir")).desired_width(150.0));
             });
             row(ui, p, "Adicionar:", |ui| {
-                ui.add(egui::TextEdit::singleline(&mut r.prefix).hint_text(crate::i18n::tr("antes (prefixo)")).desired_width(150.0));
-                ui.add(egui::TextEdit::singleline(&mut r.suffix).hint_text(crate::i18n::tr("depois (sufixo)")).desired_width(150.0));
+                ui.add(egui::TextEdit::singleline(&mut r.prefix).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("antes (prefixo)")).desired_width(150.0));
+                ui.add(egui::TextEdit::singleline(&mut r.suffix).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("depois (sufixo)")).desired_width(150.0));
             });
             row(ui, p, "Numeração:", |ui| {
                 ui.checkbox(&mut r.numbering, crate::i18n::tr("Numerar"));
@@ -102,7 +102,7 @@ impl RenamePage {
                     ui.label(crate::i18n::tr("dígitos"));
                     ui.add(egui::DragValue::new(&mut r.digits).range(1..=6));
                     ui.label(crate::i18n::tr("separador"));
-                    ui.add(egui::TextEdit::singleline(&mut r.sep).desired_width(40.0));
+                    ui.add(egui::TextEdit::singleline(&mut r.sep).margin(crate::widgets::FIELD_MARGIN).desired_width(40.0));
                 });
             });
             row(ui, p, "Letras:", |ui| {

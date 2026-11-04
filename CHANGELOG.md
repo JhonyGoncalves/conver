@@ -1,5 +1,14 @@
 # Lista de mudanças
 
+## Próxima versão
+
+### Novidades
+- **Gravar a tela:** prévia ao vivo do que vai ser gravado (tela inteira, a janela escolhida, mesmo coberta por outras, ou a área), com o tamanho real em pixels e a marca REC durante a gravação.
+- **Gravador de áudio:** faixa de áudio ao vivo e medidor de nível em dB com marca de pico. Os trechos que estouram ficam em vermelho, e uma frase avisa quando o som está baixo demais. O botão **Testar microfone** mostra o nível sem gravar nada, e a faixa da última gravação continua na tela depois de parar.
+
+### Melhorias
+- Visual de todas as telas: textos de apoio (dicas, subtítulos, detalhes dos arquivos) mais legíveis no tema claro e no escuro; campos de texto com a mesma altura dos botões; caixas de seleção maiores; a barra de progresso não mostra mais um ponto vermelho quando está parada; a dica da busca não fica mais cortada.
+
 ## 1.2.3
 
 ### Novidades

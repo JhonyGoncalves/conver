@@ -3,6 +3,7 @@
 
 mod ai;
 mod bgremove;
+mod captura;
 mod cli;
 mod download;
 mod extras;
@@ -275,6 +276,7 @@ struct ConverApp {
     update_ready: Arc<Mutex<Option<updater::Prepared>>>,
     menu_on: bool,
     ytdlp_job: Job,
+    captura: Option<captura::Captura>,
 }
 
 impl ConverApp {
@@ -336,8 +338,12 @@ impl ConverApp {
             update_ready: Arc::default(),
             menu_on: integration::menu_registered(),
             ytdlp_job: Job::default(),
+            captura: captura::from_env(),
         };
-        if app.cfg.check_updates {
+        if app.captura.is_some() {
+            app.add_paths(captura::arquivos());
+            app.nav_query = std::env::var("CONVER_BUSCA").unwrap_or_default();
+        } else if app.cfg.check_updates {
             app.check_updates(ctx);
         }
         std::thread::spawn(updater::cleanup_old);
@@ -358,6 +364,52 @@ impl ConverApp {
             *state.lock().unwrap() = r;
             ctx.request_repaint();
         });
+    }
+
+    /// Modo de captura (só na depuração, veja `captura.rs`): aplica cada cena, espera, captura a janela e fecha no fim.
+    fn captura_frame(&mut self, ctx: &egui::Context) {
+        let Some(mut cap) = self.captura.take() else { return };
+        let shot = ctx.input(|i| {
+            i.raw.events.iter().find_map(|e| match e {
+                egui::Event::Screenshot { image, .. } => Some(image.clone()),
+                _ => None,
+            })
+        });
+        if let Some(img) = shot {
+            captura::salvar(&cap.dir, &cap.cenas[cap.atual], cap.atual, &img);
+            cap.atual += 1;
+            cap.quadros = 0;
+            cap.pedida = false;
+            if cap.atual >= cap.cenas.len() {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                return;
+            }
+        }
+        if cap.quadros == 0 {
+            let cena = &cap.cenas[cap.atual];
+            self.cfg.dark = cena.dark; // sem salvar
+            self.pal = Palette::new(cena.dark);
+            theme::apply(ctx, &self.pal);
+            i18n::set(&cena.lang);
+            self.page = match cena.page.as_str() {
+                "settings" => Page::Settings,
+                "history" => Page::History,
+                id => NAV.iter().flat_map(|(_, items)| items.iter()).map(|(p, _)| *p).find(|p| page_id(*p) == id).unwrap_or(self.page),
+            };
+            if self.page == Page::Recorder && std::env::var_os("CONVER_DEMO_AUDIO").is_some() {
+                self.recorder.demo(ctx);
+            }
+            if self.page == Page::Screen {
+                self.screen.demo();
+            }
+        }
+        cap.quadros += 1;
+        if cap.quadros >= captura::espera() && !cap.pedida {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+            cap.pedida = true;
+        }
+        ctx.request_repaint();
+        self.captura = Some(cap);
     }
 
     fn set_dark(&mut self, ctx: &egui::Context, dark: bool) {
@@ -449,11 +501,12 @@ impl ConverApp {
             ui.memory_mut(|m| m.request_focus(search_id));
         }
         let resp = ui.add(
-            egui::TextEdit::singleline(&mut self.nav_query)
+            egui::TextEdit::singleline(&mut self.nav_query).margin(crate::widgets::FIELD_MARGIN)
                 .id(search_id)
-                .hint_text(crate::i18n::tr("🔍  Buscar ferramenta…  (Ctrl+F)"))
+                .hint_text(crate::i18n::tr("🔍  Buscar ferramenta…"))
                 .desired_width(f32::INFINITY),
-        );
+        )
+        .on_hover_text("Ctrl+F");
         if resp.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Escape)) {
             self.nav_query.clear();
         }
@@ -954,6 +1007,7 @@ fn theme_card(ui: &mut Ui, current: &Palette, dark: bool, name: &str, selected: 
 
 impl eframe::App for ConverApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.captura_frame(ctx);
         self.handle_drop(ctx);
         // arquivos enviados por outra instância (menu do botão direito com o Conver já aberto)
         let received: Vec<PathBuf> = std::mem::take(&mut *self.inbox.lock().unwrap());
@@ -1048,7 +1102,7 @@ fn main() -> eframe::Result {
         _ => {}
     }
     let inbox: Arc<Mutex<Vec<PathBuf>>> = Arc::default();
-    if integration::single_instance(&args, inbox.clone()) {
+    if !captura::active() && integration::single_instance(&args, inbox.clone()) {
         return Ok(()); // o Conver já estava aberto e recebeu os arquivos
     }
     let icon = eframe::icon_data::from_png_bytes(LOGO_PNG).unwrap_or_default();
@@ -1078,3 +1132,5 @@ mod tests_v11;
 mod tests_v12;
 #[cfg(test)]
 mod tests_v13;
+#[cfg(test)]
+mod tests_v14;

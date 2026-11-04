@@ -273,10 +273,10 @@ impl MediaPage {
             }
             MTool::VTrim | MTool::ATrim => {
                 row(ui, p, "Início:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.start).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.start).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
                     ui.add_space(16.0);
                     ui.label(crate::i18n::tr("Fim:"));
-                    ui.add(egui::TextEdit::singleline(&mut self.end).hint_text(crate::i18n::tr("até o fim")).desired_width(110.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.end).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("até o fim")).desired_width(110.0));
                     if let Some(d) = self.queue.selected_path().and_then(|f| durs.get(f)) {
                         hint(ui, p, &format!("duração do arquivo selecionado: {}", video::fmt_time(d)));
                     }
@@ -393,7 +393,7 @@ impl MediaPage {
             }
             MTool::Gif => {
                 row(ui, p, "Início:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.gif_start).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.gif_start).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
                     ui.add_space(16.0);
                     ui.label(crate::i18n::tr("Duração:"));
                     ui.add(egui::DragValue::new(&mut self.gif_len).range(0.5..=60.0).speed(0.1).suffix(" s"));

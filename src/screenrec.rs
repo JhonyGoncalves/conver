@@ -57,6 +57,186 @@ pub fn windows() -> Vec<String> {
     list
 }
 
+// ------------------------------------------------------------------ prévia
+
+/// Uma imagem reduzida do que vai ser gravado.
+pub struct Grab {
+    pub width: u32,
+    pub height: u32,
+    /// RGBA, linha por linha de cima para baixo.
+    pub rgba: Vec<u8>,
+    /// Tamanho real (em pixels) do que vai ser gravado.
+    pub source: (u32, u32),
+}
+
+/// Captura a área (tela inteira, a parte de dentro de uma janela ou uma região), reduzida para no máximo `max_w`
+/// de largura. A janela é capturada mesmo se estiver coberta por outras (PrintWindow); minimizada ou fechada, `None`.
+pub fn grab(area: &Area, max_w: u32) -> Option<Grab> {
+    use windows::Win32::Foundation::RECT;
+    use windows::Win32::Graphics::Gdi::{
+        BI_RGB, BITMAPINFO, BITMAPINFOHEADER, CreateCompatibleBitmap, CreateCompatibleDC, CreateDIBSection, DIB_RGB_COLORS,
+        DeleteDC, DeleteObject, GdiFlush, GetDC, HALFTONE, ReleaseDC, SRCCOPY, SelectObject, SetBrushOrgEx, SetStretchBltMode,
+        StretchBlt,
+    };
+    use windows::Win32::Storage::Xps::{PRINT_WINDOW_FLAGS, PrintWindow};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        FindWindowW, GetClientRect, GetSystemMetrics, IsIconic, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN,
+        SM_YVIRTUALSCREEN,
+    };
+    use windows::core::PCWSTR;
+
+    // SAFETY: só chamadas GDI com objetos criados aqui, todos liberados antes de sair
+    unsafe {
+        let screen = GetDC(None);
+        if screen.is_invalid() {
+            return None;
+        }
+        // de onde copiar: a tela ou uma cópia da janela feita pelo PrintWindow
+        let mut window_copy = None;
+        let (src, sx, sy, sw, sh) = match area {
+            Area::TelaInteira => (
+                screen,
+                GetSystemMetrics(SM_XVIRTUALSCREEN),
+                GetSystemMetrics(SM_YVIRTUALSCREEN),
+                GetSystemMetrics(SM_CXVIRTUALSCREEN),
+                GetSystemMetrics(SM_CYVIRTUALSCREEN),
+            ),
+            Area::Regiao { x, y, w, h } => (screen, *x, *y, (*w).max(16) as i32, (*h).max(16) as i32),
+            Area::Janela(title) => {
+                let wide: Vec<u16> = title.encode_utf16().chain([0]).collect();
+                let found = FindWindowW(PCWSTR::null(), PCWSTR(wide.as_ptr())).ok().filter(|h| !h.is_invalid() && !IsIconic(*h).as_bool());
+                let mut rc = RECT::default();
+                match found {
+                    Some(hwnd) if GetClientRect(hwnd, &mut rc).is_ok() && rc.right > 0 && rc.bottom > 0 => {
+                        let mem = CreateCompatibleDC(Some(screen));
+                        let bmp = CreateCompatibleBitmap(screen, rc.right, rc.bottom);
+                        let old = SelectObject(mem, bmp.into());
+                        // 1 = só a parte de dentro (como o gdigrab grava), 2 = também o conteúdo desenhado pela GPU
+                        let _ = PrintWindow(hwnd, mem, PRINT_WINDOW_FLAGS(3));
+                        window_copy = Some((mem, bmp, old));
+                        (mem, 0, 0, rc.right, rc.bottom)
+                    }
+                    _ => {
+                        ReleaseDC(None, screen);
+                        return None;
+                    }
+                }
+            }
+        };
+        let scale = (max_w as f32 / sw.max(1) as f32).min(1.0);
+        let (dw, dh) = (((sw as f32 * scale).round() as i32).max(1), ((sh as f32 * scale).round() as i32).max(1));
+        let bmi = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                biWidth: dw,
+                biHeight: -dh, // de cima para baixo
+                biPlanes: 1,
+                biBitCount: 32,
+                biCompression: BI_RGB.0,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut bits: *mut std::ffi::c_void = std::ptr::null_mut();
+        let mut result = None;
+        if let Ok(dib) = CreateDIBSection(Some(screen), &bmi, DIB_RGB_COLORS, &mut bits, None, 0) {
+            let dst = CreateCompatibleDC(Some(screen));
+            let old = SelectObject(dst, dib.into());
+            SetStretchBltMode(dst, HALFTONE);
+            let _ = SetBrushOrgEx(dst, 0, 0, None);
+            if StretchBlt(dst, 0, 0, dw, dh, Some(src), sx, sy, sw, sh, SRCCOPY).as_bool() && !bits.is_null() {
+                let _ = GdiFlush();
+                let bgra = std::slice::from_raw_parts(bits as *const u8, (dw * dh * 4) as usize);
+                let rgba: Vec<u8> = bgra.chunks_exact(4).flat_map(|px| [px[2], px[1], px[0], 255]).collect();
+                result = Some(Grab { width: dw as u32, height: dh as u32, rgba, source: (sw as u32, sh as u32) });
+            }
+            SelectObject(dst, old);
+            let _ = DeleteDC(dst);
+            let _ = DeleteObject(dib.into());
+        }
+        if let Some((mem, bmp, old)) = window_copy {
+            SelectObject(mem, old);
+            let _ = DeleteDC(mem);
+            let _ = DeleteObject(bmp.into());
+        }
+        ReleaseDC(None, screen);
+        result
+    }
+}
+
+/// Prévia ao vivo: uma thread captura a área algumas vezes por segundo enquanto a tela "Gravar a tela" está aberta,
+/// e para sozinha quando ninguém mais olha (`touch` deixa de ser chamado).
+pub struct Preview {
+    area: Arc<Mutex<Option<Area>>>,
+    pub frame: Arc<Mutex<Option<Grab>>>,
+    /// A última captura falhou (janela minimizada ou fechada).
+    pub missing: Arc<std::sync::atomic::AtomicBool>,
+    seen: Arc<Mutex<std::time::Instant>>,
+    running: Arc<std::sync::atomic::AtomicBool>,
+    /// Gravando: captura menos vezes, para não pesar.
+    pub slow: Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl Preview {
+    pub fn new() -> Self {
+        Self {
+            area: Arc::default(),
+            frame: Arc::default(),
+            missing: Arc::default(),
+            seen: Arc::new(Mutex::new(std::time::Instant::now())),
+            running: Arc::default(),
+            slow: Arc::default(),
+        }
+    }
+
+    /// Chamado a cada quadro da tela: troca a área, se mudou (devolve `true`), e mantém a thread viva.
+    pub fn touch(&self, ctx: &eframe::egui::Context, area: Area) -> bool {
+        let changed = {
+            let mut a = self.area.lock().unwrap();
+            let changed = a.as_ref() != Some(&area);
+            if changed {
+                *a = Some(area);
+                *self.frame.lock().unwrap() = None; // não mostra a área antiga enquanto a nova não chega
+                self.missing.store(false, Ordering::Relaxed);
+            }
+            changed
+        };
+        *self.seen.lock().unwrap() = std::time::Instant::now();
+        if self.running.swap(true, Ordering::SeqCst) {
+            return changed;
+        }
+        let (area, frame, missing, seen, running, slow, ctx) = (
+            self.area.clone(),
+            self.frame.clone(),
+            self.missing.clone(),
+            self.seen.clone(),
+            self.running.clone(),
+            self.slow.clone(),
+            ctx.clone(),
+        );
+        std::thread::spawn(move || {
+            while seen.lock().unwrap().elapsed() < std::time::Duration::from_millis(1500) {
+                let current = area.lock().unwrap().clone();
+                if let Some(a) = current {
+                    let g = grab(&a, 960);
+                    // a área pode ter mudado durante a captura
+                    if area.lock().unwrap().as_ref() == Some(&a) {
+                        missing.store(g.is_none(), Ordering::Relaxed);
+                        if g.is_some() {
+                            *frame.lock().unwrap() = g;
+                        }
+                        ctx.request_repaint();
+                    }
+                }
+                let pause = if slow.load(Ordering::Relaxed) { 500 } else { 200 };
+                std::thread::sleep(std::time::Duration::from_millis(pause));
+            }
+            running.store(false, Ordering::SeqCst);
+        });
+        changed
+    }
+}
+
 fn input_args(o: &Options) -> Vec<String> {
     let mut a: Vec<String> = vec!["-f".into(), "gdigrab".into(), "-framerate".into(), o.fps.clamp(5, 60).to_string()];
     a.extend(["-draw_mouse".into(), if o.cursor { "1" } else { "0" }.into()]);
