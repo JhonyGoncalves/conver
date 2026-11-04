@@ -360,6 +360,8 @@ impl ConverApp {
             app.check_updates(ctx);
         }
         std::thread::spawn(updater::cleanup_old);
+        // a lista de microfones demora no ffmpeg: começa a montar já, para o gravador abrir na hora
+        let _ = recorder::cached_devices(ctx);
         // arquivos arrastados para o ícone do Conver.exe / "Abrir com"
         app.add_paths(std::env::args_os().skip(1).map(PathBuf::from).collect());
         app

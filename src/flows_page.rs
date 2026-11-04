@@ -48,6 +48,8 @@ pub struct FlowsPage {
     job: Job,
     run: Arc<Mutex<RunState>>,
     go_settings: bool,
+    /// Configuração da IA lida de `ia.json` (relida a cada 2 s, não a cada quadro: abrir a chave usa o DPAPI).
+    ai_cache: Option<(Instant, Result<ai_api::Config, String>)>,
 }
 
 impl FlowsPage {
@@ -71,6 +73,7 @@ impl FlowsPage {
             job: Job::default(),
             run: Arc::default(),
             go_settings: false,
+            ai_cache: None,
         }
     }
 
@@ -92,6 +95,13 @@ impl FlowsPage {
     }
 
 // i18n: dentro
+    fn ai(&mut self) -> Result<ai_api::Config, String> {
+        if self.ai_cache.as_ref().is_none_or(|(t, _)| t.elapsed() > Duration::from_secs(2)) {
+            self.ai_cache = Some((Instant::now(), ai_api::Settings::load().config()));
+        }
+        self.ai_cache.as_ref().unwrap().1.clone()
+    }
+
     /// A tela pediu para abrir as configurações da IA.
     pub fn take_go_settings(&mut self) -> bool {
         std::mem::take(&mut self.go_settings)
@@ -804,6 +814,7 @@ impl FlowsPage {
     }
 
     fn flow_inspector(&mut self, ui: &mut Ui, p: &Palette) {
+        let ai = self.ai();
         let Some(f) = self.flow.as_mut() else { return };
         ui.label(RichText::new(crate::i18n::tr("Fluxo")).family(bold()).size(16.0).color(p.text));
         ui.label(RichText::new(crate::i18n::tr(&f.name)).color(p.muted));
@@ -824,7 +835,6 @@ impl FlowsPage {
         }
         ui.add_space(6.0);
         widgets::hint(ui, p, "Os nodes de IA usam a API configurada em Configurações. Agentes de IA também criam e rodam fluxos pelo MCP (flow_save, flow_run).");
-        let ai = ai_api::Settings::load().config();
         if let Err(e) = &ai {
             ui.add_space(6.0);
             ui.label(RichText::new(crate::i18n::tr(format!("⚠ IA: {e}"))).size(12.5).color(p.accent));
@@ -868,7 +878,7 @@ impl FlowsPage {
             }
             _ => {
                 if n.kind.starts_with("ai_") {
-                    if let Err(e) = ai_api::Settings::load().config() {
+                    if let Err(e) = self.ai() {
                         ui.label(RichText::new(crate::i18n::tr(format!("⚠ IA: {e}"))).size(12.5).color(p.accent));
                         if widgets::secondary(ui, p, "Configurar a IA", true) {
                             self.go_settings = true;
@@ -963,7 +973,9 @@ impl FlowsPage {
                 }
                 self.notice = None;
                 let run = self.run.clone();
-                let ai = ai_api::Settings::load().config();
+                // na hora de executar, lê de novo (a chave pode ter acabado de ser salva)
+                self.ai_cache = None;
+                let ai = self.ai();
                 self.job.start(ui.ctx(), move |ctl| {
                     ctl.status(format!("Executando “{}”…", f.name));
                     let progress = |x: f32| ctl.progress(x);

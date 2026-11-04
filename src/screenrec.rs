@@ -327,7 +327,7 @@ fn input_args(o: &Options) -> Vec<String> {
         }
     }
     if let Some(m) = &o.mic {
-        a.extend(["-f".into(), "dshow".into(), "-i".into(), format!("audio={m}")]);
+        a.extend(crate::recorder::dshow_input(m));
     }
     a
 }

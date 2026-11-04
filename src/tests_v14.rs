@@ -109,3 +109,26 @@ fn screen_monitors_pause_quality() {
     let devs = crate::ops::call("list_devices", &serde_json::json!({}), &crate::ops::Ctx { progress: &|_| {}, cancelled: &|| false, log: &|_| {} }).unwrap();
     assert_eq!(devs["monitors"].as_array().unwrap().len(), mons.len());
 }
+
+/// Com blocos de 20 ms no DirectShow, o som chega aos poucos (antes vinha de meio em meio segundo e o medidor
+/// andava aos trancos). Usa a primeira entrada que estiver entregando som; só mede o intervalo, não grava nada.
+#[test]
+fn recorder_low_latency() {
+    for dev in recorder::devices() {
+        let times: std::sync::Arc<std::sync::Mutex<Vec<std::time::Instant>>> = Default::default();
+        let t2 = times.clone();
+        let m = Monitor::start(&dev, move || t2.lock().unwrap().push(std::time::Instant::now())).unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(3500));
+        drop(m);
+        let t = times.lock().unwrap();
+        if t.len() < 10 {
+            continue; // entrada sem nada conectado: o DirectShow não entrega nada
+        }
+        let gaps: Vec<u128> = t.windows(2).skip(3).map(|w| (w[1] - w[0]).as_millis()).collect();
+        let max = gaps.iter().copied().max().unwrap_or(0);
+        println!("{dev}: {} entregas, maior intervalo {max} ms", t.len());
+        assert!(max < 200, "o som ainda chega em trancos de {max} ms");
+        return;
+    }
+    println!("nenhuma entrada de áudio entregando som: pulando");
+}

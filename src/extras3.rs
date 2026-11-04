@@ -96,8 +96,9 @@ impl RecorderPage {
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
         widgets::header(ui, p, "Gravador de áudio", "Grave o microfone (ou outra entrada de áudio do PC) direto em MP3, WAV ou M4A.");
         if self.devices.is_none() {
-            self.devices = Some(recorder::devices());
+            self.devices = recorder::cached_devices(ui.ctx());
         }
+        let loading = self.devices.is_none();
         let recording = self.rec.is_some();
         // o ffmpeg parou sozinho? (microfone desconectado, em uso por outro programa…)
         match self.rec.as_mut().map(|r| r.check()) {
@@ -125,7 +126,9 @@ impl RecorderPage {
         card(ui, p, |ui| {
             ui.add_enabled_ui(!recording, |ui| {
                 row(ui, p, "Microfone:", |ui| {
-                    if devices.is_empty() {
+                    if loading {
+                        ui.label(RichText::new(crate::i18n::tr("procurando microfones…")).color(p.muted));
+                    } else if devices.is_empty() {
                         ui.label(RichText::new(crate::i18n::tr("nenhuma entrada de áudio encontrada")).color(p.accent));
                     } else {
                         self.device = self.device.min(devices.len() - 1);
@@ -135,8 +138,9 @@ impl RecorderPage {
                             }
                         });
                     }
-                    if widgets::secondary(ui, p, "Atualizar lista", true) {
-                        self.devices = Some(recorder::devices());
+                    if widgets::secondary(ui, p, "Atualizar lista", !loading) {
+                        recorder::refresh_devices(ui.ctx());
+                        self.devices = None;
                     }
                 });
                 row(ui, p, "Formato:", |ui| {

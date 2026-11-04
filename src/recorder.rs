@@ -14,7 +14,44 @@ use crate::media::{AFmt, audio_args};
 use crate::tools;
 use crate::video::VQuality;
 
-/// Microfones e outras entradas de áudio do Windows.
+/// Lista de microfones guardada (o ffmpeg leva de 0,5 a 3 s para listar, então isso nunca roda na tela).
+static DEVICES: Mutex<(Option<Vec<String>>, bool)> = Mutex::new((None, false));
+
+/// Microfones já listados, ou `None` enquanto a lista é montada em segundo plano (a tela é redesenhada no fim).
+pub fn cached_devices(ctx: &eframe::egui::Context) -> Option<Vec<String>> {
+    let mut d = DEVICES.lock().unwrap();
+    if let Some(list) = &d.0 {
+        return Some(list.clone());
+    }
+    if !d.1 {
+        d.1 = true;
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            let list = devices();
+            *DEVICES.lock().unwrap() = (Some(list), false);
+            ctx.request_repaint();
+        });
+    }
+    None
+}
+
+/// Lista de novo (botão "Atualizar lista").
+pub fn refresh_devices(ctx: &eframe::egui::Context) {
+    let mut d = DEVICES.lock().unwrap();
+    if !d.1 {
+        d.0 = None;
+    }
+    drop(d);
+    let _ = cached_devices(ctx);
+}
+
+/// Entrada de áudio do DirectShow com blocos de 20 ms: sem isso o Windows entrega o som de meio em meio segundo
+/// e o medidor anda aos trancos.
+pub fn dshow_input(device: &str) -> Vec<String> {
+    ["-f", "dshow", "-audio_buffer_size", "20", "-i"].iter().map(|s| s.to_string()).chain([format!("audio={device}")]).collect()
+}
+
+/// Microfones e outras entradas de áudio do Windows (lento: use `cached_devices` na tela).
 pub fn devices() -> Vec<String> {
     let Some(ff) = tools::find_tool("ffmpeg") else { return Vec::new() };
     let Ok(out) = tools::command(&ff).args(["-hide_banner", "-list_devices", "true", "-f", "dshow", "-i", "dummy"]).output() else {
@@ -171,8 +208,8 @@ impl Recording {
     pub fn start(device: &str, fmt: AFmt, dst: &Path, on_tick: impl Fn() + Send + 'static) -> Result<Self, String> {
         let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
         let mut child = tools::command(&ff)
-            .args(["-hide_banner", "-y", "-nostats", "-loglevel", "error", "-f", "dshow", "-i"])
-            .arg(format!("audio={device}"))
+            .args(["-hide_banner", "-y", "-nostats", "-loglevel", "error"])
+            .args(dshow_input(device))
             .args(audio_args(fmt, VQuality::Alta).into_iter().skip(3)) // sem "-vn -map_metadata 0"
             .arg(dst)
             .args(METER_OUT)
@@ -270,7 +307,7 @@ pub struct Monitor {
 
 impl Monitor {
     pub fn start(device: &str, on_tick: impl Fn() + Send + 'static) -> Result<Self, String> {
-        Self::start_input(&["-f".into(), "dshow".into(), "-i".into(), format!("audio={device}")], device, on_tick)
+        Self::start_input(&dshow_input(device), device, on_tick)
     }
 
     /// Escuta qualquer entrada do ffmpeg (o modo de captura e os testes usam um som gerado).

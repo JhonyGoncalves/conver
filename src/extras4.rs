@@ -295,10 +295,13 @@ impl ScreenPage {
 
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
         widgets::header(ui, p, "Gravar a tela", "Grave a tela inteira, um monitor, uma janela ou uma área em MP4, com ou sem o microfone.");
-        if self.mics.is_none() {
-            self.mics = Some(recorder::devices());
+        // janelas e monitores são rápidos; os microfones vêm do ffmpeg, em segundo plano
+        if self.monitors.is_empty() {
             self.windows = screenrec::windows();
             self.monitors = screenrec::monitors();
+        }
+        if self.mics.is_none() {
+            self.mics = recorder::cached_devices(ui.ctx());
         }
         match self.rec.as_mut().map(|r| r.check()) {
             Some(Err(e)) => {
@@ -385,7 +388,7 @@ impl ScreenPage {
                     segmented(ui, p, &mut self.fps, &[(15, "15"), (30, "30"), (60, "60")]);
                 });
                 row(ui, p, "Microfone:", |ui| {
-                    let none = crate::i18n::tr("Sem áudio");
+                    let none = crate::i18n::tr(if self.mics.is_none() { "Sem áudio (procurando microfones…)" } else { "Sem áudio" });
                     let cur = if self.mic == 0 { none.clone() } else { mics.get(self.mic - 1).cloned().unwrap_or_default() };
                     egui::ComboBox::from_id_salt("rec_mic").selected_text(cur).width(320.0).show_ui(ui, |ui| {
                         ui.selectable_value(&mut self.mic, 0, none);

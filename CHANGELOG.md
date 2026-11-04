@@ -1,5 +1,12 @@
 # Lista de mudanças
 
+## 1.4.2
+
+### Desempenho
+- **Gravar a tela** e **Gravador de áudio** abrem na hora. A lista de microfones, que o Windows leva de 0,5 a 3 s para montar, agora é feita em segundo plano assim que o Conver abre, e as duas telas usam a mesma lista.
+- **A faixa de áudio e o medidor andam lisos.** O Windows entregava o som do microfone em blocos de meio segundo; agora ele vem em blocos de 20 ms. O maior intervalo medido caiu de 525 ms para menos de 100 ms. A gravação de tela com microfone também usa blocos menores.
+- **Fluxos de automação:** a configuração da IA não é mais lida do disco e decodificada a cada quadro enquanto um node de IA está escolhido.
+
 ## 1.4.1
 
 ### Melhorias
