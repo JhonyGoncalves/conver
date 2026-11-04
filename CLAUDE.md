@@ -50,6 +50,11 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   antigo fechar e copia por cima sem tocar em `dados\`. Os nomes dos arquivos da release (`-instalador.exe`,
   `-portatil.zip`, `-SHA256.txt`) fazem parte do contrato: não mude no `build.ps1`.
 - `presets.rs`: predefinições (ferramenta + argumentos) em `predefinicoes.json`. Telas novas em `extras4.rs`.
+- Fluxos por nodes: `flow.rs` (formato, catálogo de tipos de node, validação e execução; cada node de ferramenta
+  roda em `fluxos/execucoes/<execução>/<node>` e tudo o que ele criar ali passa adiante), `flows_page.rs` (editor:
+  quadro, ajustes do node, execução), `ai_api.rs` (Anthropic ou compatível com OpenAI; chave protegida por DPAPI
+  em `ia.json`). Os fluxos ficam em `fluxos/<nome>.json` e o MCP usa os mesmos arquivos (`flow_*` em `ops.rs`);
+  a tela recarrega quando o arquivo muda por fora. Ferramenta nova em `ops::TOOLS` vira node sozinha.
 - IA: `ai.rs` (ambiente ONNX compartilhado e download de modelos com SHA-256), `upscale.rs` (Real-ESRGAN em blocos),
   `separate.rs` (UVR MDX-Net com STFT própria via realfft), `transcribe.rs` (whisper-cli em `bin\whisper`).
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
@@ -66,6 +71,7 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
 - `i18n/keys.txt` lista as chaves; cada `i18n/<código>.txt` tem linhas `número|tradução` alinhadas com ela,
   embutidas no exe via `include_str!`. 20 idiomas em `i18n::LANGS`.
 - `cli.rs` e `presets.rs` ficam fora da extração; de `ops.rs` só entram os títulos das ferramentas (2º texto do `tool!`).
+  Trechos entre `// i18n: fora` e `// i18n: dentro` também ficam fora (descrições para agentes, textos enviados à IA).
 - Ao adicionar ou mudar textos: `python i18n/extrair.py` (reaproveita as traduções existentes), depois traduzir as
   linhas novas nos 19 arquivos e rodar o teste `i18n_files`, que aponta o que falta.
 - `tr()` também traduz mensagens montadas (moldes com `{}`, prefixos ✔ ✖ ⚠, separadores `"   "`, `" • "`, `": "`),

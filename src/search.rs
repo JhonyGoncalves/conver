@@ -114,6 +114,7 @@ pub fn keywords(id: &str) -> &'static str {
         "info" => "informacoes do arquivo detalhes propriedades metadados resolucao duracao codec info details",
         "watch" => "pasta vigiada automatico automatizar monitorar converter automaticamente watch folder auto",
         "rename" => "renomear em lote mudar nome nomes arquivos sequencia rename batch",
+        "flows" => "automacao automatizar fluxo fluxos node nodes workflow pipeline encadear sequencia etapas ia inteligencia artificial agente chatgpt claude gpt zapier n8n make lote automation flow",
         "qr" => "qr code qrcode codigo gerador pix wifi link barcode",
         _ => "",
     }

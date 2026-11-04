@@ -4,6 +4,17 @@ o download parou ({e}).
 {label} baixado não confere com a assinatura publicada; nada foi alterado. Tente de novo.
 onnxruntime.dll não encontrado (pasta bin).
 não foi possível carregar o modelo: {e}
+não foi possível salvar a configuração da IA: {e}
+a chave salva está corrompida; informe de novo.
+informe o modelo da IA em Configurações → Inteligência artificial.
+configure a chave da API em Configurações → Inteligência artificial.
+a IA recusou a chave (erro {code}): {msg}
+modelo ou endereço não encontrado (erro 404): {msg}
+limite de uso da IA atingido (erro 429): {msg}
+erro {code} da IA: {msg}
+não foi possível falar com a IA em {url}: {e}
+resposta inválida da IA.
+a IA não devolveu texto.
 o modelo de remoção de fundo não foi encontrado (pasta modelos).
 resposta inesperada do modelo.
 320 kbps
@@ -265,10 +276,215 @@ Usando: {}
 Concluído: {} ok, {} com erro.
 Salvo em: {}
 Erro.
-Sem recorte
+o fluxo tem um ciclo (um node volta para um anterior).
+o fluxo precisa de um nome.
+há dois nodes com o id {}.
+node {}: tipo desconhecido "{}" (veja flow_node_types).
+ligação {} → {}: o node {} não tem a saída "{}" (tem: {}).
+ligação {} → {}: o node {} não recebe entradas.
+ligação {} → {}: node inexistente.
+IMAGEM
+VÍDEO
+ÁUDIO
+DOWNLOAD
+FERRAMENTAS
+Arquivos de entrada
+Salvar em pasta
+IA: instrução
+IA: avaliar
+Filtrar arquivos
+não foi possível salvar o fluxo: {e}
+fluxo não encontrado: {name}
+não foi possível criar a pasta de trabalho: {e}
+o fluxo está vazio.
+nada chegou
+▶ {title}
+{n} item(ns)
+✔ {title}: {note}
+✖ {title}: {e}
+nenhum arquivo de entrada (adicione arquivos ao node ou passe "files").
+{n} arquivo(s)
+o texto está vazio.
+{} sim, {} não
+não foi possível criar {}: {e}
+{n} salvo(s) em {}
+escreva a instrução para a IA.
+   IA: {label}
+{label}: {e}
+{n} resposta(s)
+escreva o critério da avaliação.
+   {} {}: {reason}
+tipo desconhecido: {other}
+ferramenta desconhecida: {name}
+nenhum arquivo chegou a este node.
+{} item(ns), {failed} falharam
+{} item(ns)
+ENTRADA E SAÍDA
+Adicione um node "Arquivos de entrada" para receber os arquivos.
+O fluxo foi alterado por fora (MCP ou outro programa) e foi recarregado.
+Novo fluxo
+Automação
+Já existe um fluxo com esse nome.
++ Novo
+Duplicar
+cópia
+Clique de novo para excluir
+Excluir
+🔍  Procurar node…
+arraste arquivos para cá
+{k} arquivo(s) ou pasta(s)
+(vazio)
+escreva a instrução
+escreva o critério
+Documentos\Conver
+tudo passa
+ajustes padrão
+Crie um fluxo com "+ Novo".
+rodando…
+não
+Remover
+Esse node não recebe entradas.
+Essa ligação criaria um ciclo.
++  Adicionar node
+Ajustar
+Mostrar o fluxo inteiro
+Adicione nodes pelo botão "+ Adicionar node".
+Puxe da bolinha à direita de um node até outro node para ligar os dois.
+Ligação
+Remover ligação
+Dica: a tecla Delete também remove.
+Fluxo
+Descrição
+Como funciona
+1. Adicione nodes pelo botão "+ Adicionar node" (ferramentas, IA, filtros).
+2. Puxe da bolinha à direita de um node até outro para ligar: o resultado de um vai para o próximo.
+3. Clique num node para ajustar; arraste arquivos para a janela para colocá-los na entrada.
+4. Clique em Executar fluxo.
+Os nodes de IA usam a API configurada em Configurações. Agentes de IA também criam e rodam fluxos pelo MCP (flow_save, flow_run).
+⚠ IA: {e}
+Configurar a IA
+Tipo desconhecido: {}
+Nome no quadro
+Pasta de destino
+Documentos\Conver\<fluxo>
+Nos textos, {text} vira o texto que chega e {file} o nome do arquivo.
+Remover node
+Arquivos e pastas
+Nenhum ainda: arraste arquivos para a janela ou use os botões abaixo.
+Remover da lista
++ Arquivos…
++ Pasta…
+Limpar
+Pela linha de comando ou pelo MCP, os arquivos passados em flow_run substituem estes.
+▶  Executar fluxo
+Executando “{}”…
+Concluído com {failed} node(s) com erro.
+Concluído: {n} resultado(s).
+Voltar ao padrão
+(padrão)
+(automático)
+um por linha
+Formato
+Qualidade
+Nível
+Idioma
+Porcentagem
+Manter a proporção
+Início
+Fim
+Duração (s)
+Tamanho
+Girar (graus)
+Corte preciso
+Páginas
+Quadros por segundo
+Espelhar na horizontal
+Espelhar na vertical
+Codificação
+Janela
+Volume
+Links
+Tamanho final (MB)
+Baixar legendas
+Arquivo de legenda
+Salvar
+Pular páginas que já têm texto
+Segundos
+Escala
+Saturação
+Resolução
+Substituir o áudio
+Área
+Posição
+Playlist inteira
+Tamanho da página
+Senha do dono
+Senha
+Música
+Mono
+Modelo
+Microfone
+Volume alvo (LUFS)
+Repetir
+Tipo
+Manter o áudio
+Kbps
+Salvar como
+Filtro
+Fator
+A cada (s)
+Borda
+Resolução (DPI)
+Recortar
+Baixar a capa
+Contraste
+Cor
+Login do navegador
+Brilho
+Fundo
+Áudio (kbps)
+Proporção
+Permitir imprimir
+Permitir copiar
+Arquivo de saída
+Nome
+Instrução para a IA
+Uma resposta por arquivo
+Passar os arquivos adiante
+Salvar a resposta como
+Critério
+Tipos aceitos
+Extensões aceitas
+Tamanho mínimo (MB)
+Tamanho máximo (MB)
+Mover em vez de copiar
+Salvar os textos como .txt
+Rápido
+Equilibrado
+Preciso
+Voz e instrumental
+Só a voz
+Só o instrumental
 Nenhum
+Original
+Transparente
+Branco
 Preto e branco
 Sépia
+Inverter
+Em cima
+Embaixo
+Pequeno
+Grande
+Suave
+Definida
+Vídeos
+Áudios
+PDFs
+Textos
+A4 em pé
+A4 deitado
+Sem recorte
 Inverter cores
 Informe a largura e/ou a altura.
 Sem manter a proporção, informe largura E altura.
@@ -315,21 +531,16 @@ Legenda
 Mídia
 Faixas
 Etiquetas
-Nome
 Pasta
-Tamanho
 {} ({} bytes)
 Modificado
 Criado
-Tipo
 Arquivo
-Formato
 Dimensões
 {w} × {h} px ({mp:.1} megapixels)
 Cores
  (com transparência)
 Imagem
-Páginas
 não foi possível ler (danificado ou protegido)
 não foi possível consultar o GitHub: {e}
 não foi possível acessar o GitHub: {e}
@@ -342,7 +553,8 @@ Cancelando…
 Iniciando…
 Erro inesperado.
 Downloads
-IMAGEM
+AUTOMAÇÃO
+Fluxos de automação
 Redimensionar
 Diminuir qualidade
 Converter formato
@@ -352,7 +564,6 @@ Girar / recortar
 Ajustes de cor
 Remover metadados
 Imagens → PDF
-VÍDEO
 Cortar trecho
 Juntar vídeos
 Mudar velocidade
@@ -360,15 +571,26 @@ Vídeo → GIF
 Queimar legenda
 Música de fundo
 Remover áudio / frames
-ÁUDIO
 Cortar áudio
 Juntar áudios
 Normalizar volume
 PDF → imagens
 Proteger com senha
-DOWNLOAD
 Vídeos e músicas
-FERRAMENTAS
+Inteligência artificial (fluxos de automação)
+Usada pelos nodes "IA: instrução" e "IA: avaliar". Os arquivos que passam por esses nodes são enviados ao serviço escolhido; o resto do Conver continua sem internet.
+Serviço:
+Anthropic (Claude)
+Compatível com OpenAI
+ex.: gpt-4o-mini, llama3.1 (Ollama)
+Endereço da API:
+Chave da API:
+salva (protegida pelo Windows)
+cole a chave aqui
+Salvar chave
+Testar conexão
+Testando…
+✔ A IA respondeu.
 conversor universal
 🔍  Buscar ferramenta…
 Ctrl+F
@@ -380,7 +602,6 @@ Nenhuma ferramenta encontrada.
 🕘  Histórico
 Configurações
 Personalize o Conver.
-Idioma
 Os 20 idiomas mais falados do mundo. Nomes de arquivos e mensagens do FFmpeg e do yt-dlp não são traduzidos.
 Aparência
 Clara
@@ -490,14 +711,12 @@ Grave uma legenda (.srt, .ass ou .vtt) dentro do vídeo, para aparecer em qualqu
 Legendar
 Coloque uma música no vídeo, misturada com o som original ou no lugar dele.
 Una várias músicas ou gravações num arquivo só, na ordem da lista.
-Vídeos
 Início inválido. Use o formato 00:01:30 (ou só segundos).
 Fim inválido. Use o formato 00:02:45 (ou só segundos).
 O fim precisa ser depois do início.
 Formato de saída:
 Qualidade:
 Comprimir por:
-Nível
 Tamanho final
 Tamanho desejado:
 cada vídeo terá aproximadamente esse tamanho (2 passos, mais lento)
@@ -567,12 +786,8 @@ Encontrada para o vídeo selecionado: {}
 Nenhuma legenda com o mesmo nome do vídeo selecionado. Escolha o arquivo.
 Cada vídeo usa a legenda com o mesmo nome dele (video.srt), ou escolha uma para todos.
 Tamanho do texto:
-Pequeno
 Médio
-Grande
 Posição:
-Embaixo
-Em cima
 Música:
 Todos os arquivos
 Escolha a música
@@ -603,6 +818,12 @@ Converter áudio
 Download
 Microfones e janelas
 Listar predefinições
+Listar fluxos
+Ver fluxo
+Tipos de node
+Salvar fluxo
+Apagar fluxo
+Executar fluxo
 Cancelado pelo usuário.
 [{}/{n}] {name}
 ✔ {name}   {info}
@@ -619,7 +840,6 @@ Converta entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
 Girar, espelhar e recortar
 Gire, espelhe ou recorte as imagens numa proporção pronta (o recorte é centralizado).
 Apaga informações escondidas da foto (EXIF, localização GPS, câmera, data) sem perder qualidade.
-Remover
 Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.
 Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os detalhes. Roda no seu PC, sem internet.
 Ampliar
@@ -629,7 +849,6 @@ Criar PDF
 Largura e altura devem ser números inteiros positivos.
 Informe a largura e/ou a altura em pixels.
 sem prévia
-Porcentagem
 Pixels
 Manter proporção
 Com a proporção mantida, a imagem cabe dentro da largura/altura informada.
@@ -639,11 +858,7 @@ Na vertical ↕
 JPG, PNG e WEBP: só os metadados são apagados, a imagem não é recomprimida.
 Se a foto tiver rotação da câmera, ela é aplicada antes, para a imagem não ficar de lado.
 Fundo novo:
-Transparente
-Branco
-Cor
 Borda:
-Definida
 Suave (cabelo, pelos)
 Transparente salva em PNG. A primeira imagem demora alguns segundos enquanto o modelo carrega.
 ⚠ Modelo de IA não encontrado: coloque o silueta.onnx na pasta modelos.
@@ -657,7 +872,6 @@ Zerar
 Filtro:
 Tamanho da página:
 Use ↑ e ↓ na lista para mudar a ordem das páginas.
-Original
 Resultado
 Adicione uma imagem para ver a prévia
 Resultado: {}×{}  •  {}   ({})
@@ -670,7 +884,6 @@ Não foi possível abrir esta imagem.
 {pages} página(s) • {}
 Não usar
 Baixar vídeos e músicas
-Links
 {n} links — serão baixados em fila
 Cole aqui o link do vídeo, música ou playlist (um ou vários, um por linha)
 MP4 (vídeo)
@@ -719,8 +932,6 @@ nome repetido
 já existe um arquivo com esse nome
 nada foi gravado.
 UVR MDX-Net (67 MB)
-Voz e instrumental
-Só a voz
 Só o instrumental (karaokê)
 falha ao salvar: {}
 o áudio é curto demais (menos de meio segundo).
@@ -788,7 +999,6 @@ Selecione os arquivos
 Nenhum arquivo
 1 arquivo
 {n} arquivos
-Limpar
 + Adicionar
 ordem:
 Arraste arquivos para cá
@@ -796,7 +1006,6 @@ ou clique para selecionar
 {w}×{h}  •  {size}
 {t}  •  {size}
 {}º  •  {sub}
-Remover da lista
 A faixa de áudio aparece aqui
 0 dB
 {d:.1} dB

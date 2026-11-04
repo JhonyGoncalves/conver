@@ -41,7 +41,8 @@ INTERNAL = {
     "bestaudio/best", "bv*+ba/b", "+faststart", "Flash", "ffmpeg:", "yt-dlp:", "Conver/{}", "Conver {}",
     "Program Manager", "Helvetica", "WinAnsiEncoding", "Font", "Type1", "FConverOcr", "Image", "Subtype", "DeviceRGB",
     "DeviceGray", "ICCBased", "StdCF", "Videos", "Filter", "Width", "Height", "Encoding", "Resources", "Contents",
-    "pipe:0", "mcpServers", "ET\\nQ\\n", "UVR-MDX-NET-Inst_HQ_3.onnx",
+    "pipe:0", "mcpServers", "ET\\nQ\\n", "UVR-MDX-NET-Inst_HQ_3.onnx", "Authorization", "Bearer {}", "image/jpeg",
+    "tool:", "nothing arrived", "{base} {i}", "{}{port}  →  {}", "Documents",
 }
 # arquivos que não têm texto de tela: linha de comando/MCP (respondem em JSON e no terminal) e dados
 SKIP_FILES = {"cli.rs", "presets.rs", "search.rs", "captura.rs"}
@@ -55,7 +56,7 @@ TOOL_TITLE = re.compile(r'tool!\(\s*"[a-z_]+",\s*"((?:[^"\\]|\\.)*)"')
 
 
 # títulos das seções do menu, em maiúsculas (passariam por nomes de formato)
-SECTIONS = {"IMAGEM", "VÍDEO", "ÁUDIO", "DOWNLOAD", "FERRAMENTAS"}
+SECTIONS = {"IMAGEM", "VÍDEO", "ÁUDIO", "DOWNLOAD", "FERRAMENTAS", "AUTOMAÇÃO", "ENTRADA E SAÍDA"}
 
 
 def is_ui(s):
@@ -92,6 +93,8 @@ def keys_from_source():
                     seen.add(s)
                     keys.append(s)
             continue
+        # trechos marcados como sem texto de tela (descrições para agentes, textos enviados à IA, dados de exemplo)
+        text = re.sub(r"(?s)//\s*i18n: fora.*?//\s*i18n: dentro", "", text)
         # sem comentários de linha (// …), que podem ter aspas
         text = re.sub(r"(?m)^\s*//.*$", "", text)
         for m in LIT.finditer(text):

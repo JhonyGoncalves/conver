@@ -3,7 +3,7 @@
 //!
 //! ```text
 //! CONVER_CAPTURA=<pasta de saída>
-//! CONVER_CENAS=img_resize:claro:pt,v_compress:escuro:ar     (tela:tema:idioma; tela = id de main::page_id,
+//! CONVER_CENAS=img_resize:claro:pt,settings:claro:pt:900    (tela:tema:idioma[:rolagem]; tela = id de main::page_id,
 //!                                                          "settings" ou "history")
 //! CONVER_ARQUIVOS=a.png;b.mp4                              (opcional: entram como se fossem arrastados)
 //! CONVER_BUSCA=cortar                                      (opcional: texto na busca do menu)
@@ -20,6 +20,8 @@ pub struct Cena {
     pub page: String,
     pub dark: bool,
     pub lang: String,
+    /// Rolagem da página, em pixels (4º campo da cena).
+    pub scroll: Option<f32>,
 }
 
 pub struct Captura {
@@ -49,6 +51,7 @@ pub fn from_env() -> Option<Captura> {
                 page: it.next()?.to_string(),
                 dark: it.next().unwrap_or("claro") == "escuro",
                 lang: it.next().unwrap_or("pt").to_string(),
+                scroll: it.next().and_then(|v| v.parse().ok()),
             })
         })
         .collect::<Vec<_>>();

@@ -2,6 +2,7 @@
 //! Conver — conversor universal.
 
 mod ai;
+mod ai_api;
 mod bgremove;
 mod captura;
 mod cli;
@@ -10,6 +11,8 @@ mod extras;
 mod extras2;
 mod extras3;
 mod extras4;
+mod flow;
+mod flows_page;
 mod history;
 mod i18n;
 mod imaging;
@@ -128,6 +131,7 @@ enum Page {
     Separate,
     Screen,
     Presets,
+    Flows,
 }
 
 const IMG_TOOLS: [ImgTool; 10] = [
@@ -162,6 +166,7 @@ const MEDIA_TOOLS: [MTool; 15] = [
 ];
 
 const NAV: &[(&str, &[(Page, &str)])] = &[
+    ("AUTOMAÇÃO", &[(Page::Flows, "Fluxos de automação")]),
     (
         "IMAGEM",
         &[
@@ -267,6 +272,10 @@ struct ConverApp {
     separate: SeparatePage,
     screen: ScreenPage,
     presets: PresetsPage,
+    flows: flows_page::FlowsPage,
+    ai: ai_api::Settings,
+    ai_key: String,
+    ai_test: Arc<Mutex<Option<Result<String, String>>>>,
     about: Arc<Mutex<Option<About>>>,
     inbox: Arc<Mutex<Vec<PathBuf>>>,
     update: Arc<Mutex<UpdateState>>,
@@ -329,6 +338,10 @@ impl ConverApp {
             separate: SeparatePage::new(),
             screen: ScreenPage::new(),
             presets: PresetsPage::new(),
+            flows: flows_page::FlowsPage::new(),
+            ai: ai_api::Settings::load(),
+            ai_key: String::new(),
+            ai_test: Arc::default(),
             about,
             inbox,
             update: Arc::new(Mutex::new(UpdateState::Idle)),
@@ -402,6 +415,9 @@ impl ConverApp {
             if self.page == Page::Screen {
                 self.screen.demo();
             }
+            if self.page == Page::Flows {
+                self.flows.demo();
+            }
         }
         cap.quadros += 1;
         if cap.quadros >= captura::espera() && !cap.pedida {
@@ -410,6 +426,77 @@ impl ConverApp {
         }
         ctx.request_repaint();
         self.captura = Some(cap);
+    }
+
+    /// Configurações da IA usada pelos nodes de IA dos fluxos.
+    fn ai_card(&mut self, ui: &mut Ui) {
+        let p = self.pal;
+        card(ui, &p, |ui| {
+            ui.label(RichText::new(crate::i18n::tr("Inteligência artificial (fluxos de automação)")).family(bold()).size(16.0).color(p.text));
+            ui.add_space(4.0);
+            widgets::hint(ui, &p, "Usada pelos nodes \"IA: instrução\" e \"IA: avaliar\". Os arquivos que passam por esses nodes são enviados ao serviço escolhido; o resto do Conver continua sem internet.");
+            let mut s = self.ai.clone();
+            row(ui, &p, "Serviço:", |ui| {
+                widgets::segmented(ui, &p, &mut s.provider, &[(ai_api::Provider::Anthropic, "Anthropic (Claude)"), (ai_api::Provider::OpenAi, "Compatível com OpenAI")]);
+            });
+            row(ui, &p, "Modelo:", |ui| {
+                let hint = match s.provider {
+                    ai_api::Provider::Anthropic => s.provider.default_model().to_string(),
+                    ai_api::Provider::OpenAi => crate::i18n::tr("ex.: gpt-4o-mini, llama3.1 (Ollama)"),
+                };
+                ui.add(egui::TextEdit::singleline(&mut s.model).margin(widgets::FIELD_MARGIN).hint_text(hint).desired_width(320.0));
+            });
+            row(ui, &p, "Endereço da API:", |ui| {
+                ui.add(egui::TextEdit::singleline(&mut s.base_url).margin(widgets::FIELD_MARGIN).hint_text(s.provider.default_url()).desired_width(320.0));
+            });
+            row(ui, &p, "Chave da API:", |ui| {
+                let hint = crate::i18n::tr(if s.has_key() { "salva (protegida pelo Windows)" } else { "cole a chave aqui" });
+                ui.add(egui::TextEdit::singleline(&mut self.ai_key).password(true).margin(widgets::FIELD_MARGIN).hint_text(hint).desired_width(320.0));
+                if widgets::secondary(ui, &p, "Salvar chave", !self.ai_key.trim().is_empty()) {
+                    match s.set_key(&self.ai_key) {
+                        Ok(()) => self.ai_key.clear(),
+                        Err(e) => *self.ai_test.lock().unwrap() = Some(Err(e)),
+                    }
+                }
+                if s.has_key() && widgets::secondary(ui, &p, "Remover", true) {
+                    s.key_protected.clear();
+                }
+            });
+            if s != self.ai {
+                if let Err(e) = s.save() {
+                    *self.ai_test.lock().unwrap() = Some(Err(e));
+                }
+                self.ai = s;
+            }
+            ui.horizontal(|ui| {
+                let testing = self.ai_test.lock().unwrap().as_ref().is_some_and(|r| r.as_ref().is_ok_and(|t| t.is_empty()));
+                if widgets::secondary(ui, &p, "Testar conexão", !testing) {
+                    let (slot, cfg, ctx) = (self.ai_test.clone(), self.ai.config(), ui.ctx().clone());
+                    *slot.lock().unwrap() = Some(Ok(String::new()));
+                    std::thread::spawn(move || {
+// i18n: fora
+                        let r = cfg.and_then(|c| ai_api::ask(&c, "Responda só com a palavra: ok", &[ai_api::Part::Text("teste".into())], 20));
+// i18n: dentro
+
+                        *slot.lock().unwrap() = Some(r.map(|a| if a.is_empty() { "ok".into() } else { a }));
+                        ctx.request_repaint();
+                    });
+                }
+                match &*self.ai_test.lock().unwrap() {
+                    Some(Ok(t)) if t.is_empty() => {
+                        ui.label(RichText::new(crate::i18n::tr("Testando…")).color(p.muted));
+                    }
+                    Some(Ok(_)) => {
+                        ui.label(RichText::new(crate::i18n::tr("✔ A IA respondeu.")).color(p.ok));
+                    }
+                    Some(Err(e)) => {
+                        ui.label(RichText::new(crate::i18n::tr(format!("✖ {e}"))).color(p.accent));
+                    }
+                    None => {}
+                }
+            });
+            widgets::hint(ui, &p, "Para uma IA no próprio PC, use \"Compatível com OpenAI\" com o endereço do Ollama (http://localhost:11434/v1) ou do LM Studio: não precisa de chave.");
+        });
     }
 
     fn set_dark(&mut self, ctx: &egui::Context, dark: bool) {
@@ -459,6 +546,10 @@ impl ConverApp {
             }
         }
         let page = self.page;
+        if page == Page::Flows {
+            self.flows.add_files(paths);
+            return;
+        }
         let current_accepts = self.queue_of(page).is_some_and(|q| paths.iter().any(|p| q.accepts(p)));
         if !current_accepts {
             let has = |exts: &[&str]| paths.iter().any(|p| exts.contains(&tools::ext_lower(p).as_str()));
@@ -683,6 +774,9 @@ impl ConverApp {
                 ui.hyperlink_to(crate::i18n::tr(integration::repo_url().replace("https://", "")), integration::repo_url());
             });
         });
+        ui.add_space(4.0);
+
+        self.ai_card(ui);
         ui.add_space(4.0);
 
         card(ui, &p, |ui| {
@@ -942,6 +1036,7 @@ fn page_id(page: Page) -> &'static str {
         Page::Separate => "separate",
         Page::Screen => "screen",
         Page::Presets => "presets",
+        Page::Flows => "flows",
         Page::History | Page::Settings => "",
     }
 }
@@ -1030,7 +1125,19 @@ impl eframe::App for ConverApp {
         egui::CentralPanel::default()
             .frame(Frame::default().fill(p.bg).inner_margin(Margin::symmetric(26, 20)))
             .show(ctx, |ui| {
-                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                if self.page == Page::Flows {
+                    self.update_banner(ui);
+                    self.flows.ui(ui, &p);
+                    if self.flows.take_go_settings() {
+                        self.page = Page::Settings;
+                    }
+                    return;
+                }
+                let mut area = egui::ScrollArea::vertical().auto_shrink([false, false]);
+                if let Some(off) = self.captura.as_ref().and_then(|c| c.cenas.get(c.atual)).and_then(|c| c.scroll) {
+                    area = area.vertical_scroll_offset(off);
+                }
+                area.show(ui, |ui| {
                     ui.set_width(ui.available_width() - 6.0);
                     self.update_banner(ui);
                     match self.page {
@@ -1061,6 +1168,7 @@ impl eframe::App for ConverApp {
                         Page::Separate => self.separate.ui(ui, &p, &self.durs),
                         Page::Screen => self.screen.ui(ui, &p),
                         Page::Presets => self.presets.ui(ui, &p),
+                        Page::Flows => {}
                         Page::Settings => self.settings_ui(ui),
                     }
                 });
@@ -1139,3 +1247,5 @@ mod tests_v12;
 mod tests_v13;
 #[cfg(test)]
 mod tests_v14;
+#[cfg(test)]
+mod tests_v15;

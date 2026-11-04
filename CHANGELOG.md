@@ -1,5 +1,12 @@
 # Lista de mudanças
 
+## Próxima versão
+
+### Novidades
+- **Fluxos de automação por nodes** (nova seção Automação no menu): monte uma sequência de ferramentas ligando nodes num quadro. O resultado de um node passa para o próximo, e todas as ferramentas do Conver viram nodes. Há também nodes de entrada, de texto, de filtro (por tipo, extensão ou tamanho) e de "Salvar em pasta". O quadro permite arrastar, aproximar e afastar, e salva sozinho; arrastar arquivos para a janela os coloca na entrada. Dois fluxos de exemplo vêm prontos.
+- **IA dentro dos fluxos:** o node **IA: instrução** pede algo à IA (descrever, resumir, traduzir, escrever legendas…) e o node **IA: avaliar** confere cada arquivo e o manda para a saída "sim" ou "não". Funciona com a Anthropic (Claude) e com APIs compatíveis com a da OpenAI, inclusive Ollama e LM Studio no próprio PC. A configuração fica em Configurações → Inteligência artificial, e a chave é guardada protegida pelo Windows.
+- **MCP e linha de comando:** `flow_list`, `flow_get`, `flow_node_types`, `flow_save`, `flow_delete` e `flow_run`. Agentes de IA podem criar fluxos novos, editar os existentes e executá-los, e as mudanças aparecem na tela na hora.
+
 ## 1.3.1
 
 ### Correções

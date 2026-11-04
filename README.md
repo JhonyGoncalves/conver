@@ -85,6 +85,20 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 
 ![Configurações do Conver](docs/configuracoes.png)
 
+## Fluxos de automação (nodes)
+
+Na seção **Automação**, você monta um fluxo ligando nodes num quadro: o resultado de um vai para o próximo
+(ex.: *fotos → remover fundo → IA confere o recorte → aprovadas numa pasta, o resto em outra*). Todas as
+ferramentas do Conver viram nodes, além de entrada, texto, filtro e "Salvar em pasta". Os nodes de IA usam a API
+que você configurar (Anthropic/Claude ou qualquer API compatível com a da OpenAI, inclusive Ollama no próprio PC):
+
+- **IA: instrução** — descrever imagens, resumir transcrições, escrever legendas, traduzir… (a resposta segue
+  adiante como texto e pode ser salva como .txt, .md, .srt…)
+- **IA: avaliar** — confere cada arquivo contra um critério e manda para a saída "sim" ou "não"
+
+Os fluxos ficam salvos e também rodam pela linha de comando (`conver-cli flow_run --name "Meu fluxo" fotos\*`)
+e pelo MCP, onde agentes de IA podem criar e editar fluxos (`flow_node_types`, `flow_save`, `flow_run`).
+
 ## Automação: linha de comando e agentes de IA (MCP)
 
 Tudo o que o Conver faz também funciona sem abrir a janela, pelo `conver-cli.exe` (fica ao lado do `Conver.exe`):
@@ -92,7 +106,7 @@ Tudo o que o Conver faz também funciona sem abrir a janela, pelo `conver-cli.ex
 ```powershell
 conver-cli list                                        # todas as ferramentas
 conver-cli help video_compress                         # opções de uma ferramenta
-conver-cli image_convert fotos\*.png --format webp
+conver-cli image_convert fotos*.png --format webp
 conver-cli video_compress aula.mp4 --target_mb 50 --resolution 720p
 conver-cli transcribe entrevista.mp3 --language pt --formats srt,txt
 conver-cli preset "WhatsApp (vídeo até 16 MB)" video.mp4

@@ -841,6 +841,80 @@ fn t_preset_save(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
     Ok(json!({ "saved": name }))
 }
 
+// ================================================================ fluxos
+
+fn flow_summary(f: &crate::flow::Flow) -> Value {
+    let nodes: Vec<String> = f.nodes.iter().map(|n| if n.title.is_empty() { n.kind.clone() } else { format!("{} ({})", n.title, n.kind) }).collect();
+    json!({ "name": f.name, "description": f.description, "nodes": nodes, "links": f.links.len() })
+}
+
+fn t_flow_list(_a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    crate::flow::ensure_examples();
+    Ok(json!({ "flows": crate::flow::list().iter().map(flow_summary).collect::<Vec<_>>() }))
+}
+
+fn t_flow_get(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    let name = a.str("name").ok_or("informe \"name\".")?;
+    let f = crate::flow::find(&name).ok_or_else(|| format!("fluxo não encontrado: {name}"))?;
+    serde_json::to_value(f).map_err(|e| e.to_string())
+}
+
+fn t_flow_node_types(_a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    let kinds: Vec<Value> = crate::flow::kinds()
+        .into_iter()
+        .map(|k| json!({ "kind": k.kind, "title": k.title, "category": k.category, "description": k.description,
+            "outputs": k.outputs, "has_input": k.has_input, "args": k.schema }))
+        .collect();
+    Ok(json!({
+        "how_it_works": "A flow is a graph of nodes. Each link sends what a node produced (files and texts) from one of its outputs (\"out\", or \"yes\"/\"no\" for ai_gate and filter) to another node. Tool nodes (kind \"tool:<name>\") run that Conver tool on the files that arrive; their \"args\" are the tool's arguments without files/out_dir. String args may use {text} (incoming text) and {file}. Nodes run in link order; \"input\" nodes receive the files given to flow_run. ai_prompt/ai_gate use the AI API configured by the user in Settings.",
+        "example": { "name": "Fotos para o feed", "nodes": [
+            { "id": 1, "kind": "input", "pos": [40, 120] },
+            { "id": 2, "kind": "tool:image_resize", "args": { "width": 1080, "height": 1350 }, "pos": [300, 120] },
+            { "id": 3, "kind": "ai_prompt", "title": "Legenda", "args": { "prompt": "Escreva uma legenda curta para Instagram desta foto.", "save_as": "txt" }, "pos": [560, 120] },
+            { "id": 4, "kind": "output", "args": { "folder": "C:\\Users\\voce\\Pictures\\Feed" }, "pos": [820, 120] } ],
+            "links": [ { "from": 1, "to": 2 }, { "from": 2, "to": 3 }, { "from": 3, "to": 4 } ] },
+        "kinds": kinds }))
+}
+
+fn t_flow_save(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    let raw = a.get("flow").ok_or("informe \"flow\" (o fluxo em JSON; veja flow_node_types).")?;
+    let mut f: crate::flow::Flow = match raw {
+        Value::String(s) => serde_json::from_str(s),
+        v => serde_json::from_value(v.clone()),
+    }
+    .map_err(|e| format!("\"flow\" inválido: {e}"))?;
+    // posições automáticas para quem não informar
+    for (i, n) in f.nodes.iter_mut().enumerate() {
+        if n.pos == [0.0, 0.0] {
+            n.pos = [40.0 + i as f32 * 260.0, 120.0];
+        }
+    }
+    let replaced = crate::flow::find(&f.name).is_some();
+    if let Some(old) = a.str("rename_from").filter(|s| !s.trim().is_empty() && !s.eq_ignore_ascii_case(&f.name)) {
+        let _ = crate::flow::remove(&old);
+    }
+    crate::flow::save(&f)?;
+    Ok(json!({ "saved": f.name, "replaced": replaced, "nodes": f.nodes.len(), "links": f.links.len() }))
+}
+
+fn t_flow_delete(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    let name = a.str("name").ok_or("informe \"name\".")?;
+    let f = crate::flow::find(&name).ok_or_else(|| format!("fluxo não encontrado: {name}"))?;
+    crate::flow::remove(&f.name)?;
+    Ok(json!({ "deleted": f.name }))
+}
+
+fn t_flow_run(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let name = a.str("name").ok_or("informe \"name\".")?;
+    let f = crate::flow::find(&name).ok_or_else(|| format!("fluxo não encontrado: {name}"))?;
+    let files = if a.get("files").is_some() || a.get("file").is_some() { a.files()? } else { Vec::new() };
+    let inputs = crate::flow::Inputs { files, texts: a.strings("texts") };
+    let out = a.out_dir()?;
+    let state = std::sync::Mutex::new(crate::flow::RunState::default());
+    let ai = crate::ai_api::Settings::load().config();
+    crate::flow::run(&f, &inputs, out.as_deref(), &state, ctx, &ai)
+}
+
 // ================================================================ tabela
 
 macro_rules! tool {
@@ -972,6 +1046,21 @@ pub static TOOLS: &[Tool] = &[
     tool!("preset_run", "Usar predefinição", "Run a saved preset on files. Extra arguments override the preset's.",
         json!({ "type": "object", "properties": { "name": str_prop("Preset name."), "files": files_prop("input files"), "out_dir": str_prop("Output folder.") },
             "required": ["name"] }), t_preset_run),
+    tool!("flow_list", "Listar fluxos", "List the automation flows (node graphs) saved in Conver.",
+        json!({ "type": "object", "properties": {} }), t_flow_list),
+    tool!("flow_get", "Ver fluxo", "Get a flow as JSON (nodes, their args and positions, links), to inspect or edit it with flow_save.",
+        json!({ "type": "object", "properties": { "name": str_prop("Flow name.") }, "required": ["name"] }), t_flow_get),
+    tool!("flow_node_types", "Tipos de node", "Describe every node kind a flow can use (inputs/outputs, tools with their args, AI steps, filters) plus an example flow. Read this before flow_save.",
+        json!({ "type": "object", "properties": {} }), t_flow_node_types),
+    tool!("flow_save", "Salvar fluxo", "Create or replace (by name) an automation flow. It is validated (kinds, tool names, links, no cycles) and shows up in the app's Automation screen.",
+        json!({ "type": "object", "properties": { "flow": json!({ "type": "object", "description": "The flow: {name, description, nodes: [{id, kind, title, args, pos: [x, y]}], links: [{from, port, to}]}." }),
+            "rename_from": str_prop("Old name, when renaming an existing flow.") }, "required": ["flow"] }), t_flow_save),
+    tool!("flow_delete", "Apagar fluxo", "Delete a saved flow.",
+        json!({ "type": "object", "properties": { "name": str_prop("Flow name.") }, "required": ["name"] }), t_flow_delete),
+    tool!("flow_run", "Executar fluxo", "Run a saved flow. \"files\" replace the files saved in its input nodes; \"texts\" are extra texts for them. Returns what each node did and the final files/texts.",
+        json!({ "type": "object", "properties": { "name": str_prop("Flow name."), "files": files_prop("input files"),
+            "texts": json!({ "type": "array", "items": { "type": "string" }, "description": "Extra input texts (e.g. links)." }),
+            "out_dir": str_prop("Folder for output nodes that have no folder set.") }, "required": ["name"] }), t_flow_run),
     tool!("preset_save", "Salvar predefinição", "Save (or replace) a preset: a tool name plus its arguments (without files).",
         json!({ "type": "object", "properties": { "name": str_prop("Preset name."), "tool": str_prop("Tool name, e.g. video_compress."),
             "args": json!({ "type": "object", "description": "Arguments for the tool." }), "description": str_prop("Short description.") },
