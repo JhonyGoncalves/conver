@@ -10,6 +10,8 @@
 
 <p align="center">
   <a href="https://github.com/JhonyGoncalves/conver/releases/latest"><b>⬇ Baixar a versão mais recente</b></a>
+  &nbsp;•&nbsp;
+  <a href="#apoie-o-projeto">💚 Apoiar com Pix</a>
 </p>
 
 ![Tela do Conver lendo o texto de uma imagem](docs/ocr.png)
@@ -111,6 +113,16 @@ Para só rodar durante o desenvolvimento: `cargo run --release` (com `ffmpeg.exe
 | `src/i18n.rs`, `i18n/*.txt` | Idiomas: o texto em português do código é a chave; cada idioma tem linhas `número\|tradução` alinhadas com `i18n/keys.txt` |
 | `src/integration.rs` | Menu do botão direito, atualizações, instância única |
 | `installer/conver.iss` | Script do instalador (Inno Setup) |
+
+## Apoie o projeto
+
+O Conver é gratuito, sem anúncios e sem telemetria. Se ele te ajudou e você quiser contribuir com o desenvolvimento, aceito doações de qualquer valor por **Pix**:
+
+<p align="center">
+  <img src="docs/qrcode-pix.png" width="220" alt="QR Code Pix para doação">
+</p>
+
+Também ajuda muito dar uma ⭐ no repositório, relatar problemas e sugerir ferramentas nas [issues](https://github.com/JhonyGoncalves/conver/issues).
 
 ## Licença
 
