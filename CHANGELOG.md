@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 1.2.3
+
+### Novidades
+- **Busca de ferramentas** no topo do menu lateral (Ctrl+F): procura pelo nome, pela seção e por palavras que alguém usaria ("cortar", "aparar", "tirar fundo", "karaokê", "youtube", "senha"…), em português e inglês e no idioma escolhido, sem diferenciar acentos e aceitando um erro de digitação. Enter abre a primeira ferramenta encontrada e Esc limpa a busca.
+
 ## 1.2.2
 
 ### Correções

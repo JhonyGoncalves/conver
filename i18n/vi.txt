@@ -352,417 +352,419 @@
 361|Video và nhạc
 362|CÔNG CỤ
 363|trình chuyển đổi đa năng
-364|Thư mục theo dõi  ●
-365|Ghi âm  ●
-366|Quay màn hình  ●
-367|⚙  Cài đặt
-368|🕘  Lịch sử
-369|Cài đặt
-370|Tùy chỉnh Conver.
-371|Ngôn ngữ
-372|20 ngôn ngữ được nói nhiều nhất thế giới. Tên tệp và thông báo của FFmpeg, yt-dlp không được dịch.
-373|Giao diện
-374|Sáng
-375|Tối
-376|Thông báo
-377|Thông báo của Windows khi một tác vụ dài hoàn tất (khi Conver chạy nền)
-378|Phát âm thanh khi xong
-379|Thử thông báo
-380|Thông báo sẽ hiện như thế này khi một tác vụ hoàn tất.
-381|thông báo hiện với tên "Windows PowerShell"; đó là cách Windows hiển thị ứng dụng không có trình cài đặt.
-382|Thư mục mặc định:
-383|Đổi…
-384|Thư mục tải xuống mặc định
-385|Giới thiệu
-386|Phiên bản:
-387|không tìm thấy
-388|đang kiểm tra…
-389|Dự án:
-390|Tự động hóa (tác nhân AI và dòng lệnh)
-391|Các tác nhân AI (Claude, Cursor, VS Code…) có thể dùng mọi công cụ của Conver qua MCP. Dán cấu hình bên dưới vào tệp MCP của tác nhân.
-392|Chương trình:
-393|Sao chép cấu hình MCP
-394|Sao chép ví dụ dòng lệnh
-395|"{}" image_convert foto.png --format webp
-396|Trên dòng lệnh: conver-cli help  •  conver-cli <công cụ> tệp… --tùy chọn giá trị
-397|Tích hợp với Windows
-398|Hiện "Mở bằng Conver" trong menu chuột phải (ảnh, video, âm thanh và PDF)
-399|Không thể thay đổi menu: {e}
-400|Trên Windows 11, tùy chọn nằm trong "Hiển thị thêm tùy chọn". Nếu bạn di chuyển thư mục Conver, hãy bỏ chọn rồi chọn lại mục này.
-401|Cập nhật
-402|Kiểm tra phiên bản Conver mới khi mở (hỏi GitHub)
-403|✔ bạn đang dùng bản mới nhất ({})
-404|có phiên bản {}
-405|Kiểm tra ngay
-406|"Cập nhật ngay" tải trình cài đặt mới, kiểm tra chữ ký và cài đặt mà không hỏi: Conver sẽ đóng rồi tự mở lại, giữ nguyên cài đặt.
-407|"Cập nhật ngay" tải bản di động mới, kiểm tra chữ ký và thay các tệp trong thư mục này (giữ nguyên thư mục dados): Conver sẽ đóng rồi tự mở lại.
-408|Bản này không được cài bằng trình cài đặt và không phải bản di động: hãy tải bản mới từ trang web.
-409|yt-dlp (bộ máy tải xuống)
-410|Các trang web thay đổi thường xuyên. Nếu tải xuống ngừng hoạt động, hãy cập nhật yt-dlp (tải bản chính thức từ GitHub và kiểm tra chữ ký).
-411|Cập nhật yt-dlp
-412|Đang tải bản yt-dlp mới nhất…
-413|Bạn đã có bản mới nhất ({after}).
-414|Đã cập nhật: {before} → {after}.
-415|✔ {text}
-416|Cập nhật thất bại.
-417|Đang tải Conver {}…
-418|Đang cài đặt… Conver sẽ đóng rồi tự mở lại.
-419|Tải xuống
-420|Cập nhật ngay
-421|Đã có phiên bản Conver mới: {}
-422|Có gì mới
-423|Để sau
-424|điểm bắt đầu ({}) vượt quá cuối tệp ({}).
-425|điểm kết thúc phải sau điểm bắt đầu.
-427|hãy thêm ít nhất 2 video.
-428|{} không có hình ảnh video.
-429|{} video • {}{extra} • {}
-430|{e} — nếu các video khác nhau, hãy dùng "Mã hóa lại"
-431|tệp không có hình ảnh video.
-433|đã xóa âm thanh • {}
-434|{n} ảnh trong thư mục {}
-435|tệp không có âm thanh.
-436|đã chỉnh âm lượng về {lufs} LUFS
-437|điểm bắt đầu vượt quá cuối video.
-439|9:16 (Reels/TikTok)
-440|1:1 (bảng tin)
-441|4:5 (Instagram)
-442|16:9 (YouTube)
-443|hãy chọn xoay, lật hoặc cắt.
-444|không đọc được phụ đề: {e}
-445|phụ đề: {}
-446|{} không có âm thanh.
-447|không đọc được thời lượng video.
-448|trộn với âm thanh gốc
-449|thay cho âm thanh gốc
-450|{} {how} • âm lượng {volume}%
-451|hãy thêm ít nhất 2 tệp.
-452|{} tệp • {} • {}
-453|Chuyển định dạng video
-454|Chuyển giữa MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF hoặc tách âm thanh ra MP3.
-455|Nén video
-456|Làm video nhẹ hơn bằng cách chọn mức nén hoặc kích thước cuối tính bằng MB.
-457|Cắt đoạn video
-458|Chọn điểm bắt đầu và kết thúc rồi chỉ lưu đoạn đó của video.
-459|Cắt
-460|Ghép nhiều video thành một, theo thứ tự trong danh sách.
-461|Tăng tốc hoặc quay chậm (0,25× đến 4×). Âm thanh đi theo mà không bị the thé hay trầm.
-462|Áp dụng
-463|Xóa âm thanh / tách khung hình
-464|Tắt tiếng video hoặc lưu ảnh từ video sau mỗi khoảng thời gian.
-465|Chuyển định dạng âm thanh
-466|Chuyển giữa MP3, WAV, FLAC, OGG, M4A và OPUS. Cũng tách âm thanh từ video.
-467|Chỉ lưu một đoạn của bài hát hoặc bản ghi.
-468|Đưa âm lượng của nhiều tệp âm thanh (hoặc video) về cùng mức, không bị vỡ tiếng.
-469|Chuẩn hóa
-470|Nén âm thanh
-471|Giảm dung lượng tệp âm thanh bằng cách chọn tốc độ bit.
-472|Video sang GIF
-473|Biến một đoạn video thành ảnh GIF động.
-474|Tạo GIF
-475|Xoay và cắt video
-476|Xoay video quay bị nghiêng hoặc cắt sang 9:16 (Reels/TikTok), 1:1, 4:5 hay 16:9.
-477|Gắn cứng phụ đề (.srt, .ass hoặc .vtt) vào video để hiện trên mọi trình phát và mạng xã hội.
-478|Gắn phụ đề
-479|Thêm nhạc vào video, trộn với âm thanh gốc hoặc thay thế nó.
-480|Ghép nhiều bài hát hoặc bản ghi thành một tệp, theo thứ tự trong danh sách.
-481|Video
-482|Điểm bắt đầu không hợp lệ. Dùng định dạng 00:01:30 (hoặc chỉ số giây).
-483|Điểm kết thúc không hợp lệ. Dùng định dạng 00:02:45 (hoặc chỉ số giây).
-484|Điểm kết thúc phải sau điểm bắt đầu.
-485|Định dạng đầu ra:
-486|Chất lượng:
-487|Nén theo:
-488|Mức
-489|Kích thước cuối
-490|Kích thước mong muốn:
-491|mỗi video sẽ có kích thước khoảng chừng này (2 lượt, chậm hơn)
-492|Độ phân giải tối đa:
-493|Mã hóa:
-494|H.264 (tương thích)
-495|H.265 (nhỏ hơn, chậm hơn)
-496|Âm thanh:
-499|Kết quả được lưu dạng MP4 với hậu tố _comprimido.
-500|Bắt đầu:
-501|Kết thúc:
-502|đến hết
-503|thời lượng tệp đã chọn: {}
-504|Nhanh (không mất chất lượng)
-505|Chính xác (mã hóa lại)
-506|Cắt đúng thời điểm đã nhập; lâu hơn vì phải mã hóa lại tệp.
-507|Tức thì và không mất chất lượng; với video, điểm cắt có thể sớm hơn vài giây.
-508|Mã hóa lại (khuyên dùng)
-509|Nhanh (chỉ nối)
-510|Dùng được với các video khác nhau: tất cả theo độ phân giải của video đầu, thêm viền nếu cần. Lưu dạng MP4.
-511|Tức thì, nhưng chỉ dùng được khi mọi video có cùng định dạng, độ phân giải và mã hóa.
-512|Dùng ↑ và ↓ trong danh sách để đổi thứ tự.
-513|Tốc độ:
-514|Tùy chỉnh:
-515|Giữ âm thanh (tăng/giảm tốc cùng)
-516|Xóa âm thanh
-517|Tách khung hình
-518|Một ảnh sau mỗi:
-519|PNG (không mất dữ liệu)
-520|Ảnh được lưu vào thư mục <tên video>_frames.
-521|Video được sao chép mà không mã hóa lại: nhanh và không mất chất lượng.
-522|WAV và FLAC không mất dữ liệu: không cần chọn chất lượng.
-523|Âm lượng mục tiêu:
-524|Lớn (−14, phát trực tuyến)
-525|Chuẩn (−16)
-526|Nhỏ (−23, TV)
-527|Với video, hình ảnh được sao chép nguyên vẹn; chỉ âm thanh được mã hóa lại.
-528|MP3 (tương thích)
-529|OPUS (nhỏ hơn)
-530|Tốc độ bit:
-532|Kênh:
-533|Chuyển sang mono (giảm một nửa dung lượng; tốt cho giọng nói)
-534|64–96 kbps rất tốt cho giọng nói và podcast; 128–160 kbps cho nhạc.
-535|Thời lượng:
-536|video đã chọn: {}
-537|Chiều rộng:
-542|GIF tăng dung lượng rất nhanh: đoạn ngắn, 480 px và 12 fps thường dưới 5 MB.
-543|Xoay:
-544|Không xoay
-545|Lật:
-546|Theo chiều ngang ↔
-547|Cắt:
-548|Phần cắt nằm giữa. Âm thanh được sao chép nguyên vẹn.
-549|Phụ đề:
-550|tự động (cùng tên với video)
-551|Phụ đề
-552|Chọn phụ đề
-553|Tự động
-554|Đã tìm thấy cho video đã chọn: {}
-555|Không có phụ đề cùng tên với video đã chọn. Hãy chọn tệp.
-556|Mỗi video dùng phụ đề cùng tên với nó (video.srt), hoặc chọn một tệp cho tất cả.
-557|Cỡ chữ:
-558|Nhỏ
-559|Vừa
-560|Lớn
-561|Vị trí:
-562|Dưới
-563|Trên
-564|Nhạc:
-565|Tất cả tệp
-566|Chọn nhạc
-567|Âm thanh gốc:
-568|Trộn với nhạc
-569|Thay bằng nhạc
-570|Âm lượng nhạc:
-571|Lặp lại:
-572|Lặp lại nhạc nếu nhạc ngắn hơn video
-573|Với nhạc nền dưới lời nói, 20–40% thường vừa. Hình ảnh được sao chép nguyên vẹn.
-574|Dùng ↑ và ↓ trong danh sách để đổi thứ tự. Cũng nhận video (dùng âm thanh của chúng).
-575|{} tệp
-576|{} video
-577|không có phụ đề cùng tên với video; hãy chọn tệp phụ đề.
-578|hãy chọn nhạc.
-579|Conver — xong
-580|Conver — lỗi
-581|ngôn ngữ {lang} chưa được cài cho OCR trên Windows.
-582|Chuyển đổi hình ảnh
-583|Nén ảnh
-584|Xoay và cắt
-585|Chỉnh màu
-586|Ảnh sang PDF
-587|Chuyển đổi video
-588|Tốc độ
-589|Phụ đề trong video
-590|Chuyển đổi âm thanh
-591|Tải xuống
-592|Micro và cửa sổ
-593|Liệt kê cài đặt sẵn
-594|Người dùng đã hủy.
-595|[{}/{n}] {name}
-596|✔ {name}   {info}
-597|Xong: {ok}/{n} tệp.
-598|Đang xử lý…
-599|✔ {}   {info}
-600|Xong.
-601|Đổi kích thước ảnh
-602|Thay đổi kích thước một hoặc nhiều ảnh theo phần trăm hoặc pixel.
-603|Giảm dung lượng tệp mà vẫn giữ định dạng (JPG, PNG, WEBP…).
-604|Chọn từ 1 đến 100. JPG và WEBP giữ định dạng; các loại khác chuyển thành JPG (hoặc WEBP nếu có trong suốt).
-605|Chuyển định dạng ảnh
-606|Chuyển giữa PNG, JPG, WEBP, BMP, GIF, TIFF và ICO.
-607|Xoay, lật và cắt
-608|Xoay, lật hoặc cắt ảnh theo tỉ lệ có sẵn (phần cắt nằm giữa).
-609|Xóa thông tin ẩn trong ảnh (EXIF, vị trí GPS, máy ảnh, ngày chụp) mà không giảm chất lượng.
-610|Xóa
-611|Xóa nền ảnh người, sản phẩm và thú cưng bằng trí tuệ nhân tạo, ngay trên máy bạn và không cần internet.
-612|Phóng to ảnh 2× hoặc 4× mà không mờ: trí tuệ nhân tạo tái tạo chi tiết. Chạy trên máy của bạn, không cần internet.
-613|Phóng to
-614|Thay đổi độ sáng, độ tương phản, độ bão hòa hoặc áp bộ lọc có sẵn. Xem trước trước khi lưu.
-615|Ghép nhiều ảnh thành một PDF, mỗi trang một ảnh, theo thứ tự trong danh sách.
-616|Tạo PDF
-617|Chiều rộng và chiều cao phải là số nguyên dương.
-618|Nhập chiều rộng và/hoặc chiều cao theo pixel.
-619|không có xem trước
-620|Phần trăm
-621|Pixel
-622|Giữ tỉ lệ
-623|Khi giữ tỉ lệ, ảnh sẽ nằm gọn trong chiều rộng/chiều cao đã nhập.
-624|Nhẹ = gần như không thấy giảm chất lượng  •  Mạnh = tệp nhỏ hơn nhiều
-625|Biểu tượng tối đa 256×256; ảnh lớn hơn sẽ được thu nhỏ.
-626|Theo chiều dọc ↕
-627|JPG, PNG và WEBP: chỉ xóa siêu dữ liệu, ảnh không bị nén lại.
-628|Nếu ảnh có thông tin xoay của máy ảnh, việc xoay được áp dụng trước để ảnh không bị nằm nghiêng.
-629|Nền mới:
-630|Trong suốt
-631|Trắng
-632|Màu
-633|Viền:
-634|Sắc nét
-635|Mềm (tóc, lông)
-636|Trong suốt sẽ lưu dạng PNG. Ảnh đầu tiên mất vài giây trong lúc mô hình tải.
-637|⚠ Không tìm thấy mô hình AI: hãy đặt silueta.onnx vào thư mục modelos.
-638|Phóng to:
-639|Rất hợp với ảnh nhỏ, ảnh chụp màn hình và ảnh cũ. Ảnh lớn mất nhiều thời gian hơn (cả bản xem trước).
-640|⚠ Không tìm thấy mô hình AI: hãy đặt realesr-general-x4v3.onnx vào thư mục modelos.
-641|Độ sáng:
-642|Độ tương phản:
-643|Độ bão hòa:
-644|Đặt lại
-645|Bộ lọc:
-646|Khổ trang:
-647|Dùng ↑ và ↓ trong danh sách để đổi thứ tự trang.
-648|Gốc
-649|Kết quả
-650|Thêm ảnh để xem trước
-651|Kết quả: {}×{}  •  {}   ({})
-652|Đang tạo bản xem trước…
-653|Trang {}  •
-654|{page}Gốc: {}×{}  •  {orig_size}
-655|Đang tải…
-656|Không mở được ảnh này.
-657|{} ảnh
-658|{pages} trang • {}
-659|Không dùng
-660|Tải video và nhạc
-661|Liên kết
-662|{n} liên kết — sẽ được tải lần lượt
-663|Dán liên kết video, bài hát hoặc danh sách phát vào đây (một hoặc nhiều, mỗi dòng một liên kết)
-664|MP4 (video)
-665|MP3 (âm thanh)
-666|Đăng nhập trình duyệt:
-667|cho các trang cần tài khoản (Instagram, Facebook). Đóng trình duyệt trước khi tải.
-668|Tải kèm:
-669|Phụ đề (.srt, tiếng Bồ Đào Nha và tiếng Anh)
-670|Ảnh bìa (.jpg)
-671|Tải cả danh sách phát (nếu liên kết là danh sách phát)
-672|Chỉ tải nội dung mà bạn có quyền tải.
-673|Hãy chọn thư mục lưu hợp lệ.
-674|[liên kết {}/{n}]
-675|{prefix}Đang lấy thông tin…
-676| ({failed} liên kết bị lỗi)
-677|Xong: đã tải {total} tệp{errors}.
-678|{}: không mở được PDF ({e})
-679|{} được bảo vệ bằng mật khẩu.
-680|hãy thêm ít nhất 2 PDF.
-681|khoảng không hợp lệ: "{part}". Hãy dùng kiểu 1-3, 7, 10-
-682|trang {a} không tồn tại (PDF có {total} trang).
-683|hãy nhập các trang, ví dụ 1-3, 7
-684|{}/{total} trang
-685|{total} PDF trong thư mục {}
-686|{} được bảo vệ bằng mật khẩu; hãy gỡ mật khẩu trước.
-687|PDF đã được tối ưu (không giảm thêm)
-688|{changed} ảnh đã được nén lại • {}
-689|hãy nhập mật khẩu.
-690|{} đã được bảo vệ bằng mật khẩu.
-691|không thể bảo vệ: {e}
-692|đã bảo vệ bằng mật khẩu (AES-128)
-693|sai mật khẩu.
-694|đã gỡ mật khẩu
-695|PDF được bảo vệ: hãy nhập mật khẩu.
-696|không thể mở PDF ({})
-697|{} ảnh trong thư mục {}
-698|{done} trang có văn bản được nhận dạng • {words_total} từ
-699| • {skipped} trang đã có văn bản
-700|văn bản quá dài cho mã QR.
-701|không tìm thấy ffmpeg.
-702|không thể khởi động ffmpeg: {e}
-703|ghi âm đã dừng.
-704|không có âm thanh từ micro này. Hãy chọn đầu vào khác trong danh sách (vd: "Micro (…)").
-705|tên bị trùng
-706|đã có tệp mang tên này
-707|không có gì được ghi lại.
-708|UVR MDX-Net (67 MB)
-709|Giọng hát và nhạc nền
-710|Chỉ giọng hát
-711|Chỉ nhạc nền (karaoke)
-712|không thể lưu: {}
-713|âm thanh quá ngắn (dưới nửa giây).
-714|{} • {dur}
-716|Nhanh (82 MB)
-717|Cân bằng (264 MB)
-718|Chính xác (574 MB)
-719|Whisper base (82 MB)
-720|Whisper small (264 MB)
-721|Whisper large-v3 turbo (574 MB)
-722|Tự động nhận diện
-723|Tiếng Bồ Đào Nha
-724|Tiếng Anh
-725|Tiếng Tây Ban Nha
-726|Tiếng Pháp
-727|Tiếng Đức
-728|Tiếng Ý
-729|Tiếng Nga
-730|Tiếng Trung
-731|Tiếng Nhật
-732|Tiếng Hàn
-733|Tiếng Ả Rập
-734|Tiếng Hindi
-735|Tiếng Thổ Nhĩ Kỳ
-736|Tiếng Ba Lan
-737|Tiếng Ukraina
-738|Tiếng Hà Lan
-739|Tiếng Indonesia
-740|Tiếng Việt
-741|Tiếng Ba Tư
-742|không thể khởi động Whisper: {e}
-743|Whisper bị lỗi: {}
-744|Whisper không tạo ra tệp nào.
-745|{words} từ • {}
-746|bản Conver này không được cài bằng trình cài đặt và không phải bản di động; hãy tải từ trang web.
-747|phiên bản mới không có tệp cho bản Conver này; hãy tải từ trang web.
-748|phiên bản mới không công bố mã kiểm tra; hãy tải từ trang web.
-749|tệp cập nhật không có trong danh sách kiểm tra; hãy tải từ trang web.
-750|không thể giải nén bản cập nhật: {e}
-751|không thể giải nén bản cập nhật.
-752|không thể khởi động trình cài đặt: {e}
-753|không thể bắt đầu cập nhật: {e}
-754|không có cập nhật tự động cho bản này.
-755|Không thể hoàn tất cập nhật: {e}
-756|không tìm thấy mô hình phóng to (thư mục modelos).
-757|cạnh ảnh sẽ lớn hơn {MAX_SIDE} pixel; hãy thu nhỏ trước hoặc dùng 2×.
-758|MP3 (chỉ âm thanh)
-759|ffmpeg lỗi: {}
-760|{mb} MB quá nhỏ cho video dài {:.0} giây (tối thiểu ≈ {:.1} MB).
-761|Nén ảnh
-762|Chuyển đổi ảnh
-763|Nén video
-764|Chuyển đổi video
-765|Chuyển đổi âm thanh
-766|✖ không thể tạo thư mục {OUT_FOLDER}: {e}
-767|Đang theo dõi {} — {}
-768|Kết quả được lưu vào thư mục con "{OUT_FOLDER}".
-769|Đang theo dõi thư mục… (đã xử lý {count})
-770|Đang xử lý {name}…
-771|{name}: {info}
-772|{name}: {e}
-773|Đã dừng. Đã xử lý {count} tệp.
-774|Chọn tệp
-775|Chưa có tệp
-776|1 tệp
-777|{n} tệp
-778|Xóa hết
-779|+ Thêm
-780|thứ tự:
-781|Kéo tệp vào đây
-782|hoặc bấm để chọn
-786|Xóa khỏi danh sách
-787|Cùng thư mục với tệp gốc
-788|Chọn thư mục lưu
-789|Mở thư mục
-790|Thả để thêm
-791|Ảnh và video sẽ vào đúng công cụ
+364|🔍  Tìm công cụ…  (Ctrl+F)
+365|Thư mục theo dõi  ●
+366|Ghi âm  ●
+367|Quay màn hình  ●
+368|Không tìm thấy công cụ nào.
+369|⚙  Cài đặt
+370|🕘  Lịch sử
+371|Cài đặt
+372|Tùy chỉnh Conver.
+373|Ngôn ngữ
+374|20 ngôn ngữ được nói nhiều nhất thế giới. Tên tệp và thông báo của FFmpeg, yt-dlp không được dịch.
+375|Giao diện
+376|Sáng
+377|Tối
+378|Thông báo
+379|Thông báo của Windows khi một tác vụ dài hoàn tất (khi Conver chạy nền)
+380|Phát âm thanh khi xong
+381|Thử thông báo
+382|Thông báo sẽ hiện như thế này khi một tác vụ hoàn tất.
+383|thông báo hiện với tên "Windows PowerShell"; đó là cách Windows hiển thị ứng dụng không có trình cài đặt.
+384|Thư mục mặc định:
+385|Đổi…
+386|Thư mục tải xuống mặc định
+387|Giới thiệu
+388|Phiên bản:
+389|không tìm thấy
+390|đang kiểm tra…
+391|Dự án:
+392|Tự động hóa (tác nhân AI và dòng lệnh)
+393|Các tác nhân AI (Claude, Cursor, VS Code…) có thể dùng mọi công cụ của Conver qua MCP. Dán cấu hình bên dưới vào tệp MCP của tác nhân.
+394|Chương trình:
+395|Sao chép cấu hình MCP
+396|Sao chép ví dụ dòng lệnh
+397|"{}" image_convert foto.png --format webp
+398|Trên dòng lệnh: conver-cli help  •  conver-cli <công cụ> tệp… --tùy chọn giá trị
+399|Tích hợp với Windows
+400|Hiện "Mở bằng Conver" trong menu chuột phải (ảnh, video, âm thanh và PDF)
+401|Không thể thay đổi menu: {e}
+402|Trên Windows 11, tùy chọn nằm trong "Hiển thị thêm tùy chọn". Nếu bạn di chuyển thư mục Conver, hãy bỏ chọn rồi chọn lại mục này.
+403|Cập nhật
+404|Kiểm tra phiên bản Conver mới khi mở (hỏi GitHub)
+405|✔ bạn đang dùng bản mới nhất ({})
+406|có phiên bản {}
+407|Kiểm tra ngay
+408|"Cập nhật ngay" tải trình cài đặt mới, kiểm tra chữ ký và cài đặt mà không hỏi: Conver sẽ đóng rồi tự mở lại, giữ nguyên cài đặt.
+409|"Cập nhật ngay" tải bản di động mới, kiểm tra chữ ký và thay các tệp trong thư mục này (giữ nguyên thư mục dados): Conver sẽ đóng rồi tự mở lại.
+410|Bản này không được cài bằng trình cài đặt và không phải bản di động: hãy tải bản mới từ trang web.
+411|yt-dlp (bộ máy tải xuống)
+412|Các trang web thay đổi thường xuyên. Nếu tải xuống ngừng hoạt động, hãy cập nhật yt-dlp (tải bản chính thức từ GitHub và kiểm tra chữ ký).
+413|Cập nhật yt-dlp
+414|Đang tải bản yt-dlp mới nhất…
+415|Bạn đã có bản mới nhất ({after}).
+416|Đã cập nhật: {before} → {after}.
+417|✔ {text}
+418|Cập nhật thất bại.
+419|Đang tải Conver {}…
+420|Đang cài đặt… Conver sẽ đóng rồi tự mở lại.
+421|Tải xuống
+422|Cập nhật ngay
+423|Đã có phiên bản Conver mới: {}
+424|Có gì mới
+425|Để sau
+426|điểm bắt đầu ({}) vượt quá cuối tệp ({}).
+427|điểm kết thúc phải sau điểm bắt đầu.
+429|hãy thêm ít nhất 2 video.
+430|{} không có hình ảnh video.
+431|{} video • {}{extra} • {}
+432|{e} — nếu các video khác nhau, hãy dùng "Mã hóa lại"
+433|tệp không có hình ảnh video.
+435|đã xóa âm thanh • {}
+436|{n} ảnh trong thư mục {}
+437|tệp không có âm thanh.
+438|đã chỉnh âm lượng về {lufs} LUFS
+439|điểm bắt đầu vượt quá cuối video.
+441|9:16 (Reels/TikTok)
+442|1:1 (bảng tin)
+443|4:5 (Instagram)
+444|16:9 (YouTube)
+445|hãy chọn xoay, lật hoặc cắt.
+446|không đọc được phụ đề: {e}
+447|phụ đề: {}
+448|{} không có âm thanh.
+449|không đọc được thời lượng video.
+450|trộn với âm thanh gốc
+451|thay cho âm thanh gốc
+452|{} {how} • âm lượng {volume}%
+453|hãy thêm ít nhất 2 tệp.
+454|{} tệp • {} • {}
+455|Chuyển định dạng video
+456|Chuyển giữa MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF hoặc tách âm thanh ra MP3.
+457|Nén video
+458|Làm video nhẹ hơn bằng cách chọn mức nén hoặc kích thước cuối tính bằng MB.
+459|Cắt đoạn video
+460|Chọn điểm bắt đầu và kết thúc rồi chỉ lưu đoạn đó của video.
+461|Cắt
+462|Ghép nhiều video thành một, theo thứ tự trong danh sách.
+463|Tăng tốc hoặc quay chậm (0,25× đến 4×). Âm thanh đi theo mà không bị the thé hay trầm.
+464|Áp dụng
+465|Xóa âm thanh / tách khung hình
+466|Tắt tiếng video hoặc lưu ảnh từ video sau mỗi khoảng thời gian.
+467|Chuyển định dạng âm thanh
+468|Chuyển giữa MP3, WAV, FLAC, OGG, M4A và OPUS. Cũng tách âm thanh từ video.
+469|Chỉ lưu một đoạn của bài hát hoặc bản ghi.
+470|Đưa âm lượng của nhiều tệp âm thanh (hoặc video) về cùng mức, không bị vỡ tiếng.
+471|Chuẩn hóa
+472|Nén âm thanh
+473|Giảm dung lượng tệp âm thanh bằng cách chọn tốc độ bit.
+474|Video sang GIF
+475|Biến một đoạn video thành ảnh GIF động.
+476|Tạo GIF
+477|Xoay và cắt video
+478|Xoay video quay bị nghiêng hoặc cắt sang 9:16 (Reels/TikTok), 1:1, 4:5 hay 16:9.
+479|Gắn cứng phụ đề (.srt, .ass hoặc .vtt) vào video để hiện trên mọi trình phát và mạng xã hội.
+480|Gắn phụ đề
+481|Thêm nhạc vào video, trộn với âm thanh gốc hoặc thay thế nó.
+482|Ghép nhiều bài hát hoặc bản ghi thành một tệp, theo thứ tự trong danh sách.
+483|Video
+484|Điểm bắt đầu không hợp lệ. Dùng định dạng 00:01:30 (hoặc chỉ số giây).
+485|Điểm kết thúc không hợp lệ. Dùng định dạng 00:02:45 (hoặc chỉ số giây).
+486|Điểm kết thúc phải sau điểm bắt đầu.
+487|Định dạng đầu ra:
+488|Chất lượng:
+489|Nén theo:
+490|Mức
+491|Kích thước cuối
+492|Kích thước mong muốn:
+493|mỗi video sẽ có kích thước khoảng chừng này (2 lượt, chậm hơn)
+494|Độ phân giải tối đa:
+495|Mã hóa:
+496|H.264 (tương thích)
+497|H.265 (nhỏ hơn, chậm hơn)
+498|Âm thanh:
+501|Kết quả được lưu dạng MP4 với hậu tố _comprimido.
+502|Bắt đầu:
+503|Kết thúc:
+504|đến hết
+505|thời lượng tệp đã chọn: {}
+506|Nhanh (không mất chất lượng)
+507|Chính xác (mã hóa lại)
+508|Cắt đúng thời điểm đã nhập; lâu hơn vì phải mã hóa lại tệp.
+509|Tức thì và không mất chất lượng; với video, điểm cắt có thể sớm hơn vài giây.
+510|Mã hóa lại (khuyên dùng)
+511|Nhanh (chỉ nối)
+512|Dùng được với các video khác nhau: tất cả theo độ phân giải của video đầu, thêm viền nếu cần. Lưu dạng MP4.
+513|Tức thì, nhưng chỉ dùng được khi mọi video có cùng định dạng, độ phân giải và mã hóa.
+514|Dùng ↑ và ↓ trong danh sách để đổi thứ tự.
+515|Tốc độ:
+516|Tùy chỉnh:
+517|Giữ âm thanh (tăng/giảm tốc cùng)
+518|Xóa âm thanh
+519|Tách khung hình
+520|Một ảnh sau mỗi:
+521|PNG (không mất dữ liệu)
+522|Ảnh được lưu vào thư mục <tên video>_frames.
+523|Video được sao chép mà không mã hóa lại: nhanh và không mất chất lượng.
+524|WAV và FLAC không mất dữ liệu: không cần chọn chất lượng.
+525|Âm lượng mục tiêu:
+526|Lớn (−14, phát trực tuyến)
+527|Chuẩn (−16)
+528|Nhỏ (−23, TV)
+529|Với video, hình ảnh được sao chép nguyên vẹn; chỉ âm thanh được mã hóa lại.
+530|MP3 (tương thích)
+531|OPUS (nhỏ hơn)
+532|Tốc độ bit:
+534|Kênh:
+535|Chuyển sang mono (giảm một nửa dung lượng; tốt cho giọng nói)
+536|64–96 kbps rất tốt cho giọng nói và podcast; 128–160 kbps cho nhạc.
+537|Thời lượng:
+538|video đã chọn: {}
+539|Chiều rộng:
+544|GIF tăng dung lượng rất nhanh: đoạn ngắn, 480 px và 12 fps thường dưới 5 MB.
+545|Xoay:
+546|Không xoay
+547|Lật:
+548|Theo chiều ngang ↔
+549|Cắt:
+550|Phần cắt nằm giữa. Âm thanh được sao chép nguyên vẹn.
+551|Phụ đề:
+552|tự động (cùng tên với video)
+553|Phụ đề
+554|Chọn phụ đề
+555|Tự động
+556|Đã tìm thấy cho video đã chọn: {}
+557|Không có phụ đề cùng tên với video đã chọn. Hãy chọn tệp.
+558|Mỗi video dùng phụ đề cùng tên với nó (video.srt), hoặc chọn một tệp cho tất cả.
+559|Cỡ chữ:
+560|Nhỏ
+561|Vừa
+562|Lớn
+563|Vị trí:
+564|Dưới
+565|Trên
+566|Nhạc:
+567|Tất cả tệp
+568|Chọn nhạc
+569|Âm thanh gốc:
+570|Trộn với nhạc
+571|Thay bằng nhạc
+572|Âm lượng nhạc:
+573|Lặp lại:
+574|Lặp lại nhạc nếu nhạc ngắn hơn video
+575|Với nhạc nền dưới lời nói, 20–40% thường vừa. Hình ảnh được sao chép nguyên vẹn.
+576|Dùng ↑ và ↓ trong danh sách để đổi thứ tự. Cũng nhận video (dùng âm thanh của chúng).
+577|{} tệp
+578|{} video
+579|không có phụ đề cùng tên với video; hãy chọn tệp phụ đề.
+580|hãy chọn nhạc.
+581|Conver — xong
+582|Conver — lỗi
+583|ngôn ngữ {lang} chưa được cài cho OCR trên Windows.
+584|Chuyển đổi hình ảnh
+585|Nén ảnh
+586|Xoay và cắt
+587|Chỉnh màu
+588|Ảnh sang PDF
+589|Chuyển đổi video
+590|Tốc độ
+591|Phụ đề trong video
+592|Chuyển đổi âm thanh
+593|Tải xuống
+594|Micro và cửa sổ
+595|Liệt kê cài đặt sẵn
+596|Người dùng đã hủy.
+597|[{}/{n}] {name}
+598|✔ {name}   {info}
+599|Xong: {ok}/{n} tệp.
+600|Đang xử lý…
+601|✔ {}   {info}
+602|Xong.
+603|Đổi kích thước ảnh
+604|Thay đổi kích thước một hoặc nhiều ảnh theo phần trăm hoặc pixel.
+605|Giảm dung lượng tệp mà vẫn giữ định dạng (JPG, PNG, WEBP…).
+606|Chọn từ 1 đến 100. JPG và WEBP giữ định dạng; các loại khác chuyển thành JPG (hoặc WEBP nếu có trong suốt).
+607|Chuyển định dạng ảnh
+608|Chuyển giữa PNG, JPG, WEBP, BMP, GIF, TIFF và ICO.
+609|Xoay, lật và cắt
+610|Xoay, lật hoặc cắt ảnh theo tỉ lệ có sẵn (phần cắt nằm giữa).
+611|Xóa thông tin ẩn trong ảnh (EXIF, vị trí GPS, máy ảnh, ngày chụp) mà không giảm chất lượng.
+612|Xóa
+613|Xóa nền ảnh người, sản phẩm và thú cưng bằng trí tuệ nhân tạo, ngay trên máy bạn và không cần internet.
+614|Phóng to ảnh 2× hoặc 4× mà không mờ: trí tuệ nhân tạo tái tạo chi tiết. Chạy trên máy của bạn, không cần internet.
+615|Phóng to
+616|Thay đổi độ sáng, độ tương phản, độ bão hòa hoặc áp bộ lọc có sẵn. Xem trước trước khi lưu.
+617|Ghép nhiều ảnh thành một PDF, mỗi trang một ảnh, theo thứ tự trong danh sách.
+618|Tạo PDF
+619|Chiều rộng và chiều cao phải là số nguyên dương.
+620|Nhập chiều rộng và/hoặc chiều cao theo pixel.
+621|không có xem trước
+622|Phần trăm
+623|Pixel
+624|Giữ tỉ lệ
+625|Khi giữ tỉ lệ, ảnh sẽ nằm gọn trong chiều rộng/chiều cao đã nhập.
+626|Nhẹ = gần như không thấy giảm chất lượng  •  Mạnh = tệp nhỏ hơn nhiều
+627|Biểu tượng tối đa 256×256; ảnh lớn hơn sẽ được thu nhỏ.
+628|Theo chiều dọc ↕
+629|JPG, PNG và WEBP: chỉ xóa siêu dữ liệu, ảnh không bị nén lại.
+630|Nếu ảnh có thông tin xoay của máy ảnh, việc xoay được áp dụng trước để ảnh không bị nằm nghiêng.
+631|Nền mới:
+632|Trong suốt
+633|Trắng
+634|Màu
+635|Viền:
+636|Sắc nét
+637|Mềm (tóc, lông)
+638|Trong suốt sẽ lưu dạng PNG. Ảnh đầu tiên mất vài giây trong lúc mô hình tải.
+639|⚠ Không tìm thấy mô hình AI: hãy đặt silueta.onnx vào thư mục modelos.
+640|Phóng to:
+641|Rất hợp với ảnh nhỏ, ảnh chụp màn hình và ảnh cũ. Ảnh lớn mất nhiều thời gian hơn (cả bản xem trước).
+642|⚠ Không tìm thấy mô hình AI: hãy đặt realesr-general-x4v3.onnx vào thư mục modelos.
+643|Độ sáng:
+644|Độ tương phản:
+645|Độ bão hòa:
+646|Đặt lại
+647|Bộ lọc:
+648|Khổ trang:
+649|Dùng ↑ và ↓ trong danh sách để đổi thứ tự trang.
+650|Gốc
+651|Kết quả
+652|Thêm ảnh để xem trước
+653|Kết quả: {}×{}  •  {}   ({})
+654|Đang tạo bản xem trước…
+655|Trang {}  •
+656|{page}Gốc: {}×{}  •  {orig_size}
+657|Đang tải…
+658|Không mở được ảnh này.
+659|{} ảnh
+660|{pages} trang • {}
+661|Không dùng
+662|Tải video và nhạc
+663|Liên kết
+664|{n} liên kết — sẽ được tải lần lượt
+665|Dán liên kết video, bài hát hoặc danh sách phát vào đây (một hoặc nhiều, mỗi dòng một liên kết)
+666|MP4 (video)
+667|MP3 (âm thanh)
+668|Đăng nhập trình duyệt:
+669|cho các trang cần tài khoản (Instagram, Facebook). Đóng trình duyệt trước khi tải.
+670|Tải kèm:
+671|Phụ đề (.srt, tiếng Bồ Đào Nha và tiếng Anh)
+672|Ảnh bìa (.jpg)
+673|Tải cả danh sách phát (nếu liên kết là danh sách phát)
+674|Chỉ tải nội dung mà bạn có quyền tải.
+675|Hãy chọn thư mục lưu hợp lệ.
+676|[liên kết {}/{n}]
+677|{prefix}Đang lấy thông tin…
+678| ({failed} liên kết bị lỗi)
+679|Xong: đã tải {total} tệp{errors}.
+680|{}: không mở được PDF ({e})
+681|{} được bảo vệ bằng mật khẩu.
+682|hãy thêm ít nhất 2 PDF.
+683|khoảng không hợp lệ: "{part}". Hãy dùng kiểu 1-3, 7, 10-
+684|trang {a} không tồn tại (PDF có {total} trang).
+685|hãy nhập các trang, ví dụ 1-3, 7
+686|{}/{total} trang
+687|{total} PDF trong thư mục {}
+688|{} được bảo vệ bằng mật khẩu; hãy gỡ mật khẩu trước.
+689|PDF đã được tối ưu (không giảm thêm)
+690|{changed} ảnh đã được nén lại • {}
+691|hãy nhập mật khẩu.
+692|{} đã được bảo vệ bằng mật khẩu.
+693|không thể bảo vệ: {e}
+694|đã bảo vệ bằng mật khẩu (AES-128)
+695|sai mật khẩu.
+696|đã gỡ mật khẩu
+697|PDF được bảo vệ: hãy nhập mật khẩu.
+698|không thể mở PDF ({})
+699|{} ảnh trong thư mục {}
+700|{done} trang có văn bản được nhận dạng • {words_total} từ
+701| • {skipped} trang đã có văn bản
+702|văn bản quá dài cho mã QR.
+703|không tìm thấy ffmpeg.
+704|không thể khởi động ffmpeg: {e}
+705|ghi âm đã dừng.
+706|không có âm thanh từ micro này. Hãy chọn đầu vào khác trong danh sách (vd: "Micro (…)").
+707|tên bị trùng
+708|đã có tệp mang tên này
+709|không có gì được ghi lại.
+710|UVR MDX-Net (67 MB)
+711|Giọng hát và nhạc nền
+712|Chỉ giọng hát
+713|Chỉ nhạc nền (karaoke)
+714|không thể lưu: {}
+715|âm thanh quá ngắn (dưới nửa giây).
+716|{} • {dur}
+718|Nhanh (82 MB)
+719|Cân bằng (264 MB)
+720|Chính xác (574 MB)
+721|Whisper base (82 MB)
+722|Whisper small (264 MB)
+723|Whisper large-v3 turbo (574 MB)
+724|Tự động nhận diện
+725|Tiếng Bồ Đào Nha
+726|Tiếng Anh
+727|Tiếng Tây Ban Nha
+728|Tiếng Pháp
+729|Tiếng Đức
+730|Tiếng Ý
+731|Tiếng Nga
+732|Tiếng Trung
+733|Tiếng Nhật
+734|Tiếng Hàn
+735|Tiếng Ả Rập
+736|Tiếng Hindi
+737|Tiếng Thổ Nhĩ Kỳ
+738|Tiếng Ba Lan
+739|Tiếng Ukraina
+740|Tiếng Hà Lan
+741|Tiếng Indonesia
+742|Tiếng Việt
+743|Tiếng Ba Tư
+744|không thể khởi động Whisper: {e}
+745|Whisper bị lỗi: {}
+746|Whisper không tạo ra tệp nào.
+747|{words} từ • {}
+748|bản Conver này không được cài bằng trình cài đặt và không phải bản di động; hãy tải từ trang web.
+749|phiên bản mới không có tệp cho bản Conver này; hãy tải từ trang web.
+750|phiên bản mới không công bố mã kiểm tra; hãy tải từ trang web.
+751|tệp cập nhật không có trong danh sách kiểm tra; hãy tải từ trang web.
+752|không thể giải nén bản cập nhật: {e}
+753|không thể giải nén bản cập nhật.
+754|không thể khởi động trình cài đặt: {e}
+755|không thể bắt đầu cập nhật: {e}
+756|không có cập nhật tự động cho bản này.
+757|Không thể hoàn tất cập nhật: {e}
+758|không tìm thấy mô hình phóng to (thư mục modelos).
+759|cạnh ảnh sẽ lớn hơn {MAX_SIDE} pixel; hãy thu nhỏ trước hoặc dùng 2×.
+760|MP3 (chỉ âm thanh)
+761|ffmpeg lỗi: {}
+762|{mb} MB quá nhỏ cho video dài {:.0} giây (tối thiểu ≈ {:.1} MB).
+763|Nén ảnh
+764|Chuyển đổi ảnh
+765|Nén video
+766|Chuyển đổi video
+767|Chuyển đổi âm thanh
+768|✖ không thể tạo thư mục {OUT_FOLDER}: {e}
+769|Đang theo dõi {} — {}
+770|Kết quả được lưu vào thư mục con "{OUT_FOLDER}".
+771|Đang theo dõi thư mục… (đã xử lý {count})
+772|Đang xử lý {name}…
+773|{name}: {info}
+774|{name}: {e}
+775|Đã dừng. Đã xử lý {count} tệp.
+776|Chọn tệp
+777|Chưa có tệp
+778|1 tệp
+779|{n} tệp
+780|Xóa hết
+781|+ Thêm
+782|thứ tự:
+783|Kéo tệp vào đây
+784|hoặc bấm để chọn
+788|Xóa khỏi danh sách
+789|Cùng thư mục với tệp gốc
+790|Chọn thư mục lưu
+791|Mở thư mục
+792|Thả để thêm
+793|Ảnh và video sẽ vào đúng công cụ

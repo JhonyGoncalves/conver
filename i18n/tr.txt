@@ -352,417 +352,419 @@
 361|Videolar ve müzik
 362|ARAÇLAR
 363|evrensel dönüştürücü
-364|İzlenen klasör  ●
-365|Ses kaydedici  ●
-366|Ekranı kaydet  ●
-367|⚙  Ayarlar
-368|🕘  Geçmiş
-369|Ayarlar
-370|Conver'ı kişiselleştirin.
-371|Dil
-372|Dünyada en çok konuşulan 20 dil. Dosya adları ile FFmpeg ve yt-dlp mesajları çevrilmez.
-373|Görünüm
-374|Açık
-375|Koyu
-376|Uyarılar
-377|Uzun bir görev bittiğinde Windows bildirimi (Conver arka plandayken)
-378|Bitince ses çal
-379|Uyarıyı dene
-380|Bir görev bittiğinde uyarı böyle görünecek.
-381|bildirim "Windows PowerShell" adıyla görünür; Windows yükleyicisi olmayan uygulamaları böyle gösterir.
-382|Varsayılan klasör:
-383|Değiştir…
-384|Varsayılan indirme klasörü
-385|Hakkında
-386|Sürüm:
-387|bulunamadı
-388|kontrol ediliyor…
-389|Proje:
-390|Otomasyon (yapay zekâ ajanları ve komut satırı)
-391|Yapay zekâ ajanları (Claude, Cursor, VS Code…) MCP üzerinden Conver'ın tüm araçlarını kullanabilir. Aşağıdaki yapılandırmayı ajanınızın MCP dosyasına yapıştırın.
-392|Program:
-393|MCP yapılandırmasını kopyala
-394|Komut satırı örneğini kopyala
-395|"{}" image_convert foto.png --format webp
-396|Komut satırında: conver-cli help  •  conver-cli <araç> dosyalar… --seçenek değer
-397|Windows ile tümleşme
-398|Sağ tık menüsünde "Conver ile aç" seçeneğini göster (görseller, videolar, sesler ve PDF'ler)
-399|Menü değiştirilemedi: {e}
-400|Windows 11'de seçenek "Daha fazla seçenek göster" altındadır. Conver klasörünü taşırsanız bunu kaldırıp yeniden işaretleyin.
-401|Güncellemeler
-402|Açılışta Conver'ın yeni sürümü var mı kontrol et (GitHub'a sorar)
-403|✔ en yeni sürümü kullanıyorsunuz ({})
-404|{} sürümü mevcut
-405|Şimdi kontrol et
-406|"Şimdi güncelle" yeni kurulum dosyasını indirir, imzasını denetler ve soru sormadan kurar: Conver kapanır ve aynı ayarlarla kendiliğinden yeniden açılır.
-407|"Şimdi güncelle" yeni taşınabilir sürümü indirir, imzasını denetler ve bu klasördeki dosyaları değiştirir (dados klasörü korunur): Conver kapanır ve kendiliğinden yeniden açılır.
-408|Bu kopya kurulum dosyasıyla kurulmadı ve taşınabilir sürüm değil: yeni sürümü siteden indirin.
-409|yt-dlp (indirme motoru)
-410|Siteler sık değişir. İndirmeler çalışmazsa yt-dlp'yi güncelleyin (GitHub'dan resmi sürümü indirir ve imzayı denetler).
-411|yt-dlp'yi güncelle
-412|yt-dlp'nin en yeni sürümü indiriliyor…
-413|Zaten en yeni sürüme sahiptiniz ({after}).
-414|Güncellendi: {before} → {after}.
-415|✔ {text}
-416|Güncelleme başarısız.
-417|Conver {} indiriliyor…
-418|Kuruluyor… Conver kapanıp kendiliğinden yeniden açılacak.
-419|İndir
-420|Şimdi güncelle
-421|Conver'ın yeni sürümü mevcut: {}
-422|Yenilikler
-423|Şimdi değil
-424|başlangıç ({}) dosyanın sonunu ({}) geçiyor.
-425|bitiş başlangıçtan sonra olmalı.
-427|en az 2 video ekleyin.
-428|{} içinde video yok.
-429|{} video • {}{extra} • {}
-430|{e} — videolar birbirinden farklıysa "Yeniden kodla"yı kullanın
-431|dosyada video yok.
-433|ses kaldırıldı • {}
-434|{} klasöründe {n} görsel
-435|dosyada ses yok.
-436|ses düzeyi {lufs} LUFS olarak ayarlandı
-437|başlangıç videonun sonunu geçiyor.
-439|9:16 (Reels/TikTok)
-440|1:1 (akış)
-441|4:5 (Instagram)
-442|16:9 (YouTube)
-443|bir döndürme, aynalama veya kırpma seçin.
-444|altyazı okunamadı: {e}
-445|altyazı: {}
-446|{} içinde ses yok.
-447|videonun süresi okunamadı.
-448|özgün sesle karıştırıldı
-449|özgün sesin yerine
-450|{} {how} • ses düzeyi %{volume}
-451|en az 2 dosya ekleyin.
-452|{} dosya • {} • {}
-453|Video biçimini dönüştür
-454|MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF arasında dönüştürün veya sesi MP3 olarak çıkarın.
-455|Videoyu sıkıştır
-456|Bir sıkıştırma seviyesi ya da MB cinsinden son boyutu seçerek videoları küçültün.
-457|Video bölümü kes
-458|Başlangıcı ve bitişi seçin, videonun yalnızca o kısmını kaydedin.
-459|Kes
-460|Birden çok videoyu listedeki sırayla tek videoda birleştirin.
-461|Hızlandırın veya yavaşlatın (0,25× ile 4× arası). Ses incelmeden veya kalınlaşmadan eşlik eder.
-462|Uygula
-463|Sesi kaldır / kare çıkar
-464|Videoyu sessiz yapın veya belirli aralıklarla videodan görsel kaydedin.
-465|Ses biçimini dönüştür
-466|MP3, WAV, FLAC, OGG, M4A ve OPUS arasında dönüştürün. Videolardan da ses çıkarır.
-467|Bir şarkının veya kaydın yalnızca bir bölümünü kaydedin.
-468|Birden çok sesin (veya videonun) ses düzeyini bozulma olmadan aynı seviyeye getirin.
-469|Eşitle
-470|Sesi sıkıştır
-471|Bit hızını seçerek ses dosyalarını küçültün.
-472|Videodan GIF'e
-473|Videonun yalnızca bir bölümünü hareketli GIF'e çevirin.
-474|GIF oluştur
-475|Videoyu döndür ve kırp
-476|Yan çekilmiş videoları döndürün veya 9:16 (Reels/TikTok), 1:1, 4:5 ya da 16:9 olarak kırpın.
-477|Altyazıyı (.srt, .ass veya .vtt) videoya gömün; her oynatıcıda ve sosyal ağda görünsün.
-478|Altyazı ekle
-479|Videoya müzik ekleyin; özgün sesle karıştırın ya da onun yerine koyun.
-480|Birden çok şarkıyı veya kaydı listedeki sırayla tek dosyada birleştirin.
-481|Videolar
-482|Geçersiz başlangıç. 00:01:30 biçimini (veya yalnızca saniye) kullanın.
-483|Geçersiz bitiş. 00:02:45 biçimini (veya yalnızca saniye) kullanın.
-484|Bitiş başlangıçtan sonra olmalı.
-485|Çıkış biçimi:
-486|Kalite:
-487|Şuna göre sıkıştır:
-488|Seviye
-489|Son boyut
-490|İstenen boyut:
-491|her video yaklaşık bu boyutta olur (2 geçiş, daha yavaş)
-492|En yüksek çözünürlük:
-493|Kodlama:
-494|H.264 (uyumlu)
-495|H.265 (daha küçük, daha yavaş)
-496|Ses:
-499|Sonuç _comprimido sonekiyle MP4 olarak kaydedilir.
-500|Başlangıç:
-501|Bitiş:
-502|sona kadar
-503|seçili dosyanın süresi: {}
-504|Hızlı (kayıpsız)
-505|Hassas (yeniden kodlar)
-506|Tam belirtilen zamanlarda keser; dosyayı yeniden kodladığı için daha uzun sürer.
-507|Anında ve kayıpsız; videolarda kesim başlangıçtan birkaç saniye önceye denk gelebilir.
-508|Yeniden kodla (önerilen)
-509|Hızlı (yalnızca ekle)
-510|Farklı videolarla çalışır: hepsi ilk videonun çözünürlüğünü alır, gerekirse kenarlıkla. MP4 olarak kaydeder.
-511|Anında, ama yalnızca tüm videolar aynı biçim, çözünürlük ve kodlamaya sahipse çalışır.
-512|Sırayı değiştirmek için listede ↑ ve ↓ kullanın.
-513|Hız:
-514|Özel:
-515|Sesi koru (birlikte hızlandırılır/yavaşlatılır)
-516|Sesi kaldır
-517|Kare çıkar
-518|Şu aralıkla bir görsel:
-519|PNG (kayıpsız)
-520|Görseller <video adı>_frames klasörüne kaydedilir.
-521|Video yeniden kodlanmadan kopyalanır: hızlı ve kalite kaybı olmadan.
-522|WAV ve FLAC kayıpsızdır: seçilecek bir kalite yok.
-523|Hedef ses düzeyi:
-524|Yüksek (−14, yayın)
-525|Standart (−16)
-526|Yumuşak (−23, TV)
-527|Videolarda görüntü kayıpsız kopyalanır; yalnızca ses yeniden kodlanır.
-528|MP3 (uyumlu)
-529|OPUS (daha küçük)
-530|Bit hızı:
-532|Kanallar:
-533|Mono'ya dönüştür (yarı boyut; konuşma için iyi)
-534|64–96 kbps konuşma ve podcast için harikadır; müzik için 128–160 kbps.
-535|Süre:
-536|seçili video: {}
-537|Genişlik:
-542|GIF'ler hızla büyür: kısa bölümler, 480 px ve 12 fps genelde 5 MB'ın altında kalır.
-543|Döndür:
-544|Döndürme
-545|Aynala:
-546|Yatay ↔
-547|Kırp:
-548|Kırpma ortalıdır. Ses kayıpsız kopyalanır.
-549|Altyazı:
-550|otomatik (videoyla aynı ad)
-551|Altyazılar
-552|Altyazıyı seç
-553|Otomatik
-554|Seçili video için bulundu: {}
-555|Seçili videoyla aynı adda altyazı yok. Dosyayı seçin.
-556|Her video kendi adındaki altyazıyı (video.srt) kullanır ya da hepsi için bir tane seçin.
-557|Metin boyutu:
-558|Küçük
-559|Orta
-560|Büyük
-561|Konum:
-562|Altta
-563|Üstte
-564|Müzik:
-565|Tüm dosyalar
-566|Müziği seç
-567|Özgün ses:
-568|Müzikle karıştır
-569|Müzikle değiştir
-570|Müzik ses düzeyi:
-571|Tekrarla:
-572|Müzik videodan kısaysa tekrarla
-573|Konuşmanın altındaki fon müziği için genelde %20–40 iyi olur. Görüntü kayıpsız kopyalanır.
-574|Sırayı değiştirmek için listede ↑ ve ↓ kullanın. Videolar da kabul edilir (sesleri kullanılır).
-575|{} dosya
-576|{} video
-577|videoyla aynı adda altyazı yok; altyazı dosyasını seçin.
-578|müziği seçin.
-579|Conver — hazır
-580|Conver — hata
-581|{lang} dili Windows'ta OCR için yüklü değil.
-582|Görüntü dönüştür
-583|Görseli sıkıştır
-584|Döndür ve kırp
-585|Renkleri ayarla
-586|Görsellerden PDF'e
-587|Video dönüştür
-588|Hız
-589|Videoda altyazı
-590|Ses dönüştür
-591|İndirme
-592|Mikrofonlar ve pencereler
-593|Hazır ayarları listele
-594|Kullanıcı tarafından iptal edildi.
-595|[{}/{n}] {name}
-596|✔ {name}   {info}
-597|Tamamlandı: {n} dosyadan {ok} tanesi.
-598|İşleniyor…
-599|✔ {}   {info}
-600|Tamamlandı.
-601|Görseli yeniden boyutlandır
-602|Bir veya daha fazla görselin boyutlarını yüzde veya piksel olarak değiştirin.
-603|Biçimi koruyarak dosya boyutunu küçültün (JPG, PNG, WEBP…).
-604|1 ile 100 arasında seçin. JPG ve WEBP biçimini korur; diğerleri JPG'ye (saydamlık varsa WEBP'ye) dönüşür.
-605|Görsel biçimini dönüştür
-606|PNG, JPG, WEBP, BMP, GIF, TIFF ve ICO arasında dönüştürün.
-607|Döndür, aynala ve kırp
-608|Görselleri döndürün, aynalayın veya hazır bir orana göre kırpın (kırpma ortalıdır).
-609|Fotoğraftaki gizli bilgileri (EXIF, GPS konumu, kamera, tarih) kalite kaybı olmadan siler.
-610|Kaldır
-611|İnsan, ürün ve hayvan fotoğraflarının arka planını yapay zekâyla, bilgisayarınızda ve internetsiz kaldırın.
-612|Görüntüleri bulanıklaştırmadan 2× veya 4× büyütün: yapay zekâ ayrıntıları yeniden oluşturur. Bilgisayarınızda, çevrimdışı çalışır.
-613|Büyüt
-614|Parlaklığı, karşıtlığı ve doygunluğu değiştirin veya hazır bir filtre uygulayın. Kaydetmeden önce önizlemeye bakın.
-615|Birden çok görseli listedeki sırayla, sayfa başına bir görsel olacak şekilde tek PDF'te birleştirin.
-616|PDF oluştur
-617|Genişlik ve yükseklik pozitif tam sayı olmalı.
-618|Genişliği ve/veya yüksekliği piksel olarak girin.
-619|önizleme yok
-620|Yüzde
-621|Piksel
-622|Oranı koru
-623|Oran korunduğunda görsel belirtilen genişlik/yüksekliğin içine sığar.
-624|Hafif = neredeyse görünür kayıp yok  •  Güçlü = çok daha küçük dosya
-625|Simgeler en fazla 256×256 olur; daha büyük görseller küçültülür.
-626|Dikey ↕
-627|JPG, PNG ve WEBP: yalnızca meta veriler silinir, görsel yeniden sıkıştırılmaz.
-628|Fotoğrafta kamera döndürmesi varsa görsel yan durmasın diye önce o uygulanır.
-629|Yeni arka plan:
-630|Saydam
-631|Beyaz
-632|Renk
-633|Kenar:
-634|Net
-635|Yumuşak (saç, tüy)
-636|Saydam PNG olarak kaydedilir. Model yüklenirken ilk görsel birkaç saniye sürer.
-637|⚠ Yapay zekâ modeli bulunamadı: silueta.onnx dosyasını modelos klasörüne koyun.
-638|Büyüt:
-639|Küçük fotoğraflar, ekran görüntüleri ve eski resimler için ideal. Büyük görüntüler daha uzun sürer (önizleme de).
-640|⚠ Yapay zekâ modeli bulunamadı: realesr-general-x4v3.onnx dosyasını modelos klasörüne koyun.
-641|Parlaklık:
-642|Karşıtlık:
-643|Doygunluk:
-644|Sıfırla
-645|Filtre:
-646|Sayfa boyutu:
-647|Sayfaların sırasını değiştirmek için listede ↑ ve ↓ kullanın.
-648|Özgün
-649|Sonuç
-650|Önizlemeyi görmek için bir görsel ekleyin
-651|Sonuç: {}×{}  •  {}   ({})
-652|Önizleme oluşturuluyor…
-653|Sayfa {}  •
-654|{page}Özgün: {}×{}  •  {orig_size}
-655|Yükleniyor…
-656|Bu görsel açılamadı.
-657|{} görsel
-658|{pages} sayfa • {}
-659|Kullanma
-660|Video ve müzik indir
-661|Bağlantılar
-662|{n} bağlantı — sırayla indirilecek
-663|Video, şarkı veya oynatma listesinin bağlantısını buraya yapıştırın (bir veya birkaç, her satıra bir tane)
-664|MP4 (video)
-665|MP3 (ses)
-666|Tarayıcı oturumu:
-667|hesap isteyen siteler için (Instagram, Facebook). İndirmeden önce tarayıcıyı kapatın.
-668|Ayrıca indir:
-669|Altyazılar (.srt, Portekizce ve İngilizce)
-670|Kapak görseli (.jpg)
-671|Oynatma listesinin tamamını indir (bağlantı bir listeyse)
-672|Yalnızca indirme hakkınız olan içerikleri indirin.
-673|Geçerli bir çıkış klasörü seçin.
-674|[bağlantı {}/{n}]
-675|{prefix}Bilgiler alınıyor…
-676| ({failed} bağlantıda hata)
-677|Tamamlandı: {total} dosya indirildi{errors}.
-678|{}: PDF açılamadı ({e})
-679|{} parola korumalı.
-680|en az 2 PDF ekleyin.
-681|geçersiz aralık: "{part}". Örneğin 1-3, 7, 10- kullanın
-682|{a}. sayfa yok (PDF'te {total} sayfa var).
-683|sayfaları girin, örneğin 1-3, 7
-684|{total} sayfadan {}
-685|{} klasöründe {total} PDF
-686|{} parolayla korunuyor; önce parolayı kaldırın.
-687|PDF zaten optimize edilmişti (küçülme yok)
-688|{changed} görüntü yeniden sıkıştırıldı • {}
-689|parolayı girin.
-690|{} zaten parolayla korunuyor.
-691|korunamadı: {e}
-692|parolayla korundu (AES-128)
-693|yanlış parola.
-694|parola kaldırıldı
-695|Korumalı PDF: parolayı girin.
-696|PDF açılamadı ({})
-697|{} görüntü {} klasöründe
-698|{done} sayfada metin tanındı • {words_total} kelime
-699| • {skipped} sayfada zaten metin vardı
-700|metin QR kod için çok uzun.
-701|ffmpeg bulunamadı.
-702|ffmpeg başlatılamadı: {e}
-703|kayıt durdu.
-704|bu mikrofondan ses gelmedi. Listeden başka bir giriş seçin (ör.: "Mikrofon (…)").
-705|tekrarlanan ad
-706|bu adda bir dosya zaten var
-707|hiçbir şey kaydedilmedi.
-708|UVR MDX-Net (67 MB)
-709|Vokal ve enstrümantal
-710|Yalnızca vokal
-711|Yalnızca enstrümantal (karaoke)
-712|kaydedilemedi: {}
-713|ses çok kısa (yarım saniyeden az).
-714|{} • {dur}
-716|Hızlı (82 MB)
-717|Dengeli (264 MB)
-718|Hassas (574 MB)
-719|Whisper base (82 MB)
-720|Whisper small (264 MB)
-721|Whisper large-v3 turbo (574 MB)
-722|Otomatik algıla
-723|Portekizce
-724|İngilizce
-725|İspanyolca
-726|Fransızca
-727|Almanca
-728|İtalyanca
-729|Rusça
-730|Çince
-731|Japonca
-732|Korece
-733|Arapça
-734|Hintçe
-735|Türkçe
-736|Lehçe
-737|Ukraynaca
-738|Felemenkçe
-739|Endonezce
-740|Vietnamca
-741|Farsça
-742|Whisper başlatılamadı: {e}
-743|Whisper hatası: {}
-744|Whisper hiçbir dosya oluşturmadı.
-745|{words} kelime • {}
-746|bu Conver kopyası kurulum dosyasıyla kurulmadı ve taşınabilir değil; siteden indirin.
-747|yeni sürümde bu Conver kopyası için dosya yok; siteden indirin.
-748|yeni sürüm sağlama toplamlarını yayımlamadı; siteden indirin.
-749|güncelleme dosyası sağlama listesinde yok; siteden indirin.
-750|güncelleme çıkarılamadı: {e}
-751|güncelleme çıkarılamadı.
-752|kurulum dosyası başlatılamadı: {e}
-753|güncelleme başlatılamadı: {e}
-754|bu kopya için otomatik güncelleme kullanılamıyor.
-755|Güncelleme tamamlanamadı: {e}
-756|büyütme modeli bulunamadı (modelos klasörü).
-757|görüntünün bir kenarı {MAX_SIDE} pikselden fazla olurdu; önce küçültün veya 2× kullanın.
-758|MP3 (yalnızca ses)
-759|ffmpeg başarısız: {}
-760|{:.0} sn video için {mb} MB çok az (en az ≈ {:.1} MB).
-761|Görselleri sıkıştır
-762|Görselleri dönüştür
-763|Videoları sıkıştır
-764|Videoları dönüştür
-765|Sesleri dönüştür
-766|✖ {OUT_FOLDER} klasörü oluşturulamadı: {e}
-767|İzleniyor: {} — {}
-768|Sonuçlar "{OUT_FOLDER}" alt klasörüne gider.
-769|Klasör izleniyor… ({count} işlendi)
-770|{name} işleniyor…
-771|{name}: {info}
-772|{name}: {e}
-773|Durduruldu. {count} dosya işlendi.
-774|Dosyaları seçin
-775|Dosya yok
-776|1 dosya
-777|{n} dosya
-778|Temizle
-779|+ Ekle
-780|sıra:
-781|Dosyaları buraya sürükleyin
-782|veya seçmek için tıklayın
-786|Listeden kaldır
-787|Özgün dosyayla aynı klasör
-788|Çıkış klasörünü seçin
-789|Klasörü aç
-790|Eklemek için bırakın
-791|Görseller ve videolar doğru araca gider
+364|🔍  Araç ara…  (Ctrl+F)
+365|İzlenen klasör  ●
+366|Ses kaydedici  ●
+367|Ekranı kaydet  ●
+368|Araç bulunamadı.
+369|⚙  Ayarlar
+370|🕘  Geçmiş
+371|Ayarlar
+372|Conver'ı kişiselleştirin.
+373|Dil
+374|Dünyada en çok konuşulan 20 dil. Dosya adları ile FFmpeg ve yt-dlp mesajları çevrilmez.
+375|Görünüm
+376|Açık
+377|Koyu
+378|Uyarılar
+379|Uzun bir görev bittiğinde Windows bildirimi (Conver arka plandayken)
+380|Bitince ses çal
+381|Uyarıyı dene
+382|Bir görev bittiğinde uyarı böyle görünecek.
+383|bildirim "Windows PowerShell" adıyla görünür; Windows yükleyicisi olmayan uygulamaları böyle gösterir.
+384|Varsayılan klasör:
+385|Değiştir…
+386|Varsayılan indirme klasörü
+387|Hakkında
+388|Sürüm:
+389|bulunamadı
+390|kontrol ediliyor…
+391|Proje:
+392|Otomasyon (yapay zekâ ajanları ve komut satırı)
+393|Yapay zekâ ajanları (Claude, Cursor, VS Code…) MCP üzerinden Conver'ın tüm araçlarını kullanabilir. Aşağıdaki yapılandırmayı ajanınızın MCP dosyasına yapıştırın.
+394|Program:
+395|MCP yapılandırmasını kopyala
+396|Komut satırı örneğini kopyala
+397|"{}" image_convert foto.png --format webp
+398|Komut satırında: conver-cli help  •  conver-cli <araç> dosyalar… --seçenek değer
+399|Windows ile tümleşme
+400|Sağ tık menüsünde "Conver ile aç" seçeneğini göster (görseller, videolar, sesler ve PDF'ler)
+401|Menü değiştirilemedi: {e}
+402|Windows 11'de seçenek "Daha fazla seçenek göster" altındadır. Conver klasörünü taşırsanız bunu kaldırıp yeniden işaretleyin.
+403|Güncellemeler
+404|Açılışta Conver'ın yeni sürümü var mı kontrol et (GitHub'a sorar)
+405|✔ en yeni sürümü kullanıyorsunuz ({})
+406|{} sürümü mevcut
+407|Şimdi kontrol et
+408|"Şimdi güncelle" yeni kurulum dosyasını indirir, imzasını denetler ve soru sormadan kurar: Conver kapanır ve aynı ayarlarla kendiliğinden yeniden açılır.
+409|"Şimdi güncelle" yeni taşınabilir sürümü indirir, imzasını denetler ve bu klasördeki dosyaları değiştirir (dados klasörü korunur): Conver kapanır ve kendiliğinden yeniden açılır.
+410|Bu kopya kurulum dosyasıyla kurulmadı ve taşınabilir sürüm değil: yeni sürümü siteden indirin.
+411|yt-dlp (indirme motoru)
+412|Siteler sık değişir. İndirmeler çalışmazsa yt-dlp'yi güncelleyin (GitHub'dan resmi sürümü indirir ve imzayı denetler).
+413|yt-dlp'yi güncelle
+414|yt-dlp'nin en yeni sürümü indiriliyor…
+415|Zaten en yeni sürüme sahiptiniz ({after}).
+416|Güncellendi: {before} → {after}.
+417|✔ {text}
+418|Güncelleme başarısız.
+419|Conver {} indiriliyor…
+420|Kuruluyor… Conver kapanıp kendiliğinden yeniden açılacak.
+421|İndir
+422|Şimdi güncelle
+423|Conver'ın yeni sürümü mevcut: {}
+424|Yenilikler
+425|Şimdi değil
+426|başlangıç ({}) dosyanın sonunu ({}) geçiyor.
+427|bitiş başlangıçtan sonra olmalı.
+429|en az 2 video ekleyin.
+430|{} içinde video yok.
+431|{} video • {}{extra} • {}
+432|{e} — videolar birbirinden farklıysa "Yeniden kodla"yı kullanın
+433|dosyada video yok.
+435|ses kaldırıldı • {}
+436|{} klasöründe {n} görsel
+437|dosyada ses yok.
+438|ses düzeyi {lufs} LUFS olarak ayarlandı
+439|başlangıç videonun sonunu geçiyor.
+441|9:16 (Reels/TikTok)
+442|1:1 (akış)
+443|4:5 (Instagram)
+444|16:9 (YouTube)
+445|bir döndürme, aynalama veya kırpma seçin.
+446|altyazı okunamadı: {e}
+447|altyazı: {}
+448|{} içinde ses yok.
+449|videonun süresi okunamadı.
+450|özgün sesle karıştırıldı
+451|özgün sesin yerine
+452|{} {how} • ses düzeyi %{volume}
+453|en az 2 dosya ekleyin.
+454|{} dosya • {} • {}
+455|Video biçimini dönüştür
+456|MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF arasında dönüştürün veya sesi MP3 olarak çıkarın.
+457|Videoyu sıkıştır
+458|Bir sıkıştırma seviyesi ya da MB cinsinden son boyutu seçerek videoları küçültün.
+459|Video bölümü kes
+460|Başlangıcı ve bitişi seçin, videonun yalnızca o kısmını kaydedin.
+461|Kes
+462|Birden çok videoyu listedeki sırayla tek videoda birleştirin.
+463|Hızlandırın veya yavaşlatın (0,25× ile 4× arası). Ses incelmeden veya kalınlaşmadan eşlik eder.
+464|Uygula
+465|Sesi kaldır / kare çıkar
+466|Videoyu sessiz yapın veya belirli aralıklarla videodan görsel kaydedin.
+467|Ses biçimini dönüştür
+468|MP3, WAV, FLAC, OGG, M4A ve OPUS arasında dönüştürün. Videolardan da ses çıkarır.
+469|Bir şarkının veya kaydın yalnızca bir bölümünü kaydedin.
+470|Birden çok sesin (veya videonun) ses düzeyini bozulma olmadan aynı seviyeye getirin.
+471|Eşitle
+472|Sesi sıkıştır
+473|Bit hızını seçerek ses dosyalarını küçültün.
+474|Videodan GIF'e
+475|Videonun yalnızca bir bölümünü hareketli GIF'e çevirin.
+476|GIF oluştur
+477|Videoyu döndür ve kırp
+478|Yan çekilmiş videoları döndürün veya 9:16 (Reels/TikTok), 1:1, 4:5 ya da 16:9 olarak kırpın.
+479|Altyazıyı (.srt, .ass veya .vtt) videoya gömün; her oynatıcıda ve sosyal ağda görünsün.
+480|Altyazı ekle
+481|Videoya müzik ekleyin; özgün sesle karıştırın ya da onun yerine koyun.
+482|Birden çok şarkıyı veya kaydı listedeki sırayla tek dosyada birleştirin.
+483|Videolar
+484|Geçersiz başlangıç. 00:01:30 biçimini (veya yalnızca saniye) kullanın.
+485|Geçersiz bitiş. 00:02:45 biçimini (veya yalnızca saniye) kullanın.
+486|Bitiş başlangıçtan sonra olmalı.
+487|Çıkış biçimi:
+488|Kalite:
+489|Şuna göre sıkıştır:
+490|Seviye
+491|Son boyut
+492|İstenen boyut:
+493|her video yaklaşık bu boyutta olur (2 geçiş, daha yavaş)
+494|En yüksek çözünürlük:
+495|Kodlama:
+496|H.264 (uyumlu)
+497|H.265 (daha küçük, daha yavaş)
+498|Ses:
+501|Sonuç _comprimido sonekiyle MP4 olarak kaydedilir.
+502|Başlangıç:
+503|Bitiş:
+504|sona kadar
+505|seçili dosyanın süresi: {}
+506|Hızlı (kayıpsız)
+507|Hassas (yeniden kodlar)
+508|Tam belirtilen zamanlarda keser; dosyayı yeniden kodladığı için daha uzun sürer.
+509|Anında ve kayıpsız; videolarda kesim başlangıçtan birkaç saniye önceye denk gelebilir.
+510|Yeniden kodla (önerilen)
+511|Hızlı (yalnızca ekle)
+512|Farklı videolarla çalışır: hepsi ilk videonun çözünürlüğünü alır, gerekirse kenarlıkla. MP4 olarak kaydeder.
+513|Anında, ama yalnızca tüm videolar aynı biçim, çözünürlük ve kodlamaya sahipse çalışır.
+514|Sırayı değiştirmek için listede ↑ ve ↓ kullanın.
+515|Hız:
+516|Özel:
+517|Sesi koru (birlikte hızlandırılır/yavaşlatılır)
+518|Sesi kaldır
+519|Kare çıkar
+520|Şu aralıkla bir görsel:
+521|PNG (kayıpsız)
+522|Görseller <video adı>_frames klasörüne kaydedilir.
+523|Video yeniden kodlanmadan kopyalanır: hızlı ve kalite kaybı olmadan.
+524|WAV ve FLAC kayıpsızdır: seçilecek bir kalite yok.
+525|Hedef ses düzeyi:
+526|Yüksek (−14, yayın)
+527|Standart (−16)
+528|Yumuşak (−23, TV)
+529|Videolarda görüntü kayıpsız kopyalanır; yalnızca ses yeniden kodlanır.
+530|MP3 (uyumlu)
+531|OPUS (daha küçük)
+532|Bit hızı:
+534|Kanallar:
+535|Mono'ya dönüştür (yarı boyut; konuşma için iyi)
+536|64–96 kbps konuşma ve podcast için harikadır; müzik için 128–160 kbps.
+537|Süre:
+538|seçili video: {}
+539|Genişlik:
+544|GIF'ler hızla büyür: kısa bölümler, 480 px ve 12 fps genelde 5 MB'ın altında kalır.
+545|Döndür:
+546|Döndürme
+547|Aynala:
+548|Yatay ↔
+549|Kırp:
+550|Kırpma ortalıdır. Ses kayıpsız kopyalanır.
+551|Altyazı:
+552|otomatik (videoyla aynı ad)
+553|Altyazılar
+554|Altyazıyı seç
+555|Otomatik
+556|Seçili video için bulundu: {}
+557|Seçili videoyla aynı adda altyazı yok. Dosyayı seçin.
+558|Her video kendi adındaki altyazıyı (video.srt) kullanır ya da hepsi için bir tane seçin.
+559|Metin boyutu:
+560|Küçük
+561|Orta
+562|Büyük
+563|Konum:
+564|Altta
+565|Üstte
+566|Müzik:
+567|Tüm dosyalar
+568|Müziği seç
+569|Özgün ses:
+570|Müzikle karıştır
+571|Müzikle değiştir
+572|Müzik ses düzeyi:
+573|Tekrarla:
+574|Müzik videodan kısaysa tekrarla
+575|Konuşmanın altındaki fon müziği için genelde %20–40 iyi olur. Görüntü kayıpsız kopyalanır.
+576|Sırayı değiştirmek için listede ↑ ve ↓ kullanın. Videolar da kabul edilir (sesleri kullanılır).
+577|{} dosya
+578|{} video
+579|videoyla aynı adda altyazı yok; altyazı dosyasını seçin.
+580|müziği seçin.
+581|Conver — hazır
+582|Conver — hata
+583|{lang} dili Windows'ta OCR için yüklü değil.
+584|Görüntü dönüştür
+585|Görseli sıkıştır
+586|Döndür ve kırp
+587|Renkleri ayarla
+588|Görsellerden PDF'e
+589|Video dönüştür
+590|Hız
+591|Videoda altyazı
+592|Ses dönüştür
+593|İndirme
+594|Mikrofonlar ve pencereler
+595|Hazır ayarları listele
+596|Kullanıcı tarafından iptal edildi.
+597|[{}/{n}] {name}
+598|✔ {name}   {info}
+599|Tamamlandı: {n} dosyadan {ok} tanesi.
+600|İşleniyor…
+601|✔ {}   {info}
+602|Tamamlandı.
+603|Görseli yeniden boyutlandır
+604|Bir veya daha fazla görselin boyutlarını yüzde veya piksel olarak değiştirin.
+605|Biçimi koruyarak dosya boyutunu küçültün (JPG, PNG, WEBP…).
+606|1 ile 100 arasında seçin. JPG ve WEBP biçimini korur; diğerleri JPG'ye (saydamlık varsa WEBP'ye) dönüşür.
+607|Görsel biçimini dönüştür
+608|PNG, JPG, WEBP, BMP, GIF, TIFF ve ICO arasında dönüştürün.
+609|Döndür, aynala ve kırp
+610|Görselleri döndürün, aynalayın veya hazır bir orana göre kırpın (kırpma ortalıdır).
+611|Fotoğraftaki gizli bilgileri (EXIF, GPS konumu, kamera, tarih) kalite kaybı olmadan siler.
+612|Kaldır
+613|İnsan, ürün ve hayvan fotoğraflarının arka planını yapay zekâyla, bilgisayarınızda ve internetsiz kaldırın.
+614|Görüntüleri bulanıklaştırmadan 2× veya 4× büyütün: yapay zekâ ayrıntıları yeniden oluşturur. Bilgisayarınızda, çevrimdışı çalışır.
+615|Büyüt
+616|Parlaklığı, karşıtlığı ve doygunluğu değiştirin veya hazır bir filtre uygulayın. Kaydetmeden önce önizlemeye bakın.
+617|Birden çok görseli listedeki sırayla, sayfa başına bir görsel olacak şekilde tek PDF'te birleştirin.
+618|PDF oluştur
+619|Genişlik ve yükseklik pozitif tam sayı olmalı.
+620|Genişliği ve/veya yüksekliği piksel olarak girin.
+621|önizleme yok
+622|Yüzde
+623|Piksel
+624|Oranı koru
+625|Oran korunduğunda görsel belirtilen genişlik/yüksekliğin içine sığar.
+626|Hafif = neredeyse görünür kayıp yok  •  Güçlü = çok daha küçük dosya
+627|Simgeler en fazla 256×256 olur; daha büyük görseller küçültülür.
+628|Dikey ↕
+629|JPG, PNG ve WEBP: yalnızca meta veriler silinir, görsel yeniden sıkıştırılmaz.
+630|Fotoğrafta kamera döndürmesi varsa görsel yan durmasın diye önce o uygulanır.
+631|Yeni arka plan:
+632|Saydam
+633|Beyaz
+634|Renk
+635|Kenar:
+636|Net
+637|Yumuşak (saç, tüy)
+638|Saydam PNG olarak kaydedilir. Model yüklenirken ilk görsel birkaç saniye sürer.
+639|⚠ Yapay zekâ modeli bulunamadı: silueta.onnx dosyasını modelos klasörüne koyun.
+640|Büyüt:
+641|Küçük fotoğraflar, ekran görüntüleri ve eski resimler için ideal. Büyük görüntüler daha uzun sürer (önizleme de).
+642|⚠ Yapay zekâ modeli bulunamadı: realesr-general-x4v3.onnx dosyasını modelos klasörüne koyun.
+643|Parlaklık:
+644|Karşıtlık:
+645|Doygunluk:
+646|Sıfırla
+647|Filtre:
+648|Sayfa boyutu:
+649|Sayfaların sırasını değiştirmek için listede ↑ ve ↓ kullanın.
+650|Özgün
+651|Sonuç
+652|Önizlemeyi görmek için bir görsel ekleyin
+653|Sonuç: {}×{}  •  {}   ({})
+654|Önizleme oluşturuluyor…
+655|Sayfa {}  •
+656|{page}Özgün: {}×{}  •  {orig_size}
+657|Yükleniyor…
+658|Bu görsel açılamadı.
+659|{} görsel
+660|{pages} sayfa • {}
+661|Kullanma
+662|Video ve müzik indir
+663|Bağlantılar
+664|{n} bağlantı — sırayla indirilecek
+665|Video, şarkı veya oynatma listesinin bağlantısını buraya yapıştırın (bir veya birkaç, her satıra bir tane)
+666|MP4 (video)
+667|MP3 (ses)
+668|Tarayıcı oturumu:
+669|hesap isteyen siteler için (Instagram, Facebook). İndirmeden önce tarayıcıyı kapatın.
+670|Ayrıca indir:
+671|Altyazılar (.srt, Portekizce ve İngilizce)
+672|Kapak görseli (.jpg)
+673|Oynatma listesinin tamamını indir (bağlantı bir listeyse)
+674|Yalnızca indirme hakkınız olan içerikleri indirin.
+675|Geçerli bir çıkış klasörü seçin.
+676|[bağlantı {}/{n}]
+677|{prefix}Bilgiler alınıyor…
+678| ({failed} bağlantıda hata)
+679|Tamamlandı: {total} dosya indirildi{errors}.
+680|{}: PDF açılamadı ({e})
+681|{} parola korumalı.
+682|en az 2 PDF ekleyin.
+683|geçersiz aralık: "{part}". Örneğin 1-3, 7, 10- kullanın
+684|{a}. sayfa yok (PDF'te {total} sayfa var).
+685|sayfaları girin, örneğin 1-3, 7
+686|{total} sayfadan {}
+687|{} klasöründe {total} PDF
+688|{} parolayla korunuyor; önce parolayı kaldırın.
+689|PDF zaten optimize edilmişti (küçülme yok)
+690|{changed} görüntü yeniden sıkıştırıldı • {}
+691|parolayı girin.
+692|{} zaten parolayla korunuyor.
+693|korunamadı: {e}
+694|parolayla korundu (AES-128)
+695|yanlış parola.
+696|parola kaldırıldı
+697|Korumalı PDF: parolayı girin.
+698|PDF açılamadı ({})
+699|{} görüntü {} klasöründe
+700|{done} sayfada metin tanındı • {words_total} kelime
+701| • {skipped} sayfada zaten metin vardı
+702|metin QR kod için çok uzun.
+703|ffmpeg bulunamadı.
+704|ffmpeg başlatılamadı: {e}
+705|kayıt durdu.
+706|bu mikrofondan ses gelmedi. Listeden başka bir giriş seçin (ör.: "Mikrofon (…)").
+707|tekrarlanan ad
+708|bu adda bir dosya zaten var
+709|hiçbir şey kaydedilmedi.
+710|UVR MDX-Net (67 MB)
+711|Vokal ve enstrümantal
+712|Yalnızca vokal
+713|Yalnızca enstrümantal (karaoke)
+714|kaydedilemedi: {}
+715|ses çok kısa (yarım saniyeden az).
+716|{} • {dur}
+718|Hızlı (82 MB)
+719|Dengeli (264 MB)
+720|Hassas (574 MB)
+721|Whisper base (82 MB)
+722|Whisper small (264 MB)
+723|Whisper large-v3 turbo (574 MB)
+724|Otomatik algıla
+725|Portekizce
+726|İngilizce
+727|İspanyolca
+728|Fransızca
+729|Almanca
+730|İtalyanca
+731|Rusça
+732|Çince
+733|Japonca
+734|Korece
+735|Arapça
+736|Hintçe
+737|Türkçe
+738|Lehçe
+739|Ukraynaca
+740|Felemenkçe
+741|Endonezce
+742|Vietnamca
+743|Farsça
+744|Whisper başlatılamadı: {e}
+745|Whisper hatası: {}
+746|Whisper hiçbir dosya oluşturmadı.
+747|{words} kelime • {}
+748|bu Conver kopyası kurulum dosyasıyla kurulmadı ve taşınabilir değil; siteden indirin.
+749|yeni sürümde bu Conver kopyası için dosya yok; siteden indirin.
+750|yeni sürüm sağlama toplamlarını yayımlamadı; siteden indirin.
+751|güncelleme dosyası sağlama listesinde yok; siteden indirin.
+752|güncelleme çıkarılamadı: {e}
+753|güncelleme çıkarılamadı.
+754|kurulum dosyası başlatılamadı: {e}
+755|güncelleme başlatılamadı: {e}
+756|bu kopya için otomatik güncelleme kullanılamıyor.
+757|Güncelleme tamamlanamadı: {e}
+758|büyütme modeli bulunamadı (modelos klasörü).
+759|görüntünün bir kenarı {MAX_SIDE} pikselden fazla olurdu; önce küçültün veya 2× kullanın.
+760|MP3 (yalnızca ses)
+761|ffmpeg başarısız: {}
+762|{:.0} sn video için {mb} MB çok az (en az ≈ {:.1} MB).
+763|Görselleri sıkıştır
+764|Görselleri dönüştür
+765|Videoları sıkıştır
+766|Videoları dönüştür
+767|Sesleri dönüştür
+768|✖ {OUT_FOLDER} klasörü oluşturulamadı: {e}
+769|İzleniyor: {} — {}
+770|Sonuçlar "{OUT_FOLDER}" alt klasörüne gider.
+771|Klasör izleniyor… ({count} işlendi)
+772|{name} işleniyor…
+773|{name}: {info}
+774|{name}: {e}
+775|Durduruldu. {count} dosya işlendi.
+776|Dosyaları seçin
+777|Dosya yok
+778|1 dosya
+779|{n} dosya
+780|Temizle
+781|+ Ekle
+782|sıra:
+783|Dosyaları buraya sürükleyin
+784|veya seçmek için tıklayın
+788|Listeden kaldır
+789|Özgün dosyayla aynı klasör
+790|Çıkış klasörünü seçin
+791|Klasörü aç
+792|Eklemek için bırakın
+793|Görseller ve videolar doğru araca gider

@@ -352,417 +352,419 @@
 361|Videos y música
 362|HERRAMIENTAS
 363|convertidor universal
-364|Carpeta vigilada  ●
-365|Grabadora de audio  ●
-366|Grabar la pantalla  ●
-367|⚙  Configuración
-368|🕘  Historial
-369|Configuración
-370|Personaliza Conver.
-371|Idioma
-372|Los 20 idiomas más hablados del mundo. Los nombres de archivo y los mensajes de FFmpeg y yt-dlp no se traducen.
-373|Apariencia
-374|Claro
-375|Oscuro
-376|Avisos
-377|Notificación de Windows cuando termine una tarea larga (con Conver en segundo plano)
-378|Reproducir un sonido al terminar
-379|Probar aviso
-380|Así aparecerá el aviso cuando termine una tarea.
-381|la notificación aparece con el nombre "Windows PowerShell"; es la forma de Windows para apps sin instalador.
-382|Carpeta predeterminada:
-383|Cambiar…
-384|Carpeta predeterminada de descargas
-385|Acerca de
-386|Versión:
-387|no encontrado
-388|comprobando…
-389|Proyecto:
-390|Automatización (agentes de IA y línea de comandos)
-391|Los agentes de IA (Claude, Cursor, VS Code…) pueden usar todas las herramientas de Conver mediante MCP. Pega la configuración de abajo en el archivo MCP de tu agente.
-392|Programa:
-393|Copiar configuración MCP
-394|Copiar ejemplo de línea de comandos
-395|"{}" image_convert foto.png --format webp
-396|En la línea de comandos: conver-cli help  •  conver-cli <herramienta> archivos… --opción valor
-397|Integración con Windows
-398|Mostrar "Abrir con Conver" en el menú del botón derecho (imágenes, videos, audios y PDF)
-399|No se pudo cambiar el menú: {e}
-400|En Windows 11, la opción está en "Mostrar más opciones". Si mueves la carpeta de Conver, desmarca y vuelve a marcar esto.
-401|Actualizaciones
-402|Comprobar si hay una versión nueva de Conver al abrir (consulta GitHub)
-403|✔ tienes la versión más reciente ({})
-404|versión {} disponible
-405|Comprobar ahora
-406|"Actualizar ahora" descarga el instalador nuevo, verifica la firma e instala sin preguntas: Conver se cierra y se vuelve a abrir solo, con la misma configuración.
-407|"Actualizar ahora" descarga la versión portátil nueva, verifica la firma y reemplaza los archivos de esta carpeta (la carpeta dados se conserva): Conver se cierra y se vuelve a abrir solo.
-408|Esta copia no se instaló con el instalador ni es la versión portátil: descarga la versión nueva desde el sitio.
-409|yt-dlp (motor de las descargas)
-410|Los sitios cambian a menudo. Si las descargas dejan de funcionar, actualiza yt-dlp (descarga la versión oficial de GitHub y comprueba la firma).
-411|Actualizar yt-dlp
-412|Descargando la versión más reciente de yt-dlp…
-413|Ya tenías la versión más reciente ({after}).
-414|Actualizado: {before} → {after}.
-415|✔ {text}
-416|Error al actualizar.
-417|Descargando Conver {}…
-418|Instalando… Conver se cerrará y se volverá a abrir solo.
-419|Descargar
-420|Actualizar ahora
-421|Nueva versión de Conver disponible: {}
-422|Novedades
-423|Ahora no
-424|el inicio ({}) pasa del final del archivo ({}).
-425|el final debe ser después del inicio.
-427|agrega al menos 2 videos.
-428|{} no tiene video.
-429|{} videos • {}{extra} • {}
-430|{e} — si los videos son distintos entre sí, usa "Recodificar"
-431|el archivo no tiene video.
-433|audio quitado • {}
-434|{n} imágenes en la carpeta {}
-435|el archivo no tiene audio.
-436|volumen ajustado a {lufs} LUFS
-437|el inicio pasa del final del video.
-439|9:16 (Reels/TikTok)
-440|1:1 (feed)
-441|4:5 (Instagram)
-442|16:9 (YouTube)
-443|elige un giro, reflejo o recorte.
-444|no se pudieron leer los subtítulos: {e}
-445|subtítulos: {}
-446|{} no tiene audio.
-447|no se pudo leer la duración del video.
-448|mezclada con el sonido original
-449|en lugar del sonido original
-450|{} {how} • volumen {volume}%
-451|agrega al menos 2 archivos.
-452|{} archivos • {} • {}
-453|Convertir formato de video
-454|Convierte entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF o extrae el audio en MP3.
-455|Comprimir video
-456|Haz los videos más pequeños eligiendo un nivel de compresión o el tamaño final en MB.
-457|Cortar fragmento de video
-458|Elige el inicio y el final y guarda solo esa parte del video.
-459|Cortar
-460|Une varios videos en uno solo, en el orden de la lista.
-461|Acelera o pon en cámara lenta (0,25× a 4×). El audio acompaña sin sonar agudo ni grave.
-462|Aplicar
-463|Quitar audio / extraer fotogramas
-464|Deja el video en silencio o guarda imágenes del video cada cierto tiempo.
-465|Convertir formato de audio
-466|Convierte entre MP3, WAV, FLAC, OGG, M4A y OPUS. También saca el audio de videos.
-467|Guarda solo una parte de una canción o grabación.
-468|Deja el volumen de varios audios (o videos) al mismo nivel, sin saturar.
-469|Normalizar
-470|Comprimir audio
-471|Reduce el tamaño de archivos de audio eligiendo la tasa de bits.
-472|Video a GIF
-473|Convierte solo una parte del video en un GIF animado.
-474|Crear GIF
-475|Girar y recortar video
-476|Gira videos grabados de lado o recórtalos a 9:16 (Reels/TikTok), 1:1, 4:5 o 16:9.
-477|Incrusta subtítulos (.srt, .ass o .vtt) en el video para que se vean en cualquier reproductor o red social.
-478|Subtitular
-479|Pon música en el video, mezclada con el sonido original o en su lugar.
-480|Une varias canciones o grabaciones en un solo archivo, en el orden de la lista.
-481|Videos
-482|Inicio no válido. Usa el formato 00:01:30 (o solo segundos).
-483|Final no válido. Usa el formato 00:02:45 (o solo segundos).
-484|El final debe ser después del inicio.
-485|Formato de salida:
-486|Calidad:
-487|Comprimir por:
-488|Nivel
-489|Tamaño final
-490|Tamaño deseado:
-491|cada video tendrá aproximadamente este tamaño (2 pasadas, más lento)
-492|Resolución máxima:
-493|Codificación:
-494|H.264 (compatible)
-495|H.265 (más pequeño, más lento)
-496|Audio:
-499|El resultado se guarda en MP4 con el sufijo _comprimido.
-500|Inicio:
-501|Final:
-502|hasta el final
-503|duración del archivo seleccionado: {}
-504|Rápido (sin pérdida)
-505|Preciso (recodifica)
-506|Corta exactamente en los tiempos indicados; tarda más porque recodifica el archivo.
-507|Instantáneo y sin pérdida; en videos, el corte puede caer unos segundos antes del inicio.
-508|Recodificar (recomendado)
-509|Rápido (solo empalmar)
-510|Funciona con videos distintos: todos quedan con la resolución del primero, con bordes si hace falta. Guarda en MP4.
-511|Instantáneo, pero solo funciona si todos los videos tienen el mismo formato, resolución y codificación.
-512|Usa ↑ y ↓ en la lista para cambiar el orden.
-513|Velocidad:
-514|Personalizada:
-515|Mantener el audio (acelerado/ralentizado junto)
-516|Quitar audio
-517|Extraer fotogramas
-518|Una imagen cada:
-519|PNG (sin pérdida)
-520|Las imágenes se guardan en una carpeta <nombre del video>_frames.
-521|El video se copia sin recodificar: rápido y sin pérdida de calidad.
-522|WAV y FLAC no tienen pérdida: no hay calidad que elegir.
-523|Volumen objetivo:
-524|Alto (−14, streaming)
-525|Estándar (−16)
-526|Suave (−23, TV)
-527|En los videos, la imagen se copia sin pérdida; solo se recodifica el audio.
-528|MP3 (compatible)
-529|OPUS (más pequeño)
-530|Tasa de bits:
-532|Canales:
-533|Convertir a mono (la mitad del tamaño; bueno para voz)
-534|64–96 kbps es ideal para voz y podcasts; 128–160 kbps para música.
-535|Duración:
-536|video seleccionado: {}
-537|Ancho:
-542|Los GIF crecen rápido: fragmentos cortos, 480 px y 12 fps suelen quedar por debajo de 5 MB.
-543|Girar:
-544|No girar
-545|Reflejar:
-546|En horizontal ↔
-547|Recortar:
-548|El recorte es centrado. El audio se copia sin pérdida.
-549|Subtítulos:
-550|automático (mismo nombre que el video)
-551|Subtítulos
-552|Elige los subtítulos
-553|Automático
-554|Encontrados para el video seleccionado: {}
-555|No hay subtítulos con el mismo nombre que el video seleccionado. Elige el archivo.
-556|Cada video usa los subtítulos con su mismo nombre (video.srt), o elige unos para todos.
-557|Tamaño del texto:
-558|Pequeño
-559|Mediano
-560|Grande
-561|Posición:
-562|Abajo
-563|Arriba
-564|Música:
-565|Todos los archivos
-566|Elige la música
-567|Sonido original:
-568|Mezclar con la música
-569|Reemplazar por la música
-570|Volumen de la música:
-571|Repetir:
-572|Repetir la música si es más corta que el video
-573|Para música de fondo con voz, un 20–40% suele quedar bien. La imagen se copia sin pérdida.
-574|Usa ↑ y ↓ en la lista para cambiar el orden. También acepta videos (usa su sonido).
-575|{} archivos
-576|{} videos
-577|no hay subtítulos con el mismo nombre que el video; elige el archivo de subtítulos.
-578|elige la música.
-579|Conver — listo
-580|Conver — error
-581|el idioma {lang} no está instalado para OCR en Windows.
-582|Convertir imagen
-583|Comprimir imagen
-584|Girar y recortar
-585|Ajustar colores
-586|Imágenes a PDF
-587|Convertir vídeo
-588|Velocidad
-589|Subtítulos en el vídeo
-590|Convertir audio
-591|Descarga
-592|Micrófonos y ventanas
-593|Listar ajustes
-594|Cancelado por el usuario.
-595|[{}/{n}] {name}
-596|✔ {name}   {info}
-597|Listo: {ok} de {n} archivo(s).
-598|Procesando…
-599|✔ {}   {info}
-600|Listo.
-601|Redimensionar imagen
-602|Cambia las dimensiones de una o varias imágenes, por porcentaje o en píxeles.
-603|Reduce el tamaño del archivo manteniendo el formato (JPG, PNG, WEBP…).
-604|Elige de 1 a 100. JPG y WEBP mantienen el formato; los demás pasan a JPG (o WEBP si tienen transparencia).
-605|Convertir formato de imagen
-606|Convierte entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
-607|Girar, reflejar y recortar
-608|Gira, refleja o recorta las imágenes a una proporción predefinida (el recorte es centrado).
-609|Borra la información oculta de la foto (EXIF, ubicación GPS, cámara, fecha) sin perder calidad.
-610|Quitar
-611|Quita el fondo de fotos de personas, productos y animales con inteligencia artificial, en tu PC y sin internet.
-612|Agranda imágenes 2× o 4× sin desenfocar: la inteligencia artificial recrea los detalles. Funciona en tu PC, sin internet.
-613|Ampliar
-614|Cambia el brillo, el contraste y la saturación o aplica un filtro. Revisa la vista previa antes de guardar.
-615|Une varias imágenes en un único PDF, una por página, en el orden de la lista.
-616|Crear PDF
-617|El ancho y el alto deben ser números enteros positivos.
-618|Indica el ancho y/o el alto en píxeles.
-619|sin vista previa
-620|Porcentaje
-621|Píxeles
-622|Mantener proporción
-623|Con la proporción mantenida, la imagen cabe dentro del ancho/alto indicado.
-624|Ligera = casi sin pérdida visible  •  Fuerte = archivo mucho más pequeño
-625|Los iconos tienen como máximo 256×256; las imágenes más grandes se reducen.
-626|En vertical ↕
-627|JPG, PNG y WEBP: solo se borran los metadatos, la imagen no se recomprime.
-628|Si la foto tiene rotación de la cámara, se aplica antes para que la imagen no quede de lado.
-629|Fondo nuevo:
-630|Transparente
-631|Blanco
-632|Color
-633|Borde:
-634|Definido
-635|Suave (cabello, pelo)
-636|Transparente se guarda en PNG. La primera imagen tarda unos segundos mientras carga el modelo.
-637|⚠ No se encontró el modelo de IA: pon silueta.onnx en la carpeta modelos.
-638|Ampliar:
-639|Ideal para fotos pequeñas, capturas de pantalla e imágenes antiguas. Las imágenes grandes tardan más (la vista previa también).
-640|⚠ Modelo de IA no encontrado: pon realesr-general-x4v3.onnx en la carpeta modelos.
-641|Brillo:
-642|Contraste:
-643|Saturación:
-644|Restablecer
-645|Filtro:
-646|Tamaño de página:
-647|Usa ↑ y ↓ en la lista para cambiar el orden de las páginas.
-648|Original
-649|Resultado
-650|Agrega una imagen para ver la vista previa
-651|Resultado: {}×{}  •  {}   ({})
-652|Generando vista previa…
-653|Página {}  •
-654|{page}Original: {}×{}  •  {orig_size}
-655|Cargando…
-656|No se pudo abrir esta imagen.
-657|{} imágenes
-658|{pages} página(s) • {}
-659|No usar
-660|Descargar videos y música
-661|Enlaces
-662|{n} enlaces — se descargarán en cola
-663|Pega aquí el enlace del video, canción o lista (uno o varios, uno por línea)
-664|MP4 (video)
-665|MP3 (audio)
-666|Sesión del navegador:
-667|para sitios que piden cuenta (Instagram, Facebook). Cierra el navegador antes de descargar.
-668|Descargar también:
-669|Subtítulos (.srt, portugués e inglés)
-670|Imagen de portada (.jpg)
-671|Descargar la lista completa (si el enlace es de una lista)
-672|Descarga solo contenidos que tengas derecho a descargar.
-673|Elige una carpeta de salida válida.
-674|[enlace {}/{n}]
-675|{prefix}Buscando información…
-676| ({failed} enlace(s) con error)
-677|Listo: {total} archivo(s) descargado(s){errors}.
-678|{}: no se pudo abrir el PDF ({e})
-679|{} está protegido con contraseña.
-680|agrega al menos 2 PDF.
-681|intervalo no válido: "{part}". Usa algo como 1-3, 7, 10-
-682|la página {a} no existe (el PDF tiene {total}).
-683|indica las páginas, por ejemplo 1-3, 7
-684|{} de {total} páginas
-685|{total} PDF en la carpeta {}
-686|{} está protegido con contraseña; quita la contraseña antes.
-687|el PDF ya estaba optimizado (sin reducción)
-688|{changed} imagen(es) recomprimida(s) • {}
-689|introduce la contraseña.
-690|{} ya está protegido con contraseña.
-691|no se pudo proteger: {e}
-692|protegido con contraseña (AES-128)
-693|contraseña incorrecta.
-694|contraseña quitada
-695|PDF protegido: introduce la contraseña.
-696|no se pudo abrir el PDF ({})
-697|{} imagen(es) en la carpeta {}
-698|{done} página(s) con texto reconocido • {words_total} palabras
-699| • {skipped} ya tenían texto
-700|texto demasiado largo para un código QR.
-701|no se encontró ffmpeg.
-702|no se pudo iniciar ffmpeg: {e}
-703|la grabación se detuvo.
-704|no llegó sonido de este micrófono. Elige otra entrada de la lista (ej.: "Micrófono (…)").
-705|nombre repetido
-706|ya existe un archivo con ese nombre
-707|no se grabó nada.
-708|UVR MDX-Net (67 MB)
-709|Voz e instrumental
-710|Solo la voz
-711|Solo el instrumental (karaoke)
-712|error al guardar: {}
-713|el audio es demasiado corto (menos de medio segundo).
-714|{} • {dur}
-716|Rápido (82 MB)
-717|Equilibrado (264 MB)
-718|Preciso (574 MB)
-719|Whisper base (82 MB)
-720|Whisper small (264 MB)
-721|Whisper large-v3 turbo (574 MB)
-722|Detectar automáticamente
-723|Portugués
-724|Inglés
-725|Español
-726|Francés
-727|Alemán
-728|Italiano
-729|Ruso
-730|Chino
-731|Japonés
-732|Coreano
-733|Árabe
-734|Hindi
-735|Turco
-736|Polaco
-737|Ucraniano
-738|Neerlandés
-739|Indonesio
-740|Vietnamita
-741|Persa
-742|no se pudo iniciar Whisper: {e}
-743|error en Whisper: {}
-744|Whisper no generó ningún archivo.
-745|{words} palabras • {}
-746|esta copia de Conver no se instaló con el instalador ni es la portátil; descárgala desde el sitio.
-747|la versión nueva no tiene el archivo para esta copia de Conver; descárgala desde el sitio.
-748|la versión nueva no publicó sus sumas de verificación; descárgala desde el sitio.
-749|el archivo de la actualización no está en la lista de verificación; descárgala desde el sitio.
-750|no se pudo extraer la actualización: {e}
-751|no se pudo extraer la actualización.
-752|no se pudo iniciar el instalador: {e}
-753|no se pudo iniciar la actualización: {e}
-754|actualización automática no disponible en esta copia.
-755|No se pudo terminar la actualización: {e}
-756|no se encontró el modelo de ampliación (carpeta modelos).
-757|la imagen tendría más de {MAX_SIDE} píxeles de lado; redúcela antes o usa 2×.
-758|MP3 (solo audio)
-759|falló ffmpeg: {}
-760|{mb} MB es demasiado poco para {:.0}s de video (mínimo ≈ {:.1} MB).
-761|Comprimir imágenes
-762|Convertir imágenes
-763|Comprimir videos
-764|Convertir videos
-765|Convertir audios
-766|✖ no se pudo crear la carpeta {OUT_FOLDER}: {e}
-767|Vigilando {} — {}
-768|Los resultados van a la subcarpeta "{OUT_FOLDER}".
-769|Vigilando la carpeta… ({count} procesados)
-770|Procesando {name}…
-771|{name}: {info}
-772|{name}: {e}
-773|Detenido. {count} archivo(s) procesado(s).
-774|Selecciona los archivos
-775|Ningún archivo
-776|1 archivo
-777|{n} archivos
-778|Limpiar
-779|+ Agregar
-780|orden:
-781|Arrastra archivos aquí
-782|o haz clic para seleccionar
-786|Quitar de la lista
-787|Misma carpeta que el archivo original
-788|Elige la carpeta de salida
-789|Abrir carpeta
-790|Suelta para agregar
-791|Las imágenes y los videos van a la herramienta correcta
+364|🔍  Buscar herramienta…  (Ctrl+F)
+365|Carpeta vigilada  ●
+366|Grabadora de audio  ●
+367|Grabar la pantalla  ●
+368|No se encontró ninguna herramienta.
+369|⚙  Configuración
+370|🕘  Historial
+371|Configuración
+372|Personaliza Conver.
+373|Idioma
+374|Los 20 idiomas más hablados del mundo. Los nombres de archivo y los mensajes de FFmpeg y yt-dlp no se traducen.
+375|Apariencia
+376|Claro
+377|Oscuro
+378|Avisos
+379|Notificación de Windows cuando termine una tarea larga (con Conver en segundo plano)
+380|Reproducir un sonido al terminar
+381|Probar aviso
+382|Así aparecerá el aviso cuando termine una tarea.
+383|la notificación aparece con el nombre "Windows PowerShell"; es la forma de Windows para apps sin instalador.
+384|Carpeta predeterminada:
+385|Cambiar…
+386|Carpeta predeterminada de descargas
+387|Acerca de
+388|Versión:
+389|no encontrado
+390|comprobando…
+391|Proyecto:
+392|Automatización (agentes de IA y línea de comandos)
+393|Los agentes de IA (Claude, Cursor, VS Code…) pueden usar todas las herramientas de Conver mediante MCP. Pega la configuración de abajo en el archivo MCP de tu agente.
+394|Programa:
+395|Copiar configuración MCP
+396|Copiar ejemplo de línea de comandos
+397|"{}" image_convert foto.png --format webp
+398|En la línea de comandos: conver-cli help  •  conver-cli <herramienta> archivos… --opción valor
+399|Integración con Windows
+400|Mostrar "Abrir con Conver" en el menú del botón derecho (imágenes, videos, audios y PDF)
+401|No se pudo cambiar el menú: {e}
+402|En Windows 11, la opción está en "Mostrar más opciones". Si mueves la carpeta de Conver, desmarca y vuelve a marcar esto.
+403|Actualizaciones
+404|Comprobar si hay una versión nueva de Conver al abrir (consulta GitHub)
+405|✔ tienes la versión más reciente ({})
+406|versión {} disponible
+407|Comprobar ahora
+408|"Actualizar ahora" descarga el instalador nuevo, verifica la firma e instala sin preguntas: Conver se cierra y se vuelve a abrir solo, con la misma configuración.
+409|"Actualizar ahora" descarga la versión portátil nueva, verifica la firma y reemplaza los archivos de esta carpeta (la carpeta dados se conserva): Conver se cierra y se vuelve a abrir solo.
+410|Esta copia no se instaló con el instalador ni es la versión portátil: descarga la versión nueva desde el sitio.
+411|yt-dlp (motor de las descargas)
+412|Los sitios cambian a menudo. Si las descargas dejan de funcionar, actualiza yt-dlp (descarga la versión oficial de GitHub y comprueba la firma).
+413|Actualizar yt-dlp
+414|Descargando la versión más reciente de yt-dlp…
+415|Ya tenías la versión más reciente ({after}).
+416|Actualizado: {before} → {after}.
+417|✔ {text}
+418|Error al actualizar.
+419|Descargando Conver {}…
+420|Instalando… Conver se cerrará y se volverá a abrir solo.
+421|Descargar
+422|Actualizar ahora
+423|Nueva versión de Conver disponible: {}
+424|Novedades
+425|Ahora no
+426|el inicio ({}) pasa del final del archivo ({}).
+427|el final debe ser después del inicio.
+429|agrega al menos 2 videos.
+430|{} no tiene video.
+431|{} videos • {}{extra} • {}
+432|{e} — si los videos son distintos entre sí, usa "Recodificar"
+433|el archivo no tiene video.
+435|audio quitado • {}
+436|{n} imágenes en la carpeta {}
+437|el archivo no tiene audio.
+438|volumen ajustado a {lufs} LUFS
+439|el inicio pasa del final del video.
+441|9:16 (Reels/TikTok)
+442|1:1 (feed)
+443|4:5 (Instagram)
+444|16:9 (YouTube)
+445|elige un giro, reflejo o recorte.
+446|no se pudieron leer los subtítulos: {e}
+447|subtítulos: {}
+448|{} no tiene audio.
+449|no se pudo leer la duración del video.
+450|mezclada con el sonido original
+451|en lugar del sonido original
+452|{} {how} • volumen {volume}%
+453|agrega al menos 2 archivos.
+454|{} archivos • {} • {}
+455|Convertir formato de video
+456|Convierte entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF o extrae el audio en MP3.
+457|Comprimir video
+458|Haz los videos más pequeños eligiendo un nivel de compresión o el tamaño final en MB.
+459|Cortar fragmento de video
+460|Elige el inicio y el final y guarda solo esa parte del video.
+461|Cortar
+462|Une varios videos en uno solo, en el orden de la lista.
+463|Acelera o pon en cámara lenta (0,25× a 4×). El audio acompaña sin sonar agudo ni grave.
+464|Aplicar
+465|Quitar audio / extraer fotogramas
+466|Deja el video en silencio o guarda imágenes del video cada cierto tiempo.
+467|Convertir formato de audio
+468|Convierte entre MP3, WAV, FLAC, OGG, M4A y OPUS. También saca el audio de videos.
+469|Guarda solo una parte de una canción o grabación.
+470|Deja el volumen de varios audios (o videos) al mismo nivel, sin saturar.
+471|Normalizar
+472|Comprimir audio
+473|Reduce el tamaño de archivos de audio eligiendo la tasa de bits.
+474|Video a GIF
+475|Convierte solo una parte del video en un GIF animado.
+476|Crear GIF
+477|Girar y recortar video
+478|Gira videos grabados de lado o recórtalos a 9:16 (Reels/TikTok), 1:1, 4:5 o 16:9.
+479|Incrusta subtítulos (.srt, .ass o .vtt) en el video para que se vean en cualquier reproductor o red social.
+480|Subtitular
+481|Pon música en el video, mezclada con el sonido original o en su lugar.
+482|Une varias canciones o grabaciones en un solo archivo, en el orden de la lista.
+483|Videos
+484|Inicio no válido. Usa el formato 00:01:30 (o solo segundos).
+485|Final no válido. Usa el formato 00:02:45 (o solo segundos).
+486|El final debe ser después del inicio.
+487|Formato de salida:
+488|Calidad:
+489|Comprimir por:
+490|Nivel
+491|Tamaño final
+492|Tamaño deseado:
+493|cada video tendrá aproximadamente este tamaño (2 pasadas, más lento)
+494|Resolución máxima:
+495|Codificación:
+496|H.264 (compatible)
+497|H.265 (más pequeño, más lento)
+498|Audio:
+501|El resultado se guarda en MP4 con el sufijo _comprimido.
+502|Inicio:
+503|Final:
+504|hasta el final
+505|duración del archivo seleccionado: {}
+506|Rápido (sin pérdida)
+507|Preciso (recodifica)
+508|Corta exactamente en los tiempos indicados; tarda más porque recodifica el archivo.
+509|Instantáneo y sin pérdida; en videos, el corte puede caer unos segundos antes del inicio.
+510|Recodificar (recomendado)
+511|Rápido (solo empalmar)
+512|Funciona con videos distintos: todos quedan con la resolución del primero, con bordes si hace falta. Guarda en MP4.
+513|Instantáneo, pero solo funciona si todos los videos tienen el mismo formato, resolución y codificación.
+514|Usa ↑ y ↓ en la lista para cambiar el orden.
+515|Velocidad:
+516|Personalizada:
+517|Mantener el audio (acelerado/ralentizado junto)
+518|Quitar audio
+519|Extraer fotogramas
+520|Una imagen cada:
+521|PNG (sin pérdida)
+522|Las imágenes se guardan en una carpeta <nombre del video>_frames.
+523|El video se copia sin recodificar: rápido y sin pérdida de calidad.
+524|WAV y FLAC no tienen pérdida: no hay calidad que elegir.
+525|Volumen objetivo:
+526|Alto (−14, streaming)
+527|Estándar (−16)
+528|Suave (−23, TV)
+529|En los videos, la imagen se copia sin pérdida; solo se recodifica el audio.
+530|MP3 (compatible)
+531|OPUS (más pequeño)
+532|Tasa de bits:
+534|Canales:
+535|Convertir a mono (la mitad del tamaño; bueno para voz)
+536|64–96 kbps es ideal para voz y podcasts; 128–160 kbps para música.
+537|Duración:
+538|video seleccionado: {}
+539|Ancho:
+544|Los GIF crecen rápido: fragmentos cortos, 480 px y 12 fps suelen quedar por debajo de 5 MB.
+545|Girar:
+546|No girar
+547|Reflejar:
+548|En horizontal ↔
+549|Recortar:
+550|El recorte es centrado. El audio se copia sin pérdida.
+551|Subtítulos:
+552|automático (mismo nombre que el video)
+553|Subtítulos
+554|Elige los subtítulos
+555|Automático
+556|Encontrados para el video seleccionado: {}
+557|No hay subtítulos con el mismo nombre que el video seleccionado. Elige el archivo.
+558|Cada video usa los subtítulos con su mismo nombre (video.srt), o elige unos para todos.
+559|Tamaño del texto:
+560|Pequeño
+561|Mediano
+562|Grande
+563|Posición:
+564|Abajo
+565|Arriba
+566|Música:
+567|Todos los archivos
+568|Elige la música
+569|Sonido original:
+570|Mezclar con la música
+571|Reemplazar por la música
+572|Volumen de la música:
+573|Repetir:
+574|Repetir la música si es más corta que el video
+575|Para música de fondo con voz, un 20–40% suele quedar bien. La imagen se copia sin pérdida.
+576|Usa ↑ y ↓ en la lista para cambiar el orden. También acepta videos (usa su sonido).
+577|{} archivos
+578|{} videos
+579|no hay subtítulos con el mismo nombre que el video; elige el archivo de subtítulos.
+580|elige la música.
+581|Conver — listo
+582|Conver — error
+583|el idioma {lang} no está instalado para OCR en Windows.
+584|Convertir imagen
+585|Comprimir imagen
+586|Girar y recortar
+587|Ajustar colores
+588|Imágenes a PDF
+589|Convertir vídeo
+590|Velocidad
+591|Subtítulos en el vídeo
+592|Convertir audio
+593|Descarga
+594|Micrófonos y ventanas
+595|Listar ajustes
+596|Cancelado por el usuario.
+597|[{}/{n}] {name}
+598|✔ {name}   {info}
+599|Listo: {ok} de {n} archivo(s).
+600|Procesando…
+601|✔ {}   {info}
+602|Listo.
+603|Redimensionar imagen
+604|Cambia las dimensiones de una o varias imágenes, por porcentaje o en píxeles.
+605|Reduce el tamaño del archivo manteniendo el formato (JPG, PNG, WEBP…).
+606|Elige de 1 a 100. JPG y WEBP mantienen el formato; los demás pasan a JPG (o WEBP si tienen transparencia).
+607|Convertir formato de imagen
+608|Convierte entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
+609|Girar, reflejar y recortar
+610|Gira, refleja o recorta las imágenes a una proporción predefinida (el recorte es centrado).
+611|Borra la información oculta de la foto (EXIF, ubicación GPS, cámara, fecha) sin perder calidad.
+612|Quitar
+613|Quita el fondo de fotos de personas, productos y animales con inteligencia artificial, en tu PC y sin internet.
+614|Agranda imágenes 2× o 4× sin desenfocar: la inteligencia artificial recrea los detalles. Funciona en tu PC, sin internet.
+615|Ampliar
+616|Cambia el brillo, el contraste y la saturación o aplica un filtro. Revisa la vista previa antes de guardar.
+617|Une varias imágenes en un único PDF, una por página, en el orden de la lista.
+618|Crear PDF
+619|El ancho y el alto deben ser números enteros positivos.
+620|Indica el ancho y/o el alto en píxeles.
+621|sin vista previa
+622|Porcentaje
+623|Píxeles
+624|Mantener proporción
+625|Con la proporción mantenida, la imagen cabe dentro del ancho/alto indicado.
+626|Ligera = casi sin pérdida visible  •  Fuerte = archivo mucho más pequeño
+627|Los iconos tienen como máximo 256×256; las imágenes más grandes se reducen.
+628|En vertical ↕
+629|JPG, PNG y WEBP: solo se borran los metadatos, la imagen no se recomprime.
+630|Si la foto tiene rotación de la cámara, se aplica antes para que la imagen no quede de lado.
+631|Fondo nuevo:
+632|Transparente
+633|Blanco
+634|Color
+635|Borde:
+636|Definido
+637|Suave (cabello, pelo)
+638|Transparente se guarda en PNG. La primera imagen tarda unos segundos mientras carga el modelo.
+639|⚠ No se encontró el modelo de IA: pon silueta.onnx en la carpeta modelos.
+640|Ampliar:
+641|Ideal para fotos pequeñas, capturas de pantalla e imágenes antiguas. Las imágenes grandes tardan más (la vista previa también).
+642|⚠ Modelo de IA no encontrado: pon realesr-general-x4v3.onnx en la carpeta modelos.
+643|Brillo:
+644|Contraste:
+645|Saturación:
+646|Restablecer
+647|Filtro:
+648|Tamaño de página:
+649|Usa ↑ y ↓ en la lista para cambiar el orden de las páginas.
+650|Original
+651|Resultado
+652|Agrega una imagen para ver la vista previa
+653|Resultado: {}×{}  •  {}   ({})
+654|Generando vista previa…
+655|Página {}  •
+656|{page}Original: {}×{}  •  {orig_size}
+657|Cargando…
+658|No se pudo abrir esta imagen.
+659|{} imágenes
+660|{pages} página(s) • {}
+661|No usar
+662|Descargar videos y música
+663|Enlaces
+664|{n} enlaces — se descargarán en cola
+665|Pega aquí el enlace del video, canción o lista (uno o varios, uno por línea)
+666|MP4 (video)
+667|MP3 (audio)
+668|Sesión del navegador:
+669|para sitios que piden cuenta (Instagram, Facebook). Cierra el navegador antes de descargar.
+670|Descargar también:
+671|Subtítulos (.srt, portugués e inglés)
+672|Imagen de portada (.jpg)
+673|Descargar la lista completa (si el enlace es de una lista)
+674|Descarga solo contenidos que tengas derecho a descargar.
+675|Elige una carpeta de salida válida.
+676|[enlace {}/{n}]
+677|{prefix}Buscando información…
+678| ({failed} enlace(s) con error)
+679|Listo: {total} archivo(s) descargado(s){errors}.
+680|{}: no se pudo abrir el PDF ({e})
+681|{} está protegido con contraseña.
+682|agrega al menos 2 PDF.
+683|intervalo no válido: "{part}". Usa algo como 1-3, 7, 10-
+684|la página {a} no existe (el PDF tiene {total}).
+685|indica las páginas, por ejemplo 1-3, 7
+686|{} de {total} páginas
+687|{total} PDF en la carpeta {}
+688|{} está protegido con contraseña; quita la contraseña antes.
+689|el PDF ya estaba optimizado (sin reducción)
+690|{changed} imagen(es) recomprimida(s) • {}
+691|introduce la contraseña.
+692|{} ya está protegido con contraseña.
+693|no se pudo proteger: {e}
+694|protegido con contraseña (AES-128)
+695|contraseña incorrecta.
+696|contraseña quitada
+697|PDF protegido: introduce la contraseña.
+698|no se pudo abrir el PDF ({})
+699|{} imagen(es) en la carpeta {}
+700|{done} página(s) con texto reconocido • {words_total} palabras
+701| • {skipped} ya tenían texto
+702|texto demasiado largo para un código QR.
+703|no se encontró ffmpeg.
+704|no se pudo iniciar ffmpeg: {e}
+705|la grabación se detuvo.
+706|no llegó sonido de este micrófono. Elige otra entrada de la lista (ej.: "Micrófono (…)").
+707|nombre repetido
+708|ya existe un archivo con ese nombre
+709|no se grabó nada.
+710|UVR MDX-Net (67 MB)
+711|Voz e instrumental
+712|Solo la voz
+713|Solo el instrumental (karaoke)
+714|error al guardar: {}
+715|el audio es demasiado corto (menos de medio segundo).
+716|{} • {dur}
+718|Rápido (82 MB)
+719|Equilibrado (264 MB)
+720|Preciso (574 MB)
+721|Whisper base (82 MB)
+722|Whisper small (264 MB)
+723|Whisper large-v3 turbo (574 MB)
+724|Detectar automáticamente
+725|Portugués
+726|Inglés
+727|Español
+728|Francés
+729|Alemán
+730|Italiano
+731|Ruso
+732|Chino
+733|Japonés
+734|Coreano
+735|Árabe
+736|Hindi
+737|Turco
+738|Polaco
+739|Ucraniano
+740|Neerlandés
+741|Indonesio
+742|Vietnamita
+743|Persa
+744|no se pudo iniciar Whisper: {e}
+745|error en Whisper: {}
+746|Whisper no generó ningún archivo.
+747|{words} palabras • {}
+748|esta copia de Conver no se instaló con el instalador ni es la portátil; descárgala desde el sitio.
+749|la versión nueva no tiene el archivo para esta copia de Conver; descárgala desde el sitio.
+750|la versión nueva no publicó sus sumas de verificación; descárgala desde el sitio.
+751|el archivo de la actualización no está en la lista de verificación; descárgala desde el sitio.
+752|no se pudo extraer la actualización: {e}
+753|no se pudo extraer la actualización.
+754|no se pudo iniciar el instalador: {e}
+755|no se pudo iniciar la actualización: {e}
+756|actualización automática no disponible en esta copia.
+757|No se pudo terminar la actualización: {e}
+758|no se encontró el modelo de ampliación (carpeta modelos).
+759|la imagen tendría más de {MAX_SIDE} píxeles de lado; redúcela antes o usa 2×.
+760|MP3 (solo audio)
+761|falló ffmpeg: {}
+762|{mb} MB es demasiado poco para {:.0}s de video (mínimo ≈ {:.1} MB).
+763|Comprimir imágenes
+764|Convertir imágenes
+765|Comprimir videos
+766|Convertir videos
+767|Convertir audios
+768|✖ no se pudo crear la carpeta {OUT_FOLDER}: {e}
+769|Vigilando {} — {}
+770|Los resultados van a la subcarpeta "{OUT_FOLDER}".
+771|Vigilando la carpeta… ({count} procesados)
+772|Procesando {name}…
+773|{name}: {info}
+774|{name}: {e}
+775|Detenido. {count} archivo(s) procesado(s).
+776|Selecciona los archivos
+777|Ningún archivo
+778|1 archivo
+779|{n} archivos
+780|Limpiar
+781|+ Agregar
+782|orden:
+783|Arrastra archivos aquí
+784|o haz clic para seleccionar
+788|Quitar de la lista
+789|Misma carpeta que el archivo original
+790|Elige la carpeta de salida
+791|Abrir carpeta
+792|Suelta para agregar
+793|Las imágenes y los videos van a la herramienta correcta

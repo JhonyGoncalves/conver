@@ -29,6 +29,7 @@ mod qr;
 mod recorder;
 mod rename;
 mod screenrec;
+mod search;
 mod separate;
 mod theme;
 mod tools;
@@ -270,6 +271,7 @@ struct ConverApp {
     update: Arc<Mutex<UpdateState>>,
     update_dismissed: bool,
     update_job: Job,
+    nav_query: String,
     update_ready: Arc<Mutex<Option<updater::Prepared>>>,
     menu_on: bool,
     ytdlp_job: Job,
@@ -330,6 +332,7 @@ impl ConverApp {
             update: Arc::new(Mutex::new(UpdateState::Idle)),
             update_dismissed: false,
             update_job: Job::default(),
+            nav_query: String::new(),
             update_ready: Arc::default(),
             menu_on: integration::menu_registered(),
             ytdlp_job: Job::default(),
@@ -439,7 +442,24 @@ impl ConverApp {
                 ui.label(RichText::new(crate::i18n::tr("conversor universal")).size(12.0).color(p.muted));
             });
         });
-        ui.add_space(6.0);
+        ui.add_space(8.0);
+        // busca: nome, seção e sinônimos ("cortar", "tirar fundo", "youtube"…); Ctrl+F foca, Enter abre a primeira
+        let search_id = egui::Id::new("nav_search");
+        if ui.input(|i| i.modifiers.command && i.key_pressed(egui::Key::F)) {
+            ui.memory_mut(|m| m.request_focus(search_id));
+        }
+        let resp = ui.add(
+            egui::TextEdit::singleline(&mut self.nav_query)
+                .id(search_id)
+                .hint_text(crate::i18n::tr("🔍  Buscar ferramenta…  (Ctrl+F)"))
+                .desired_width(f32::INFINITY),
+        );
+        if resp.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            self.nav_query.clear();
+        }
+        let query = search::normalize(self.nav_query.trim());
+        let searching = !query.trim().is_empty();
+        let enter = resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
         let bottom = 86.0;
         egui::ScrollArea::vertical()
             .id_salt("nav")
@@ -447,10 +467,24 @@ impl ConverApp {
             .auto_shrink([false, false])
             .show(ui, |ui| {
                 ui.spacing_mut().item_spacing.y = 2.0;
+                let mut first: Option<Page> = None;
                 for (section, items) in NAV {
+                    let shown: Vec<&(Page, &str)> = items
+                        .iter()
+                        .filter(|(page, label)| {
+                            !searching || {
+                                let hay = search::haystack(label, &crate::i18n::tr(*label), section, &crate::i18n::tr(*section), search::keywords(page_id(*page)));
+                                search::matches(&query, &hay)
+                            }
+                        })
+                        .collect();
+                    if shown.is_empty() {
+                        continue;
+                    }
                     ui.add_space(8.0);
                     ui.label(RichText::new(crate::i18n::tr(*section)).family(bold()).size(11.5).color(p.muted));
-                    for (page, label) in *items {
+                    for (page, label) in shown {
+                        first.get_or_insert(*page);
                         let label = match page {
                             Page::Watch if self.watch.running() => "Pasta vigiada  ●",
                             Page::Recorder if self.recorder.recording() => "Gravador de áudio  ●",
@@ -460,6 +494,19 @@ impl ConverApp {
                         if nav_item(ui, &p, label, self.page == *page) {
                             self.page = *page;
                         }
+                    }
+                }
+                if searching {
+                    match first {
+                        None => {
+                            ui.add_space(10.0);
+                            ui.label(RichText::new(crate::i18n::tr("Nenhuma ferramenta encontrada.")).color(p.muted));
+                        }
+                        Some(page) if enter => {
+                            self.page = page;
+                            self.nav_query.clear();
+                        }
+                        _ => {}
                     }
                 }
                 ui.add_space(6.0);
@@ -787,6 +834,62 @@ impl ConverApp {
                 });
             });
         ui.add_space(8.0);
+    }
+}
+
+/// Nome de cada tela para as palavras de busca (`search::keywords`).
+fn page_id(page: Page) -> &'static str {
+    match page {
+        Page::Img(t) => match t {
+            ImgTool::Resize => "img_resize",
+            ImgTool::Compress => "img_compress",
+            ImgTool::Quality => "img_quality",
+            ImgTool::Convert => "img_convert",
+            ImgTool::Transform => "img_transform",
+            ImgTool::Strip => "img_strip",
+            ImgTool::Pdf => "img_pdf",
+            ImgTool::Adjust => "img_adjust",
+            ImgTool::RemoveBg => "img_removebg",
+            ImgTool::Upscale => "img_upscale",
+        },
+        Page::Media(t) => match t {
+            MTool::VConvert => "v_convert",
+            MTool::VCompress => "v_compress",
+            MTool::VTrim => "v_trim",
+            MTool::Merge => "v_merge",
+            MTool::Speed => "v_speed",
+            MTool::AudioFrames => "v_audioframes",
+            MTool::Gif => "v_gif",
+            MTool::VTransform => "v_transform",
+            MTool::Subtitles => "v_subs",
+            MTool::Music => "v_music",
+            MTool::AConvert => "a_convert",
+            MTool::ATrim => "a_trim",
+            MTool::AMerge => "a_merge",
+            MTool::Normalize => "a_normalize",
+            MTool::ACompress => "a_compress",
+        },
+        Page::Pdf(t) => match t {
+            PdfTool::Merge => "pdf_merge",
+            PdfTool::Split => "pdf_split",
+            PdfTool::Compress => "pdf_compress",
+            PdfTool::ToImages => "pdf_images",
+            PdfTool::Protect => "pdf_protect",
+            PdfTool::Unlock => "pdf_unlock",
+            PdfTool::Ocr => "pdf_ocr",
+        },
+        Page::Download => "download",
+        Page::Watch => "watch",
+        Page::Recorder => "recorder",
+        Page::Ocr => "ocr",
+        Page::Info => "info",
+        Page::Rename => "rename",
+        Page::Qr => "qr",
+        Page::Transcribe => "transcribe",
+        Page::Separate => "separate",
+        Page::Screen => "screen",
+        Page::Presets => "presets",
+        Page::History | Page::Settings => "",
     }
 }
 
