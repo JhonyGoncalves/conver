@@ -2,6 +2,7 @@
 
 use crate::recorder::{self, Monitor};
 use crate::screenrec::{self, Area};
+use std::path::PathBuf;
 
 /// Escuta um som gerado pelo ffmpeg até ele acabar e devolve (amostras, pico, estouros).
 fn listen(src: &str) -> (u64, f32, u32) {
@@ -50,4 +51,61 @@ fn screen_preview_grab() {
         let _ = screenrec::grab(&Area::Janela(w.clone()), 640);
     }
     assert!(screenrec::grab(&Area::Janela("janela que não existe 123".into()), 640).is_none());
+}
+
+#[test]
+fn screen_monitors_pause_quality() {
+    // monitores: pelo menos um, o principal primeiro
+    let mons = screenrec::monitors();
+    println!("{} monitor(es): {:?}", mons.len(), mons.iter().map(|m| (m.w, m.h, m.primary)).collect::<Vec<_>>());
+    assert!(!mons.is_empty() && mons[0].primary && mons[0].w > 0);
+    // grava uma área, pausa no meio e continua: o MP4 final junta os dois trechos, sem o tempo pausado
+    let d = std::env::temp_dir().join("conver_tests").join("tela_pausa");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let dst = d.join("pausa.mp4");
+    let mut o = screenrec::Options::new(Area::Regiao { x: 0, y: 0, w: 320, h: 240 });
+    o.fps = 15;
+    o.quality = screenrec::Quality::Leve;
+    let mut s = screenrec::Session::start(&o, &dst, || {}).unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(1800));
+    s.pause().unwrap();
+    assert!(s.paused());
+    std::thread::sleep(std::time::Duration::from_millis(1500));
+    s.resume().unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(1800));
+    let out = s.stop().unwrap();
+    let p = crate::video::probe(&out);
+    println!("pausa: {p:?}");
+    let _ = std::fs::remove_file(&out); // não guarda o que estava na tela
+    let dur = p.duration.unwrap_or(0.0);
+    assert!(p.has_video && (2.4..4.6).contains(&dur), "duração {dur} (devia ser ~3,6 s, sem os 1,5 s pausados)");
+    assert_eq!(p.size, Some((320, 240)));
+    // resolução máxima: uma área de 640×480 limitada a 240 de altura sai 320×240
+    let r = crate::ops::call(
+        "screen_record",
+        &serde_json::json!({ "seconds": 1.5, "region": { "x": 0, "y": 0, "width": 640, "height": 480 }, "fps": 10, "quality": "low", "resolution": "720p",
+            "output": d.join("res.mp4").display().to_string() }),
+        &crate::ops::Ctx { progress: &|_| {}, cancelled: &|| false, log: &|_| {} },
+    )
+    .unwrap();
+    let out = PathBuf::from(r["output"].as_str().unwrap());
+    let p = crate::video::probe(&out);
+    let _ = std::fs::remove_file(&out);
+    assert_eq!(p.size, Some((640, 480)), "720p não aumenta uma área menor");
+    let mut o = screenrec::Options::new(Area::Regiao { x: 0, y: 0, w: 640, h: 480 });
+    o.max_height = Some(240);
+    o.fps = 10;
+    let dst = d.join("menor.mp4");
+    let s = screenrec::Session::start(&o, &dst, || {}).unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(1500));
+    let out = s.stop().unwrap();
+    let p = crate::video::probe(&out);
+    let _ = std::fs::remove_file(&out);
+    assert_eq!(p.size, Some((320, 240)));
+    // o monitor pelo MCP: número inexistente dá erro claro
+    let e = crate::ops::call("screen_record", &serde_json::json!({ "seconds": 1, "monitor": 99 }), &crate::ops::Ctx { progress: &|_| {}, cancelled: &|| false, log: &|_| {} });
+    assert!(e.unwrap_err().contains("monitor"));
+    let devs = crate::ops::call("list_devices", &serde_json::json!({}), &crate::ops::Ctx { progress: &|_| {}, cancelled: &|| false, log: &|_| {} }).unwrap();
+    assert_eq!(devs["monitors"].as_array().unwrap().len(), mons.len());
 }

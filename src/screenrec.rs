@@ -1,4 +1,5 @@
-//! Gravar a tela (inteira, uma janela ou uma área) em MP4 com o ffmpeg (gdigrab), com microfone opcional.
+//! Gravar a tela (inteira, um monitor, uma janela ou uma área) em MP4 com o ffmpeg (gdigrab), com microfone
+//! opcional, qualidade e resolução máxima. A pausa grava em trechos que são juntados no fim (sem recomprimir).
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
@@ -17,6 +18,26 @@ pub enum Area {
     Regiao { x: i32, y: i32, w: u32, h: u32 },
 }
 
+/// Qualidade do vídeo: quanto mais alta, maior o arquivo.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub enum Quality {
+    Alta,
+    #[default]
+    Media,
+    Leve,
+}
+
+impl Quality {
+    /// (CRF do H.264, preset do x264, kbps do áudio)
+    fn params(self) -> (u32, &'static str, u32) {
+        match self {
+            Quality::Alta => (18, "superfast", 192),
+            Quality::Media => (23, "ultrafast", 160),
+            Quality::Leve => (30, "ultrafast", 96),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct Options {
     pub area: Area,
@@ -24,6 +45,59 @@ pub struct Options {
     /// Microfone (nome do recorder::devices) ou nenhum.
     pub mic: Option<String>,
     pub cursor: bool,
+    pub quality: Quality,
+    /// Altura máxima do vídeo (1080, 720…); `None` = a resolução da tela.
+    pub max_height: Option<u32>,
+}
+
+impl Options {
+    #[cfg(test)]
+    pub fn new(area: Area) -> Self {
+        Options { area, fps: 30, mic: None, cursor: true, quality: Quality::Media, max_height: None }
+    }
+}
+
+/// Um monitor do Windows, em pixels da tela (o principal começa em 0, 0).
+#[derive(Clone, Debug, PartialEq)]
+pub struct Monitor {
+    pub x: i32,
+    pub y: i32,
+    pub w: u32,
+    pub h: u32,
+    pub primary: bool,
+}
+
+impl Monitor {
+    pub fn area(&self) -> Area {
+        Area::Regiao { x: self.x, y: self.y, w: self.w, h: self.h }
+    }
+}
+
+/// Monitores ligados: o principal primeiro, depois da esquerda para a direita.
+pub fn monitors() -> Vec<Monitor> {
+    use windows::Win32::Foundation::{LPARAM, RECT};
+    use windows::Win32::Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoW, HDC, HMONITOR, MONITORINFO};
+    use windows::Win32::UI::WindowsAndMessaging::SetProcessDPIAware;
+    use windows::core::BOOL;
+    unsafe extern "system" fn cb(hmon: HMONITOR, _: HDC, _: *mut RECT, lp: LPARAM) -> BOOL {
+        // SAFETY: lp aponta para o Vec criado abaixo, que vive durante toda a enumeração
+        let list = unsafe { &mut *(lp.0 as *mut Vec<Monitor>) };
+        let mut info = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+        if unsafe { GetMonitorInfoW(hmon, &mut info) }.as_bool() {
+            let r = info.rcMonitor;
+            list.push(Monitor { x: r.left, y: r.top, w: (r.right - r.left) as u32, h: (r.bottom - r.top) as u32, primary: info.dwFlags & 1 != 0 });
+        }
+        BOOL(1)
+    }
+    let mut list: Vec<Monitor> = Vec::new();
+    // SAFETY: o callback só usa o ponteiro durante a chamada. Pixels reais também na linha de comando
+    // (a janela do Conver já é DPI-aware; o processo da CLI não era).
+    unsafe {
+        let _ = SetProcessDPIAware();
+        let _ = EnumDisplayMonitors(None, None, Some(cb), LPARAM(&mut list as *mut _ as isize));
+    }
+    list.sort_by_key(|m| (!m.primary, m.x, m.y));
+    list
 }
 
 /// Títulos das janelas visíveis (para gravar só uma delas).
@@ -272,13 +346,15 @@ impl ScreenRecording {
         let mut args = vec!["-hide_banner".to_string(), "-y".into(), "-nostats".into(), "-loglevel".into(), "error".into(),
                             "-progress".into(), "pipe:1".into(), "-thread_queue_size".into(), "1024".into()];
         args.extend(input_args(o));
-        args.extend(
-            ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-pix_fmt", "yuv420p",
-             "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2"]
-                .map(String::from),
-        );
+        let (crf, preset, akbps) = o.quality.params();
+        // largura e altura pares (H.264); com altura máxima, reduz mantendo a proporção
+        let scale = match o.max_height {
+            Some(h) => format!("scale=-2:trunc(min(ih\\,{h})/2)*2"),
+            None => "scale=trunc(iw/2)*2:trunc(ih/2)*2".to_string(),
+        };
+        args.extend(["-c:v".into(), "libx264".into(), "-preset".into(), preset.into(), "-crf".into(), crf.to_string(), "-pix_fmt".into(), "yuv420p".into(), "-vf".into(), scale]);
         if o.mic.is_some() {
-            args.extend(["-c:a", "aac", "-b:a", "160k"].map(String::from));
+            args.extend(["-c:a".into(), "aac".into(), "-b:a".into(), format!("{akbps}k")]);
         }
         args.extend(["-movflags", "+faststart"].map(String::from));
         let mut child = tools::command(&ff)
@@ -363,6 +439,125 @@ impl Drop for ScreenRecording {
             let _ = self.child.kill();
         }
     }
+}
+
+// ---------------------------------------------------------------- com pausa
+
+/// Uma gravação que pode ser pausada: cada trecho é um MP4 numa pasta temporária, juntados no fim.
+pub struct Session {
+    opts: Options,
+    pub dst: PathBuf,
+    parts_dir: PathBuf,
+    parts: Vec<PathBuf>,
+    current: Option<ScreenRecording>,
+    /// Segundos dos trechos já fechados.
+    done: f64,
+    on_tick: std::sync::Arc<dyn Fn() + Send + Sync>,
+}
+
+impl Session {
+    pub fn start(o: &Options, dst: &Path, on_tick: impl Fn() + Send + Sync + 'static) -> Result<Self, String> {
+        let stamp: String = tools::now_string().chars().filter(|c| c.is_ascii_digit()).collect();
+        let parts_dir = std::env::temp_dir().join(format!("conver_gravacao_{stamp}_{}", std::process::id()));
+        std::fs::create_dir_all(&parts_dir).map_err(|e| format!("não foi possível criar a pasta temporária: {e}"))?;
+        let mut s = Session { opts: o.clone(), dst: dst.to_path_buf(), parts_dir, parts: Vec::new(), current: None, done: 0.0, on_tick: std::sync::Arc::new(on_tick) };
+        s.resume()?;
+        Ok(s)
+    }
+
+    pub fn paused(&self) -> bool {
+        self.current.is_none()
+    }
+
+    pub fn seconds(&self) -> f64 {
+        self.done + self.current.as_ref().map(|r| r.seconds()).unwrap_or(0.0)
+    }
+
+    /// Fecha o trecho atual (o MP4 fica completo) e espera o "continuar".
+    pub fn pause(&mut self) -> Result<(), String> {
+        let Some(rec) = self.current.take() else { return Ok(()) };
+        let secs = rec.seconds();
+        match rec.stop() {
+            Ok(p) => {
+                self.done += secs;
+                self.parts.push(p);
+                Ok(())
+            }
+            // um trecho curto demais pode sair vazio: não é motivo para perder a gravação
+            Err(e) if !self.parts.is_empty() || secs < 1.0 => {
+                let _ = e;
+                Ok(())
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn resume(&mut self) -> Result<(), String> {
+        if self.current.is_some() {
+            return Ok(());
+        }
+        let part = self.parts_dir.join(format!("parte_{:03}.mp4", self.parts.len() + 1));
+        let tick = self.on_tick.clone();
+        self.current = Some(ScreenRecording::start(&self.opts, &part, move || tick())?);
+        Ok(())
+    }
+
+    /// Ainda gravando? Se o ffmpeg parou sozinho (janela fechada…), devolve o erro.
+    pub fn check(&mut self) -> Result<bool, String> {
+        match self.current.as_mut() {
+            Some(r) => r.check(),
+            None => Ok(true),
+        }
+    }
+
+    /// Para e junta os trechos no arquivo final.
+    pub fn stop(mut self) -> Result<PathBuf, String> {
+        self.pause()?;
+        let parts: Vec<PathBuf> = self.parts.iter().filter(|p| tools::file_size(p) > 0).cloned().collect();
+        let result = match parts.len() {
+            0 => Err("nada foi gravado.".to_string()),
+            1 => std::fs::rename(&parts[0], &self.dst).or_else(|_| std::fs::copy(&parts[0], &self.dst).map(|_| ())).map_err(|e| e.to_string()).map(|_| self.dst.clone()),
+            _ => concat(&parts, &self.dst),
+        };
+        let _ = std::fs::remove_dir_all(&self.parts_dir);
+        result
+    }
+}
+
+impl Drop for Session {
+    fn drop(&mut self) {
+        // o Conver fechou no meio: guarda o que já foi gravado em vez de jogar fora
+        if self.current.is_some() || !self.parts.is_empty() {
+            let _ = self.pause();
+            let parts: Vec<PathBuf> = self.parts.iter().filter(|p| tools::file_size(p) > 0).cloned().collect();
+            if !parts.is_empty() && !self.dst.exists() {
+                let _ = if parts.len() == 1 { std::fs::copy(&parts[0], &self.dst).map(|_| self.dst.clone()).map_err(|e| e.to_string()) } else { concat(&parts, &self.dst) };
+            }
+            let _ = std::fs::remove_dir_all(&self.parts_dir);
+        }
+    }
+}
+
+/// Junta MP4 com os mesmos codecs, sem recomprimir (concat demuxer do ffmpeg).
+fn concat(parts: &[PathBuf], dst: &Path) -> Result<PathBuf, String> {
+    let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
+    let list = dst.with_extension("partes.txt");
+    let text: String = parts.iter().map(|p| format!("file '{}'\n", p.display().to_string().replace('\'', "'\\''"))).collect();
+    std::fs::write(&list, text).map_err(|e| e.to_string())?;
+    let out = tools::command(&ff)
+        .args(["-hide_banner", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i"])
+        .arg(&list)
+        .args(["-c", "copy", "-movflags", "+faststart"])
+        .arg(dst)
+        .output()
+        .map_err(|e| e.to_string());
+    let _ = std::fs::remove_file(&list);
+    let out = out?;
+    if !out.status.success() || tools::file_size(dst) == 0 {
+        let e = String::from_utf8_lossy(&out.stderr).trim().lines().last().unwrap_or("falhou").to_string();
+        return Err(format!("não foi possível juntar os trechos da gravação: {e}"));
+    }
+    Ok(dst.to_path_buf())
 }
 
 /// Grava por um tempo fixo (usado pela linha de comando e pelo MCP).

@@ -237,27 +237,40 @@ MP3 320 kbps
 Leva cerca de 15 a 30 segundos por minuto de música, dependendo do computador.
 Separar
 Escolha uma janela
+❚❚  PAUSADO
 ●  REC
 A janela está minimizada ou foi fechada.
 Carregando a prévia…
 Gravar a tela
-Grave a tela inteira, uma janela ou uma área em MP4, com ou sem o microfone.
+Grave a tela inteira, um monitor, uma janela ou uma área em MP4, com ou sem o microfone.
 Gravar:
 Tela inteira
+Um monitor
 Uma janela
 Uma área
+Com mais de um monitor, "Tela inteira" grava todos juntos. Para gravar só um, escolha "Um monitor".
+Monitor:
+nenhum monitor encontrado
+Monitor
 Janela:
 nenhuma janela encontrada
 Área (px):
 Largura
 Altura
+Qualidade:
+Leve (arquivo menor)
+Resolução máxima:
+Original
 Quadros por segundo:
 Sem áudio
 Opções:
 Mostrar o cursor
 Minimizar o Conver ao começar
+❚❚  Pausado
+▶  Continuar
+❚❚  Pausar
 Assistir
-Para parar, volte ao Conver (ele fica na barra de tarefas) e clique em Parar.
+Para pausar ou parar, volte ao Conver (ele fica na barra de tarefas). Os trechos pausados são juntados num MP4 só.
 Predefinições
 Suas configurações favoritas, prontas para usar com um clique, pela linha de comando ou por um agente de IA (MCP).
 Nenhuma predefinição ainda. Crie a primeira abaixo.
@@ -466,7 +479,6 @@ Voz e instrumental
 Só a voz
 Só o instrumental
 Nenhum
-Original
 Transparente
 Branco
 Preto e branco
@@ -715,12 +727,10 @@ Início inválido. Use o formato 00:01:30 (ou só segundos).
 Fim inválido. Use o formato 00:02:45 (ou só segundos).
 O fim precisa ser depois do início.
 Formato de saída:
-Qualidade:
 Comprimir por:
 Tamanho final
 Tamanho desejado:
 cada vídeo terá aproximadamente esse tamanho (2 passos, mais lento)
-Resolução máxima:
 Codificação:
 H.264 (compatível)
 H.265 (menor, mais lento)
@@ -931,6 +941,8 @@ o microfone parou de responder.
 nome repetido
 já existe um arquivo com esse nome
 nada foi gravado.
+não foi possível criar a pasta temporária: {e}
+não foi possível juntar os trechos da gravação: {e}
 UVR MDX-Net (67 MB)
 Só o instrumental (karaokê)
 falha ao salvar: {}

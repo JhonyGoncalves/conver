@@ -7,7 +7,7 @@ use serde_json::{Map, Value};
 
 use crate::job::{Job, LogKind};
 use crate::pages::run_batch;
-use crate::screenrec::{self, Area, ScreenRecording};
+use crate::screenrec::{self, Area, Quality, Session};
 use crate::separate::{self, Stems};
 use crate::theme::{Palette, bold};
 use crate::transcribe::{self, Outputs, WModel};
@@ -149,6 +149,7 @@ impl SeparatePage {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum AreaKind {
     Tela,
+    Monitor,
     Janela,
     Regiao,
 }
@@ -157,14 +158,18 @@ pub struct ScreenPage {
     kind: AreaKind,
     windows: Vec<String>,
     window: usize,
+    monitors: Vec<screenrec::Monitor>,
+    monitor: usize,
     region: (i32, i32, u32, u32),
     fps: u32,
+    quality: Quality,
+    max_height: Option<u32>,
     mics: Option<Vec<String>>,
     mic: usize,
     cursor: bool,
     minimize: bool,
     folder: PathBuf,
-    rec: Option<ScreenRecording>,
+    rec: Option<Session>,
     msg: Option<(bool, String)>,
     last: Option<PathBuf>,
     preview: screenrec::Preview,
@@ -178,8 +183,12 @@ impl ScreenPage {
             kind: AreaKind::Tela,
             windows: Vec::new(),
             window: 0,
+            monitors: Vec::new(),
+            monitor: 0,
             region: (0, 0, 1280, 720),
             fps: 30,
+            quality: Quality::Media,
+            max_height: None,
             mics: None,
             mic: 0,
             cursor: true,
@@ -211,6 +220,7 @@ impl ScreenPage {
     fn area(&self) -> Option<Area> {
         Some(match self.kind {
             AreaKind::Tela => Area::TelaInteira,
+            AreaKind::Monitor => self.monitors.get(self.monitor)?.area(),
             AreaKind::Janela => Area::Janela(self.windows.get(self.window)?.clone()),
             AreaKind::Regiao => Area::Regiao { x: self.region.0, y: self.region.1, w: self.region.2, h: self.region.3 },
         })
@@ -218,6 +228,7 @@ impl ScreenPage {
 
     /// Prévia ao vivo do que vai ser gravado, encaixada em `size`.
     fn preview_ui(&mut self, ui: &mut Ui, p: &Palette, size: egui::Vec2, recording: bool) {
+        let paused = self.rec.as_ref().is_some_and(|r| r.paused());
         let (rect, _) = ui.allocate_exact_size(size, Sense::hover());
         let painter = ui.painter_at(rect.expand(2.0));
         painter.rect_filled(rect, 8, p.input);
@@ -254,10 +265,11 @@ impl ScreenPage {
                     painter.galley(pill.min + vec2(6.0, 3.0), galley, p.on_accent);
                 }
                 if recording {
-                    painter.rect_stroke(r, 0, Stroke::new(2.0f32, p.accent), StrokeKind::Outside);
-                    let pill = egui::Rect::from_min_size(r.left_top() + vec2(8.0, 8.0), vec2(64.0, 22.0));
-                    painter.rect_filled(pill, 6, p.accent);
-                    painter.text(pill.center(), Align2::CENTER_CENTER, crate::i18n::tr("●  REC"), FontId::new(11.5, crate::theme::bold()), p.on_accent);
+                    let (color, label, w) = if paused { (p.muted, crate::i18n::tr("❚❚  PAUSADO"), 96.0) } else { (p.accent, crate::i18n::tr("●  REC"), 64.0) };
+                    painter.rect_stroke(r, 0, Stroke::new(2.0f32, color), StrokeKind::Outside);
+                    let pill = egui::Rect::from_min_size(r.left_top() + vec2(8.0, 8.0), vec2(w, 22.0));
+                    painter.rect_filled(pill, 6, color);
+                    painter.text(pill.center(), Align2::CENTER_CENTER, label, FontId::new(11.5, crate::theme::bold()), p.on_accent);
                 }
             }
             _ => {
@@ -282,10 +294,11 @@ impl ScreenPage {
     }
 
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
-        widgets::header(ui, p, "Gravar a tela", "Grave a tela inteira, uma janela ou uma área em MP4, com ou sem o microfone.");
+        widgets::header(ui, p, "Gravar a tela", "Grave a tela inteira, um monitor, uma janela ou uma área em MP4, com ou sem o microfone.");
         if self.mics.is_none() {
             self.mics = Some(recorder::devices());
             self.windows = screenrec::windows();
+            self.monitors = screenrec::monitors();
         }
         match self.rec.as_mut().map(|r| r.check()) {
             Some(Err(e)) => {
@@ -300,10 +313,36 @@ impl ScreenPage {
         card(ui, p, |ui| {
             ui.add_enabled_ui(!recording, |ui| {
                 row(ui, p, "Gravar:", |ui| {
-                    segmented(ui, p, &mut self.kind, &[(AreaKind::Tela, "Tela inteira"), (AreaKind::Janela, "Uma janela"), (AreaKind::Regiao, "Uma área")]);
+                    segmented(ui, p, &mut self.kind, &[(AreaKind::Tela, "Tela inteira"), (AreaKind::Monitor, "Um monitor"), (AreaKind::Janela, "Uma janela"), (AreaKind::Regiao, "Uma área")]);
                 });
                 match self.kind {
-                    AreaKind::Tela => {}
+                    AreaKind::Tela => {
+                        if self.monitors.len() > 1 {
+                            hint(ui, p, "Com mais de um monitor, \"Tela inteira\" grava todos juntos. Para gravar só um, escolha \"Um monitor\".");
+                        }
+                    }
+                    AreaKind::Monitor => {
+                        row(ui, p, "Monitor:", |ui| {
+                            if self.monitors.is_empty() {
+                                ui.label(RichText::new(crate::i18n::tr("nenhum monitor encontrado")).color(p.accent));
+                            } else {
+                                self.monitor = self.monitor.min(self.monitors.len() - 1);
+                                let label = |i: usize, m: &screenrec::Monitor| {
+                                    let main = if m.primary { format!(" ({})", crate::i18n::tr("principal")) } else { String::new() };
+                                    format!("{} {}{main}  •  {}×{}", crate::i18n::tr("Monitor"), i + 1, m.w, m.h)
+                                };
+                                let cur = label(self.monitor, &self.monitors[self.monitor]);
+                                egui::ComboBox::from_id_salt("rec_monitor").selected_text(cur).width(320.0).show_ui(ui, |ui| {
+                                    for (i, m) in self.monitors.iter().enumerate() {
+                                        ui.selectable_value(&mut self.monitor, i, label(i, m));
+                                    }
+                                });
+                            }
+                            if widgets::secondary(ui, p, "Atualizar lista", true) {
+                                self.monitors = screenrec::monitors();
+                            }
+                        });
+                    }
                     AreaKind::Janela => {
                         row(ui, p, "Janela:", |ui| {
                             if self.windows.is_empty() {
@@ -336,6 +375,12 @@ impl ScreenPage {
                         });
                     }
                 }
+                row(ui, p, "Qualidade:", |ui| {
+                    segmented(ui, p, &mut self.quality, &[(Quality::Alta, "Alta"), (Quality::Media, "Média"), (Quality::Leve, "Leve (arquivo menor)")]);
+                });
+                row(ui, p, "Resolução máxima:", |ui| {
+                    segmented(ui, p, &mut self.max_height, &[(None, "Original"), (Some(1080), "1080p"), (Some(720), "720p")]);
+                });
                 row(ui, p, "Quadros por segundo:", |ui| {
                     segmented(ui, p, &mut self.fps, &[(15, "15"), (30, "30"), (60, "60")]);
                 });
@@ -375,20 +420,47 @@ impl ScreenPage {
                 ui.allocate_ui_with_layout(vec2(side, ph), egui::Layout::top_down(egui::Align::Center), |ui| {
                     ui.add_space((ph - 150.0).max(0.0) / 2.0);
                     let secs = self.rec.as_ref().map(|r| r.seconds()).unwrap_or(0.0);
-                    let (dot, color) = if recording { ("●  Gravando", p.accent) } else { ("Pronto para gravar", p.muted) };
+                    let paused = self.rec.as_ref().is_some_and(|r| r.paused());
+                    let (dot, color) = if paused {
+                        ("❚❚  Pausado", p.muted)
+                    } else if recording {
+                        ("●  Gravando", p.accent)
+                    } else {
+                        ("Pronto para gravar", p.muted)
+                    };
                     ui.label(RichText::new(crate::i18n::tr(dot)).family(bold()).color(color));
-                    ui.label(RichText::new(crate::i18n::tr(video::fmt_time(secs))).family(bold()).size(52.0).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr(video::fmt_time(secs))).family(bold()).size(52.0).color(if paused { p.muted } else { p.text }));
                     ui.add_space(6.0);
                     if recording {
                         if widgets::primary(ui, p, "■  Parar", true) {
                             self.stop();
+                        } else {
+                            ui.add_space(4.0);
+                            let label = if paused { "▶  Continuar" } else { "❚❚  Pausar" };
+                            if widgets::secondary(ui, p, label, true) {
+                                if let Some(rec) = self.rec.as_mut() {
+                                    let r = if paused { rec.resume() } else { rec.pause() };
+                                    match r {
+                                        Ok(()) if paused && self.minimize => ui.ctx().send_viewport_cmd(egui::ViewportCommand::Minimized(true)),
+                                        Ok(()) => {}
+                                        Err(e) => self.msg = Some((false, format!("✖ {e}"))),
+                                    }
+                                }
+                            }
                         }
                     } else if let (true, Some(area)) = (widgets::primary(ui, p, "●  Gravar", self.area().is_some()), self.area()) {
-                        let o = screenrec::Options { area, fps: self.fps, mic: (self.mic > 0).then(|| mics[self.mic - 1].clone()), cursor: self.cursor };
+                        let o = screenrec::Options {
+                            area,
+                            fps: self.fps,
+                            mic: (self.mic > 0).then(|| mics[self.mic - 1].clone()),
+                            cursor: self.cursor,
+                            quality: self.quality,
+                            max_height: self.max_height,
+                        };
                         let stamp: String = tools::now_string().chars().map(|c| if c.is_ascii_digit() { c } else { '-' }).collect();
                         let dst = tools::unique_path(self.folder.join(format!("gravacao_tela_{stamp}.mp4")));
                         let ctx = ui.ctx().clone();
-                        match ScreenRecording::start(&o, &dst, move || ctx.request_repaint()) {
+                        match Session::start(&o, &dst, move || ctx.request_repaint()) {
                             Ok(rec) => {
                                 self.rec = Some(rec);
                                 self.msg = None;
@@ -415,7 +487,7 @@ impl ScreenPage {
                 }
             });
         }
-        hint(ui, p, "Para parar, volte ao Conver (ele fica na barra de tarefas) e clique em Parar.");
+        hint(ui, p, "Para pausar ou parar, volte ao Conver (ele fica na barra de tarefas). Os trechos pausados são juntados num MP4 só.");
         if recording {
             ui.ctx().request_repaint_after(std::time::Duration::from_millis(250));
         }

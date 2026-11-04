@@ -48,7 +48,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
 - Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
 - Remover o áudio ou extrair frames
-- **Gravar a tela** (inteira, uma janela ou uma área) em MP4, com ou sem microfone, com prévia ao vivo do que vai ser gravado
+- **Gravar a tela** (inteira, um monitor, uma janela ou uma área) em MP4, com ou sem microfone, com prévia ao vivo, pausa e escolha de qualidade e resolução
 
 **Áudio**
 - Gravador de áudio (microfone) em MP3, WAV ou M4A, com faixa de áudio e medidor de nível ao vivo (mostra quando o som estoura) e teste do microfone antes de gravar

@@ -232,766 +232,778 @@
 237|Butuh sekitar 15 hingga 30 detik per menit musik, tergantung komputer.
 238|Pisahkan
 239|Pilih jendela
-240|●  REC
-241|Jendela diminimalkan atau sudah ditutup.
-242|Memuat pratinjau…
-243|Rekam layar
-244|Rekam seluruh layar, satu jendela, atau satu area ke MP4, dengan atau tanpa mikrofon.
-245|Rekam:
-246|Seluruh layar
-247|Satu jendela
-248|Satu area
-249|Jendela:
-250|tidak ada jendela
-251|Area (px):
-252|Lebar
-253|Tinggi
-254|Bingkai per detik:
-255|Tanpa audio
-256|Opsi:
-257|Tampilkan kursor
-258|Minimalkan Conver saat mulai
-259|Tonton
-260|Untuk berhenti, kembali ke Conver (tetap di bilah tugas) dan klik Berhenti.
-261|Preset
-262|Pengaturan favorit Anda, siap dipakai dengan satu klik, dari baris perintah, atau oleh agen AI (MCP).
-263|Belum ada preset. Buat yang pertama di bawah.
-264|Hapus
-265|Tutup formulir
-266|+ Preset baru
-267|Pulihkan preset bawaan
-268|Nama:
-269|Deskripsi:
-270|Alat:
-271|Simpan preset
-272|✔ Preset disimpan: {}
-273|Baris perintah: conver-cli preset "{}" file…
-274|Gunakan preset
-275|Memakai: {}
-276|Selesai: {} ok, {} gagal.
-277|Disimpan di: {}
-278|Kesalahan.
-279|alur memiliki putaran (sebuah node kembali ke node sebelumnya).
-280|alur memerlukan nama.
-281|ada dua node dengan id {}.
-282|node {}: jenis tidak dikenal "{}" (lihat flow_node_types).
-283|tautan {} → {}: node {} tidak punya keluaran "{}" (punya: {}).
-284|tautan {} → {}: node {} tidak menerima masukan.
-285|tautan {} → {}: node tidak ada.
-286|GAMBAR
-287|VIDEO
-288|AUDIO
-289|UNDUHAN
-290|ALAT
-291|Berkas masukan
-292|Simpan ke folder
-293|AI: instruksi
-294|AI: nilai
-295|Saring berkas
-296|tidak dapat menyimpan alur: {e}
-297|alur tidak ditemukan: {name}
-298|tidak dapat membuat folder kerja: {e}
-299|alur kosong.
-300|tidak ada yang masuk
-301|▶ {title}
-302|{n} item
-303|✔ {title}: {note}
-304|✖ {title}: {e}
-305|tidak ada berkas masukan (tambahkan berkas ke node atau kirim "files").
-306|{n} berkas
-307|teks kosong.
-308|{} ya, {} tidak
-309|tidak dapat membuat {}: {e}
-310|{n} disimpan di {}
-311|tulis instruksi untuk AI.
-312|   AI: {label}
-313|{label}: {e}
-314|{n} jawaban
-315|tulis kriteria penilaian.
-316|   {} {}: {reason}
-317|jenis tidak dikenal: {other}
-318|alat tidak dikenal: {name}
-319|tidak ada berkas yang sampai ke node ini.
-320|{} item, {failed} gagal
-321|{} item
-322|MASUKAN DAN KELUARAN
-323|Tambahkan node "Berkas masukan" untuk menerima berkas.
-324|Alur diubah dari luar (MCP atau program lain) dan dimuat ulang.
-325|Alur baru
-326|Otomatisasi
-327|Alur dengan nama itu sudah ada.
-328|+ Baru
-329|Gandakan
-330|salinan
-331|Klik lagi untuk menghapus
-332|Hapus
-333|🔍  Cari node…
-334|seret berkas ke sini
-335|{k} berkas atau folder
-336|(kosong)
-337|tulis instruksi
-338|tulis kriteria
-339|Dokumen\Conver
-340|semua lolos
-341|pengaturan bawaan
-342|Buat alur dengan "+ Baru".
-343|berjalan…
-344|tidak
+240|❚❚  DIJEDA
+241|●  REC
+242|Jendela diminimalkan atau sudah ditutup.
+243|Memuat pratinjau…
+244|Rekam layar
+245|Rekam seluruh layar, satu monitor, jendela, atau area sebagai MP4, dengan atau tanpa mikrofon.
+246|Rekam:
+247|Seluruh layar
+248|Satu monitor
+249|Satu jendela
+250|Satu area
+251|Dengan lebih dari satu monitor, "Seluruh layar" merekam semuanya bersama. Untuk merekam satu saja, pilih "Satu monitor".
+252|Monitor:
+253|tidak ada monitor
+254|Monitor
+255|Jendela:
+256|tidak ada jendela
+257|Area (px):
+258|Lebar
+259|Tinggi
+260|Kualitas:
+261|Ringan (berkas lebih kecil)
+262|Resolusi maksimal:
+263|Asli
+264|Bingkai per detik:
+265|Tanpa audio
+266|Opsi:
+267|Tampilkan kursor
+268|Minimalkan Conver saat mulai
+269|❚❚  Dijeda
+270|▶  Lanjutkan
+271|❚❚  Jeda
+272|Tonton
+273|Untuk menjeda atau berhenti, kembali ke Conver (tetap di bilah tugas). Bagian yang dijeda digabung menjadi satu MP4.
+274|Preset
+275|Pengaturan favorit Anda, siap dipakai dengan satu klik, dari baris perintah, atau oleh agen AI (MCP).
+276|Belum ada preset. Buat yang pertama di bawah.
+277|Hapus
+278|Tutup formulir
+279|+ Preset baru
+280|Pulihkan preset bawaan
+281|Nama:
+282|Deskripsi:
+283|Alat:
+284|Simpan preset
+285|✔ Preset disimpan: {}
+286|Baris perintah: conver-cli preset "{}" file…
+287|Gunakan preset
+288|Memakai: {}
+289|Selesai: {} ok, {} gagal.
+290|Disimpan di: {}
+291|Kesalahan.
+292|alur memiliki putaran (sebuah node kembali ke node sebelumnya).
+293|alur memerlukan nama.
+294|ada dua node dengan id {}.
+295|node {}: jenis tidak dikenal "{}" (lihat flow_node_types).
+296|tautan {} → {}: node {} tidak punya keluaran "{}" (punya: {}).
+297|tautan {} → {}: node {} tidak menerima masukan.
+298|tautan {} → {}: node tidak ada.
+299|GAMBAR
+300|VIDEO
+301|AUDIO
+302|UNDUHAN
+303|ALAT
+304|Berkas masukan
+305|Simpan ke folder
+306|AI: instruksi
+307|AI: nilai
+308|Saring berkas
+309|tidak dapat menyimpan alur: {e}
+310|alur tidak ditemukan: {name}
+311|tidak dapat membuat folder kerja: {e}
+312|alur kosong.
+313|tidak ada yang masuk
+314|▶ {title}
+315|{n} item
+316|✔ {title}: {note}
+317|✖ {title}: {e}
+318|tidak ada berkas masukan (tambahkan berkas ke node atau kirim "files").
+319|{n} berkas
+320|teks kosong.
+321|{} ya, {} tidak
+322|tidak dapat membuat {}: {e}
+323|{n} disimpan di {}
+324|tulis instruksi untuk AI.
+325|   AI: {label}
+326|{label}: {e}
+327|{n} jawaban
+328|tulis kriteria penilaian.
+329|   {} {}: {reason}
+330|jenis tidak dikenal: {other}
+331|alat tidak dikenal: {name}
+332|tidak ada berkas yang sampai ke node ini.
+333|{} item, {failed} gagal
+334|{} item
+335|MASUKAN DAN KELUARAN
+336|Tambahkan node "Berkas masukan" untuk menerima berkas.
+337|Alur diubah dari luar (MCP atau program lain) dan dimuat ulang.
+338|Alur baru
+339|Otomatisasi
+340|Alur dengan nama itu sudah ada.
+341|+ Baru
+342|Gandakan
+343|salinan
+344|Klik lagi untuk menghapus
 345|Hapus
-346|Node ini tidak menerima masukan.
-347|Tautan itu akan membuat putaran.
-348|+  Tambah node
-349|Paskan
-350|Tampilkan seluruh alur
-351|Tambahkan node dengan tombol "+ Tambah node".
-352|Tarik dari titik di kanan sebuah node ke node lain untuk menghubungkannya.
-353|Tautan
-354|Hapus tautan
-355|Tips: tombol Delete juga menghapus.
-356|Alur
-357|Deskripsi
-358|Cara kerja
-359|1. Tambahkan node dengan tombol "+ Tambah node" (alat, AI, penyaring).
-360|2. Tarik dari titik di kanan sebuah node ke node lain untuk menghubungkan: hasil yang satu masuk ke berikutnya.
-361|3. Klik node untuk mengaturnya; seret berkas ke jendela untuk memasukkannya ke masukan.
-362|4. Klik Jalankan alur.
-363|Node AI memakai API yang diatur di Pengaturan. Agen AI juga bisa membuat dan menjalankan alur lewat MCP (flow_save, flow_run).
-364|⚠ AI: {e}
-365|Atur AI
-366|Jenis tidak dikenal: {}
-367|Nama di papan
-368|Folder tujuan
-369|Dokumen\Conver\<alur>
-370|Dalam teks, {text} menjadi teks yang masuk dan {file} menjadi nama berkas.
-371|Hapus node
-372|Berkas dan folder
-373|Belum ada: seret berkas ke jendela atau pakai tombol di bawah.
-374|Hapus dari daftar
-375|+ Berkas…
-376|+ Folder…
-377|Kosongkan
-378|Dari baris perintah atau MCP, berkas yang dikirim ke flow_run menggantikan ini.
-379|▶  Jalankan alur
-380|Menjalankan “{}”…
-381|Selesai dengan {failed} node galat.
-382|Selesai: {n} hasil.
-383|Kembali ke bawaan
-384|(bawaan)
-385|(otomatis)
-386|satu per baris
-387|Format
-388|Kualitas
-389|Tingkat
-390|Bahasa
-391|Persen
-392|Pertahankan rasio
-393|Awal
-394|Akhir
-395|Durasi (dtk)
-396|Ukuran
-397|Putar (derajat)
-398|Potong presisi
-399|Halaman
-400|Bingkai per detik
-401|Balik horizontal
-402|Balik vertikal
-403|Pengodean
-404|Jendela
-405|Volume
-406|Tautan
-407|Ukuran akhir (MB)
-408|Unduh subtitel
-409|Berkas subtitel
-410|Simpan
-411|Lewati halaman yang sudah punya teks
-412|Detik
-413|Skala
-414|Saturasi
-415|Resolusi
-416|Ganti audio
-417|Area
-418|Posisi
-419|Seluruh daftar putar
-420|Ukuran halaman
-421|Kata sandi pemilik
-422|Kata sandi
-423|Musik
-424|Mono
-425|Model
-426|Mikrofon
-427|Kenyaringan target (LUFS)
-428|Ulangi
-429|Jenis
-430|Pertahankan audio
-431|Kbps
-432|Simpan sebagai
-433|Filter
-434|Faktor
-435|Setiap (dtk)
-436|Tepi
-437|Resolusi (DPI)
-438|Pangkas
-439|Unduh sampul
-440|Kontras
-441|Warna
-442|Login peramban
-443|Kecerahan
-444|Latar
-445|Audio (kbps)
-446|Rasio aspek
-447|Izinkan mencetak
-448|Izinkan menyalin
-449|Berkas keluaran
-450|Nama
-451|Instruksi untuk AI
-452|Satu jawaban per berkas
-453|Teruskan berkas
-454|Simpan jawaban sebagai
-455|Kriteria
-456|Jenis yang diterima
-457|Ekstensi yang diterima
-458|Ukuran minimum (MB)
-459|Ukuran maksimum (MB)
-460|Pindahkan alih-alih menyalin
-461|Simpan teks sebagai .txt
-462|Cepat
-463|Seimbang
-464|Akurat
-465|Vokal dan instrumental
-466|Hanya vokal
-467|Instrumental saja
-468|Tidak ada
-469|Asli
-470|Transparan
-471|Putih
-472|Hitam putih
-473|Sepia
-474|Balik warna
-475|Atas
-476|Bawah
-477|Kecil
-478|Besar
-479|Halus
-480|Tegas
-481|Video
-482|Audio
-483|PDF
-484|Teks
-485|A4 tegak
-486|A4 mendatar
-487|Tanpa potong
-488|Balik warna
-489|Masukkan lebar dan/atau tinggi.
-490|Tanpa mempertahankan proporsi, masukkan lebar DAN tinggi.
-492| • disimpan sebagai PNG
-493|kualitas {q} • {}
-494|diputar {rotate}°
-495|dicerminkan ↔
-496|dicerminkan ↕
-497|potong {}
-498|tanpa perubahan
-500|metadata dihapus (rotasi kamera diterapkan pada gambar)
-501|metadata dihapus ({})
-502|tidak ada metadata
-503|latar dihapus • {kept:.0}% gambar dipertahankan
-504|saturasi
-506|{w}x{h} → {}x{} (AI {scale}×)
-507|Ukuran gambar
-508|A4 tegak
-509|A4 mendatar
-510|tidak dapat menyimpan: {e}
-511|{d} hari lalu
-512|{} bulan lalu
-513|{} tahun lalu
-514|Tanggal foto
-515|Pencahayaan
-516|Bukaan
-517|Jarak fokus
-518|Perangkat lunak
-519|Pembuat
-520|Hak cipta
-521|Lokasi (GPS)
-523|Total kolom EXIF
-524|Foto (EXIF)
-525|Durasi
-526|Bitrate total
-527|Sampul
-528|Video
-529|Audio
-530|Subtitel
-531|Media
-532|Trek
-533|Tag
-534|Folder
-535|{} ({} byte)
-536|Diubah
-537|Dibuat
-538|File
-539|Dimensi
-540|{w} × {h} px ({mp:.1} megapiksel)
-541|Warna
-542| (dengan transparansi)
-543|Gambar
-544|tidak dapat dibaca (rusak atau dilindungi)
-545|tidak dapat menghubungi GitHub: {e}
-546|tidak dapat mengakses GitHub: {e}
-547|unduhan gagal: {e}
-548|file yang diunduh tidak cocok dengan tanda tangan resmi; tidak ada yang diubah.
-549|tidak dapat mengganti yt-dlp (sedang dipakai?): {e}
-550|versi yang diunduh tidak berfungsi; versi sebelumnya dipertahankan.
-551|Siap.
-552|Membatalkan…
-553|Memulai…
-554|Kesalahan tak terduga.
-555|Unduhan
-556|OTOMATISASI
-557|Alur otomatisasi
-558|Ubah ukuran
-559|Turunkan kualitas
-560|Konversi format
-561|Hapus latar
-562|Perbesar dengan AI
-563|Putar / potong
-564|Penyesuaian warna
-565|Hapus metadata
-566|Gambar → PDF
-567|Potong klip
-568|Gabungkan video
-569|Ubah kecepatan
-570|Video → GIF
-571|Tanam subtitel
-572|Musik latar
-573|Hapus audio / bingkai
-574|Potong audio
-575|Gabungkan audio
-576|Normalkan volume
-577|PDF → gambar
-578|Lindungi dengan kata sandi
-579|Video dan musik
-580|Kecerdasan buatan (alur otomatisasi)
-581|Dipakai oleh node "AI: instruksi" dan "AI: nilai". Berkas yang lewat node ini dikirim ke layanan yang dipilih; bagian lain Conver tetap luring.
-582|Layanan:
-583|Anthropic (Claude)
-584|Kompatibel OpenAI
-585|mis.: gpt-4o-mini, llama3.1 (Ollama)
-586|Alamat API:
-587|Kunci API:
-588|tersimpan (dilindungi Windows)
-589|tempel kunci di sini
-590|Simpan kunci
-591|Uji koneksi
-592|Menguji…
-593|✔ AI menjawab.
-594|konverter universal
-595|🔍  Cari alat…
-596|Ctrl+F
-597|Folder pantauan  ●
-598|Perekam audio  ●
-599|Rekam layar  ●
-600|Alat tidak ditemukan.
-601|⚙  Pengaturan
-602|🕘  Riwayat
-603|Pengaturan
-604|Sesuaikan Conver.
-605|20 bahasa paling banyak digunakan di dunia. Nama file dan pesan dari FFmpeg serta yt-dlp tidak diterjemahkan.
-606|Tampilan
-607|Terang
-608|Gelap
-609|Pemberitahuan
-610|Pemberitahuan Windows saat tugas panjang selesai (dengan Conver di latar belakang)
-611|Putar suara saat selesai
-612|Uji pemberitahuan
-613|Beginilah pemberitahuan muncul saat tugas selesai.
-614|pemberitahuan muncul dengan nama "Windows PowerShell"; begitulah cara Windows untuk aplikasi tanpa penginstal.
-615|Folder bawaan:
-616|Ubah…
-617|Folder unduhan bawaan
-618|Tentang
-619|Versi:
-620|tidak ditemukan
-621|memeriksa…
-622|Proyek:
-623|Otomatisasi (agen AI dan baris perintah)
-624|Agen AI (Claude, Cursor, VS Code…) dapat memakai semua alat Conver lewat MCP. Tempel konfigurasi di bawah ke file MCP agen Anda.
-625|Program:
-626|Salin konfigurasi MCP
-627|Salin contoh baris perintah
-628|"{}" image_convert foto.png --format webp
-629|Di baris perintah: conver-cli help  •  conver-cli <alat> file… --opsi nilai
-630|Integrasi dengan Windows
-631|Tampilkan "Buka dengan Conver" di menu klik kanan (gambar, video, audio, dan PDF)
-632|Tidak dapat mengubah menu: {e}
-633|Di Windows 11, opsi ini ada di "Tampilkan opsi lainnya". Jika folder Conver dipindahkan, hapus centang lalu centang lagi.
-634|Pembaruan
-635|Periksa versi baru Conver saat dibuka (menanyakan GitHub)
-636|✔ Anda memakai versi terbaru ({})
-637|versi {} tersedia
-638|Periksa sekarang
-639|"Perbarui sekarang" mengunduh penginstal baru, memeriksa tanda tangannya, dan menginstal tanpa pertanyaan: Conver menutup dan terbuka lagi sendiri, dengan pengaturan yang sama.
-640|"Perbarui sekarang" mengunduh versi portabel baru, memeriksa tanda tangannya, dan mengganti file di folder ini (folder dados dipertahankan): Conver menutup dan terbuka lagi sendiri.
-641|Salinan ini tidak dipasang dengan penginstal dan bukan versi portabel: unduh versi baru dari situs.
-642|yt-dlp (mesin unduhan)
-643|Situs sering berubah. Jika unduhan berhenti berfungsi, perbarui yt-dlp (mengunduh versi resmi dari GitHub dan memeriksa tanda tangannya).
-644|Perbarui yt-dlp
-645|Mengunduh versi terbaru yt-dlp…
-646|Anda sudah memakai versi terbaru ({after}).
-647|Diperbarui: {before} → {after}.
-648|✔ {text}
-649|Gagal memperbarui.
-650|Mengunduh Conver {}…
-651|Menginstal… Conver akan menutup dan terbuka lagi sendiri.
-652|Unduh
-653|Perbarui sekarang
-654|Versi baru Conver tersedia: {}
-655|Yang baru
-656|Nanti saja
-657|awal ({}) melewati akhir file ({}).
-658|akhir harus setelah awal.
-660|tambahkan setidaknya 2 video.
-661|{} tidak memiliki video.
-662|{} video • {}{extra} • {}
-663|{e} — jika videonya berbeda-beda, gunakan "Kodekan ulang"
-664|file tidak memiliki video.
-666|audio dihapus • {}
-667|{n} gambar di folder {}
-668|file tidak memiliki audio.
-669|volume diatur ke {lufs} LUFS
-670|awal melewati akhir video.
-672|9:16 (Reels/TikTok)
-673|1:1 (feed)
-674|4:5 (Instagram)
-675|16:9 (YouTube)
-676|pilih putar, cermin, atau potong.
-677|tidak dapat membaca subtitel: {e}
-678|subtitel: {}
-679|{} tidak memiliki audio.
-680|tidak dapat membaca durasi video.
-681|dicampur dengan suara asli
-682|menggantikan suara asli
-683|{} {how} • volume {volume}%
-684|tambahkan setidaknya 2 file.
-685|{} file • {} • {}
-686|Konversi format video
-687|Konversi antara MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF atau ambil audionya sebagai MP3.
-688|Kompres video
-689|Perkecil video dengan memilih tingkat kompresi atau ukuran akhir dalam MB.
-690|Potong klip video
-691|Pilih awal dan akhir, lalu simpan hanya bagian video itu.
-692|Potong
-693|Gabungkan beberapa video menjadi satu, sesuai urutan daftar.
-694|Percepat atau perlambat (0,25× sampai 4×). Audio ikut tanpa suara menjadi cempreng atau berat.
-695|Terapkan
-696|Hapus audio / ambil bingkai
-697|Bisukan video atau simpan gambar dari video pada interval tertentu.
-698|Konversi format audio
-699|Konversi antara MP3, WAV, FLAC, OGG, M4A, dan OPUS. Juga mengambil audio dari video.
-700|Simpan hanya sebagian lagu atau rekaman.
-701|Samakan volume beberapa audio (atau video) tanpa pecah.
-702|Normalkan
-703|Kompres audio
-704|Perkecil file audio dengan memilih bitrate.
-705|Video ke GIF
-706|Ubah sebagian video menjadi GIF animasi.
-707|Buat GIF
-708|Putar dan potong video
-709|Putar video yang direkam miring atau potong ke 9:16 (Reels/TikTok), 1:1, 4:5, atau 16:9.
-710|Tanam subtitel (.srt, .ass, atau .vtt) ke dalam video agar tampil di pemutar atau media sosial mana pun.
-711|Beri subtitel
-712|Tambahkan musik ke video, dicampur dengan suara asli atau menggantikannya.
-713|Gabungkan beberapa lagu atau rekaman menjadi satu file, sesuai urutan daftar.
-714|Awal tidak valid. Gunakan format 00:01:30 (atau hanya detik).
-715|Akhir tidak valid. Gunakan format 00:02:45 (atau hanya detik).
-716|Akhir harus setelah awal.
-717|Format keluaran:
-718|Kualitas:
-719|Kompres berdasarkan:
-720|Ukuran akhir
-721|Ukuran yang diinginkan:
-722|setiap video akan berukuran kira-kira segini (2 tahap, lebih lambat)
-723|Resolusi maksimal:
-724|Pengodean:
-725|H.264 (kompatibel)
-726|H.265 (lebih kecil, lebih lambat)
-727|Audio:
-730|Hasil disimpan sebagai MP4 dengan akhiran _comprimido.
-731|Awal:
-732|Akhir:
-733|sampai akhir
-734|durasi file yang dipilih: {}
-735|Cepat (tanpa kehilangan)
-736|Presisi (kodekan ulang)
-737|Memotong tepat pada waktu yang ditentukan; lebih lama karena file dikodekan ulang.
-738|Instan dan tanpa kehilangan; pada video, potongan bisa jatuh beberapa detik sebelum awal.
-739|Kodekan ulang (disarankan)
-740|Cepat (hanya sambung)
-741|Bisa untuk video yang berbeda: semua memakai resolusi video pertama, dengan bingkai bila perlu. Disimpan sebagai MP4.
-742|Instan, tetapi hanya jika semua video punya format, resolusi, dan pengodean yang sama.
-743|Gunakan ↑ dan ↓ di daftar untuk mengubah urutan.
-744|Kecepatan:
-745|Kustom:
-746|Pertahankan audio (ikut dipercepat/diperlambat)
-747|Hapus audio
-748|Ambil bingkai
-749|Satu gambar setiap:
-750|PNG (tanpa kehilangan)
-751|Gambar disimpan di folder <nama video>_frames.
-752|Video disalin tanpa dikodekan ulang: cepat dan tanpa kehilangan kualitas.
-753|WAV dan FLAC tanpa kehilangan: tidak ada kualitas yang perlu dipilih.
-754|Volume target:
-755|Keras (−14, streaming)
-756|Standar (−16)
-757|Lembut (−23, TV)
-758|Pada video, gambar disalin tanpa kehilangan; hanya audio yang dikodekan ulang.
-759|MP3 (kompatibel)
-760|OPUS (lebih kecil)
-761|Bitrate:
-763|Kanal:
-764|Ubah ke mono (setengah ukuran; bagus untuk suara)
-765|64–96 kbps bagus untuk suara dan podcast; 128–160 kbps untuk musik.
-766|Durasi:
-767|video yang dipilih: {}
-768|Lebar:
-773|GIF cepat membesar: klip pendek, 480 px, dan 12 fps biasanya di bawah 5 MB.
-774|Putar:
-775|Jangan putar
-776|Cerminkan:
-777|Horizontal ↔
-778|Potong:
-779|Potongan berada di tengah. Audio disalin tanpa kehilangan.
-780|Subtitel:
-781|otomatis (nama sama dengan video)
-782|Subtitel
-783|Pilih subtitel
-784|Otomatis
-785|Ditemukan untuk video yang dipilih: {}
-786|Tidak ada subtitel dengan nama sama seperti video yang dipilih. Pilih file-nya.
-787|Setiap video memakai subtitel dengan namanya sendiri (video.srt), atau pilih satu untuk semua.
-788|Ukuran teks:
-789|Sedang
-790|Posisi:
-791|Musik:
-792|Semua file
-793|Pilih musik
-794|Suara asli:
-795|Campur dengan musik
-796|Ganti dengan musik
-797|Volume musik:
-798|Ulangi:
-799|Ulangi musik jika lebih pendek dari video
-800|Untuk musik latar di bawah suara bicara, 20–40% biasanya pas. Gambar disalin tanpa kehilangan.
-801|Gunakan ↑ dan ↓ di daftar untuk mengubah urutan. Video juga diterima (audionya dipakai).
-802|{} file
-803|{} video
-804|tidak ada subtitel dengan nama sama seperti video; pilih file subtitel.
-805|pilih musik.
-806|Conver — selesai
-807|Conver — kesalahan
-808|bahasa {lang} belum terpasang untuk OCR di Windows.
-809|Konversi gambar
-810|Kompres gambar
-811|Putar dan potong
-812|Sesuaikan warna
-813|Gambar ke PDF
-814|Konversi video
-815|Kecepatan
-816|Subtitel di video
-817|Konversi audio
-818|Unduhan
-819|Mikrofon dan jendela
-820|Daftar preset
-821|Daftar alur
-822|Lihat alur
-823|Jenis node
-824|Simpan alur
-825|Hapus alur
-826|Jalankan alur
-827|Dibatalkan oleh pengguna.
-828|[{}/{n}] {name}
-829|✔ {name}   {info}
-830|Selesai: {ok} dari {n} file.
-831|Memproses…
-832|✔ {}   {info}
-833|Selesai.
-834|Ubah ukuran gambar
-835|Ubah dimensi satu atau beberapa gambar, dalam persen atau piksel.
-836|Perkecil ukuran file dengan format tetap (JPG, PNG, WEBP…).
-837|Pilih 1 sampai 100. JPG dan WEBP tetap formatnya; yang lain menjadi JPG (atau WEBP jika transparan).
-838|Konversi format gambar
-839|Konversi antara PNG, JPG, WEBP, BMP, GIF, TIFF, dan ICO.
-840|Putar, cerminkan, dan potong
-841|Putar, cerminkan, atau potong gambar ke proporsi siap pakai (potongan di tengah).
-842|Menghapus informasi tersembunyi dari foto (EXIF, lokasi GPS, kamera, tanggal) tanpa kehilangan kualitas.
-843|Hapus latar foto orang, produk, dan hewan dengan kecerdasan buatan, di PC Anda dan tanpa internet.
-844|Perbesar gambar 2× atau 4× tanpa buram: kecerdasan buatan membuat ulang detailnya. Berjalan di PC Anda, tanpa internet.
-845|Perbesar
-846|Ubah kecerahan, kontras, dan saturasi atau terapkan filter. Periksa pratinjau sebelum menyimpan.
-847|Gabungkan beberapa gambar menjadi satu PDF, satu per halaman, sesuai urutan daftar.
-848|Buat PDF
-849|Lebar dan tinggi harus bilangan bulat positif.
-850|Masukkan lebar dan/atau tinggi dalam piksel.
-851|tanpa pratinjau
-852|Piksel
-853|Pertahankan proporsi
-854|Dengan proporsi dipertahankan, gambar muat di dalam lebar/tinggi yang diisi.
-855|Ringan = hampir tanpa kehilangan yang terlihat  •  Kuat = file jauh lebih kecil
-856|Ikon maksimal 256×256; gambar yang lebih besar diperkecil.
-857|Vertikal ↕
-858|JPG, PNG, dan WEBP: hanya metadata yang dihapus, gambar tidak dikompres ulang.
-859|Jika foto punya rotasi kamera, rotasi itu diterapkan dulu agar gambar tidak miring.
-860|Latar baru:
-861|Tepi:
-862|Halus (rambut, bulu)
-863|Transparan disimpan sebagai PNG. Gambar pertama butuh beberapa detik selagi model dimuat.
-864|⚠ Model AI tidak ditemukan: letakkan silueta.onnx di folder modelos.
-865|Perbesar:
-866|Cocok untuk foto kecil, tangkapan layar, dan gambar lama. Gambar besar butuh waktu lebih lama (pratinjau juga).
-867|⚠ Model AI tidak ditemukan: letakkan realesr-general-x4v3.onnx di folder modelos.
-868|Kecerahan:
-869|Kontras:
-870|Saturasi:
-871|Atur ulang
-872|Filter:
-873|Ukuran halaman:
-874|Gunakan ↑ dan ↓ di daftar untuk mengubah urutan halaman.
-875|Hasil
-876|Tambahkan gambar untuk melihat pratinjau
-877|Hasil: {}×{}  •  {}   ({})
-878|Membuat pratinjau…
-879|Halaman {}  •
-880|{page}Asli: {}×{}  •  {orig_size}
-881|Memuat…
-882|Tidak dapat membuka gambar ini.
-883|{} gambar
-884|{pages} halaman • {}
-885|Jangan gunakan
-886|Unduh video dan musik
-887|{n} tautan — akan diunduh berurutan
-888|Tempel tautan video, lagu, atau playlist di sini (satu atau beberapa, satu per baris)
-889|MP4 (video)
-890|MP3 (audio)
-891|Login peramban:
-892|untuk situs yang meminta akun (Instagram, Facebook). Tutup peramban sebelum mengunduh.
-893|Unduh juga:
-894|Subtitel (.srt, Portugis dan Inggris)
-895|Gambar sampul (.jpg)
-896|Unduh seluruh playlist (jika tautannya playlist)
-897|Unduh hanya konten yang Anda berhak unduh.
-898|Pilih folder keluaran yang valid.
-899|[tautan {}/{n}]
-900|{prefix}Mengambil informasi…
-901| ({failed} tautan gagal)
-902|Selesai: {total} file diunduh{errors}.
-903|{}: tidak dapat membuka PDF ({e})
-904|{} dilindungi kata sandi.
-905|tambahkan setidaknya 2 PDF.
-906|rentang tidak valid: "{part}". Gunakan misalnya 1-3, 7, 10-
-907|halaman {a} tidak ada (PDF berisi {total}).
-908|masukkan halamannya, misalnya 1-3, 7
-909|{} dari {total} halaman
-910|{total} PDF di folder {}
-911|{} dilindungi kata sandi; hapus kata sandinya dulu.
-912|PDF sudah dioptimalkan (tanpa pengurangan)
-913|{changed} gambar dikompres ulang • {}
-914|masukkan kata sandi.
-915|{} sudah dilindungi kata sandi.
-916|tidak dapat melindungi: {e}
-917|dilindungi kata sandi (AES-128)
-918|kata sandi salah.
-919|kata sandi dihapus
-920|PDF terlindungi: masukkan kata sandi.
-921|tidak dapat membuka PDF ({})
-922|{} gambar di folder {}
-923|{done} halaman dengan teks dikenali • {words_total} kata
-924| • {skipped} sudah berisi teks
-925|teks terlalu panjang untuk Kode QR.
-926|ffmpeg tidak ditemukan.
-927|tidak dapat menjalankan ffmpeg: {e}
-928|perekaman berhenti.
-929|tidak ada suara dari mikrofon ini. Pilih input lain dari daftar (mis.: "Mikrofon (…)").
-930|mikrofon berhenti merespons.
-931|nama ganda
-932|sudah ada file dengan nama ini
-933|tidak ada yang direkam.
-934|UVR MDX-Net (67 MB)
-935|Hanya instrumental (karaoke)
-936|gagal menyimpan: {}
-937|audio terlalu pendek (kurang dari setengah detik).
-938|{} • {dur}
-940|Cepat (82 MB)
-941|Seimbang (264 MB)
-942|Akurat (574 MB)
-943|Whisper base (82 MB)
-944|Whisper small (264 MB)
-945|Whisper large-v3 turbo (574 MB)
-946|Deteksi otomatis
-947|Portugis
-948|Inggris
-949|Spanyol
-950|Prancis
-951|Jerman
-952|Italia
-953|Rusia
-954|Tionghoa
-955|Jepang
-956|Korea
-957|Arab
-958|Hindi
-959|Turki
-960|Polandia
-961|Ukraina
-962|Belanda
-963|Indonesia
-964|Vietnam
-965|Persia
-966|tidak dapat memulai Whisper: {e}
-967|Whisper gagal: {}
-968|Whisper tidak membuat file apa pun.
-969|{words} kata • {}
-970|salinan Conver ini tidak dipasang dengan penginstal dan bukan versi portabel; unduh dari situs.
-971|versi baru tidak punya file untuk salinan Conver ini; unduh dari situs.
-972|versi baru tidak memublikasikan checksum; unduh dari situs.
-973|file pembaruan tidak ada di daftar checksum; unduh dari situs.
-974|tidak dapat mengekstrak pembaruan: {e}
-975|tidak dapat mengekstrak pembaruan.
-976|tidak dapat memulai penginstal: {e}
-977|tidak dapat memulai pembaruan: {e}
-978|pembaruan otomatis tidak tersedia untuk salinan ini.
-979|Tidak dapat menyelesaikan pembaruan: {e}
-980|model perbesaran tidak ditemukan (folder modelos).
-981|sisi gambar akan lebih dari {MAX_SIDE} piksel; perkecil dulu atau gunakan 2×.
-982|MP3 (hanya audio)
-983|ffmpeg gagal: {}
-984|{mb} MB terlalu kecil untuk video {:.0} detik (minimal ≈ {:.1} MB).
-985|Kompres gambar
-986|Konversi gambar
-987|Kompres video
-988|Konversi video
-989|Konversi audio
-990|✖ tidak dapat membuat folder {OUT_FOLDER}: {e}
-991|Memantau {} — {}
-992|Hasil masuk ke subfolder "{OUT_FOLDER}".
-993|Memantau folder… ({count} diproses)
-994|Memproses {name}…
-995|{name}: {info}
-996|{name}: {e}
-997|Berhenti. {count} file diproses.
-998|Pilih file
-999|Tidak ada file
-1000|1 file
-1001|{n} file
-1002|+ Tambah
-1003|urutan:
-1004|Seret file ke sini
-1005|atau klik untuk memilih
-1009|Trek audio muncul di sini
-1010|0 dB
-1011|{d:.1} dB
-1012|Menunggu suara dari mikrofon…
-1013|⚠ Hampir tidak ada suara: bicaralah lebih dekat atau naikkan volume mikrofon di Windows.
-1014|Agak pelan: bicaralah lebih dekat ke mikrofon.
-1015|✔ Level bagus.
-1016|Folder yang sama dengan file asli
-1017|Pilih folder keluaran
-1018|Buka folder
-1019|Lepaskan untuk menambahkan
-1020|Gambar dan video masuk ke alat yang tepat
+346|🔍  Cari node…
+347|seret berkas ke sini
+348|{k} berkas atau folder
+349|(kosong)
+350|tulis instruksi
+351|tulis kriteria
+352|Dokumen\Conver
+353|semua lolos
+354|pengaturan bawaan
+355|Buat alur dengan "+ Baru".
+356|berjalan…
+357|tidak
+358|Hapus
+359|Node ini tidak menerima masukan.
+360|Tautan itu akan membuat putaran.
+361|+  Tambah node
+362|Paskan
+363|Tampilkan seluruh alur
+364|Tambahkan node dengan tombol "+ Tambah node".
+365|Tarik dari titik di kanan sebuah node ke node lain untuk menghubungkannya.
+366|Tautan
+367|Hapus tautan
+368|Tips: tombol Delete juga menghapus.
+369|Alur
+370|Deskripsi
+371|Cara kerja
+372|1. Tambahkan node dengan tombol "+ Tambah node" (alat, AI, penyaring).
+373|2. Tarik dari titik di kanan sebuah node ke node lain untuk menghubungkan: hasil yang satu masuk ke berikutnya.
+374|3. Klik node untuk mengaturnya; seret berkas ke jendela untuk memasukkannya ke masukan.
+375|4. Klik Jalankan alur.
+376|Node AI memakai API yang diatur di Pengaturan. Agen AI juga bisa membuat dan menjalankan alur lewat MCP (flow_save, flow_run).
+377|⚠ AI: {e}
+378|Atur AI
+379|Jenis tidak dikenal: {}
+380|Nama di papan
+381|Folder tujuan
+382|Dokumen\Conver\<alur>
+383|Dalam teks, {text} menjadi teks yang masuk dan {file} menjadi nama berkas.
+384|Hapus node
+385|Berkas dan folder
+386|Belum ada: seret berkas ke jendela atau pakai tombol di bawah.
+387|Hapus dari daftar
+388|+ Berkas…
+389|+ Folder…
+390|Kosongkan
+391|Dari baris perintah atau MCP, berkas yang dikirim ke flow_run menggantikan ini.
+392|▶  Jalankan alur
+393|Menjalankan “{}”…
+394|Selesai dengan {failed} node galat.
+395|Selesai: {n} hasil.
+396|Kembali ke bawaan
+397|(bawaan)
+398|(otomatis)
+399|satu per baris
+400|Format
+401|Kualitas
+402|Tingkat
+403|Bahasa
+404|Persen
+405|Pertahankan rasio
+406|Awal
+407|Akhir
+408|Durasi (dtk)
+409|Ukuran
+410|Putar (derajat)
+411|Potong presisi
+412|Halaman
+413|Bingkai per detik
+414|Balik horizontal
+415|Balik vertikal
+416|Pengodean
+417|Jendela
+418|Volume
+419|Tautan
+420|Ukuran akhir (MB)
+421|Unduh subtitel
+422|Berkas subtitel
+423|Simpan
+424|Lewati halaman yang sudah punya teks
+425|Detik
+426|Skala
+427|Saturasi
+428|Resolusi
+429|Ganti audio
+430|Area
+431|Posisi
+432|Seluruh daftar putar
+433|Ukuran halaman
+434|Kata sandi pemilik
+435|Kata sandi
+436|Musik
+437|Mono
+438|Model
+439|Mikrofon
+440|Kenyaringan target (LUFS)
+441|Ulangi
+442|Jenis
+443|Pertahankan audio
+444|Kbps
+445|Simpan sebagai
+446|Filter
+447|Faktor
+448|Setiap (dtk)
+449|Tepi
+450|Resolusi (DPI)
+451|Pangkas
+452|Unduh sampul
+453|Kontras
+454|Warna
+455|Login peramban
+456|Kecerahan
+457|Latar
+458|Audio (kbps)
+459|Rasio aspek
+460|Izinkan mencetak
+461|Izinkan menyalin
+462|Berkas keluaran
+463|Nama
+464|Instruksi untuk AI
+465|Satu jawaban per berkas
+466|Teruskan berkas
+467|Simpan jawaban sebagai
+468|Kriteria
+469|Jenis yang diterima
+470|Ekstensi yang diterima
+471|Ukuran minimum (MB)
+472|Ukuran maksimum (MB)
+473|Pindahkan alih-alih menyalin
+474|Simpan teks sebagai .txt
+475|Cepat
+476|Seimbang
+477|Akurat
+478|Vokal dan instrumental
+479|Hanya vokal
+480|Instrumental saja
+481|Tidak ada
+482|Transparan
+483|Putih
+484|Hitam putih
+485|Sepia
+486|Balik warna
+487|Atas
+488|Bawah
+489|Kecil
+490|Besar
+491|Halus
+492|Tegas
+493|Video
+494|Audio
+495|PDF
+496|Teks
+497|A4 tegak
+498|A4 mendatar
+499|Tanpa potong
+500|Balik warna
+501|Masukkan lebar dan/atau tinggi.
+502|Tanpa mempertahankan proporsi, masukkan lebar DAN tinggi.
+504| • disimpan sebagai PNG
+505|kualitas {q} • {}
+506|diputar {rotate}°
+507|dicerminkan ↔
+508|dicerminkan ↕
+509|potong {}
+510|tanpa perubahan
+512|metadata dihapus (rotasi kamera diterapkan pada gambar)
+513|metadata dihapus ({})
+514|tidak ada metadata
+515|latar dihapus • {kept:.0}% gambar dipertahankan
+516|saturasi
+518|{w}x{h} → {}x{} (AI {scale}×)
+519|Ukuran gambar
+520|A4 tegak
+521|A4 mendatar
+522|tidak dapat menyimpan: {e}
+523|{d} hari lalu
+524|{} bulan lalu
+525|{} tahun lalu
+526|Tanggal foto
+527|Pencahayaan
+528|Bukaan
+529|Jarak fokus
+530|Perangkat lunak
+531|Pembuat
+532|Hak cipta
+533|Lokasi (GPS)
+535|Total kolom EXIF
+536|Foto (EXIF)
+537|Durasi
+538|Bitrate total
+539|Sampul
+540|Video
+541|Audio
+542|Subtitel
+543|Media
+544|Trek
+545|Tag
+546|Folder
+547|{} ({} byte)
+548|Diubah
+549|Dibuat
+550|File
+551|Dimensi
+552|{w} × {h} px ({mp:.1} megapiksel)
+553|Warna
+554| (dengan transparansi)
+555|Gambar
+556|tidak dapat dibaca (rusak atau dilindungi)
+557|tidak dapat menghubungi GitHub: {e}
+558|tidak dapat mengakses GitHub: {e}
+559|unduhan gagal: {e}
+560|file yang diunduh tidak cocok dengan tanda tangan resmi; tidak ada yang diubah.
+561|tidak dapat mengganti yt-dlp (sedang dipakai?): {e}
+562|versi yang diunduh tidak berfungsi; versi sebelumnya dipertahankan.
+563|Siap.
+564|Membatalkan…
+565|Memulai…
+566|Kesalahan tak terduga.
+567|Unduhan
+568|OTOMATISASI
+569|Alur otomatisasi
+570|Ubah ukuran
+571|Turunkan kualitas
+572|Konversi format
+573|Hapus latar
+574|Perbesar dengan AI
+575|Putar / potong
+576|Penyesuaian warna
+577|Hapus metadata
+578|Gambar → PDF
+579|Potong klip
+580|Gabungkan video
+581|Ubah kecepatan
+582|Video → GIF
+583|Tanam subtitel
+584|Musik latar
+585|Hapus audio / bingkai
+586|Potong audio
+587|Gabungkan audio
+588|Normalkan volume
+589|PDF → gambar
+590|Lindungi dengan kata sandi
+591|Video dan musik
+592|Kecerdasan buatan (alur otomatisasi)
+593|Dipakai oleh node "AI: instruksi" dan "AI: nilai". Berkas yang lewat node ini dikirim ke layanan yang dipilih; bagian lain Conver tetap luring.
+594|Layanan:
+595|Anthropic (Claude)
+596|Kompatibel OpenAI
+597|mis.: gpt-4o-mini, llama3.1 (Ollama)
+598|Alamat API:
+599|Kunci API:
+600|tersimpan (dilindungi Windows)
+601|tempel kunci di sini
+602|Simpan kunci
+603|Uji koneksi
+604|Menguji…
+605|✔ AI menjawab.
+606|konverter universal
+607|🔍  Cari alat…
+608|Ctrl+F
+609|Folder pantauan  ●
+610|Perekam audio  ●
+611|Rekam layar  ●
+612|Alat tidak ditemukan.
+613|⚙  Pengaturan
+614|🕘  Riwayat
+615|Pengaturan
+616|Sesuaikan Conver.
+617|20 bahasa paling banyak digunakan di dunia. Nama file dan pesan dari FFmpeg serta yt-dlp tidak diterjemahkan.
+618|Tampilan
+619|Terang
+620|Gelap
+621|Pemberitahuan
+622|Pemberitahuan Windows saat tugas panjang selesai (dengan Conver di latar belakang)
+623|Putar suara saat selesai
+624|Uji pemberitahuan
+625|Beginilah pemberitahuan muncul saat tugas selesai.
+626|pemberitahuan muncul dengan nama "Windows PowerShell"; begitulah cara Windows untuk aplikasi tanpa penginstal.
+627|Folder bawaan:
+628|Ubah…
+629|Folder unduhan bawaan
+630|Tentang
+631|Versi:
+632|tidak ditemukan
+633|memeriksa…
+634|Proyek:
+635|Otomatisasi (agen AI dan baris perintah)
+636|Agen AI (Claude, Cursor, VS Code…) dapat memakai semua alat Conver lewat MCP. Tempel konfigurasi di bawah ke file MCP agen Anda.
+637|Program:
+638|Salin konfigurasi MCP
+639|Salin contoh baris perintah
+640|"{}" image_convert foto.png --format webp
+641|Di baris perintah: conver-cli help  •  conver-cli <alat> file… --opsi nilai
+642|Integrasi dengan Windows
+643|Tampilkan "Buka dengan Conver" di menu klik kanan (gambar, video, audio, dan PDF)
+644|Tidak dapat mengubah menu: {e}
+645|Di Windows 11, opsi ini ada di "Tampilkan opsi lainnya". Jika folder Conver dipindahkan, hapus centang lalu centang lagi.
+646|Pembaruan
+647|Periksa versi baru Conver saat dibuka (menanyakan GitHub)
+648|✔ Anda memakai versi terbaru ({})
+649|versi {} tersedia
+650|Periksa sekarang
+651|"Perbarui sekarang" mengunduh penginstal baru, memeriksa tanda tangannya, dan menginstal tanpa pertanyaan: Conver menutup dan terbuka lagi sendiri, dengan pengaturan yang sama.
+652|"Perbarui sekarang" mengunduh versi portabel baru, memeriksa tanda tangannya, dan mengganti file di folder ini (folder dados dipertahankan): Conver menutup dan terbuka lagi sendiri.
+653|Salinan ini tidak dipasang dengan penginstal dan bukan versi portabel: unduh versi baru dari situs.
+654|yt-dlp (mesin unduhan)
+655|Situs sering berubah. Jika unduhan berhenti berfungsi, perbarui yt-dlp (mengunduh versi resmi dari GitHub dan memeriksa tanda tangannya).
+656|Perbarui yt-dlp
+657|Mengunduh versi terbaru yt-dlp…
+658|Anda sudah memakai versi terbaru ({after}).
+659|Diperbarui: {before} → {after}.
+660|✔ {text}
+661|Gagal memperbarui.
+662|Mengunduh Conver {}…
+663|Menginstal… Conver akan menutup dan terbuka lagi sendiri.
+664|Unduh
+665|Perbarui sekarang
+666|Versi baru Conver tersedia: {}
+667|Yang baru
+668|Nanti saja
+669|awal ({}) melewati akhir file ({}).
+670|akhir harus setelah awal.
+672|tambahkan setidaknya 2 video.
+673|{} tidak memiliki video.
+674|{} video • {}{extra} • {}
+675|{e} — jika videonya berbeda-beda, gunakan "Kodekan ulang"
+676|file tidak memiliki video.
+678|audio dihapus • {}
+679|{n} gambar di folder {}
+680|file tidak memiliki audio.
+681|volume diatur ke {lufs} LUFS
+682|awal melewati akhir video.
+684|9:16 (Reels/TikTok)
+685|1:1 (feed)
+686|4:5 (Instagram)
+687|16:9 (YouTube)
+688|pilih putar, cermin, atau potong.
+689|tidak dapat membaca subtitel: {e}
+690|subtitel: {}
+691|{} tidak memiliki audio.
+692|tidak dapat membaca durasi video.
+693|dicampur dengan suara asli
+694|menggantikan suara asli
+695|{} {how} • volume {volume}%
+696|tambahkan setidaknya 2 file.
+697|{} file • {} • {}
+698|Konversi format video
+699|Konversi antara MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF atau ambil audionya sebagai MP3.
+700|Kompres video
+701|Perkecil video dengan memilih tingkat kompresi atau ukuran akhir dalam MB.
+702|Potong klip video
+703|Pilih awal dan akhir, lalu simpan hanya bagian video itu.
+704|Potong
+705|Gabungkan beberapa video menjadi satu, sesuai urutan daftar.
+706|Percepat atau perlambat (0,25× sampai 4×). Audio ikut tanpa suara menjadi cempreng atau berat.
+707|Terapkan
+708|Hapus audio / ambil bingkai
+709|Bisukan video atau simpan gambar dari video pada interval tertentu.
+710|Konversi format audio
+711|Konversi antara MP3, WAV, FLAC, OGG, M4A, dan OPUS. Juga mengambil audio dari video.
+712|Simpan hanya sebagian lagu atau rekaman.
+713|Samakan volume beberapa audio (atau video) tanpa pecah.
+714|Normalkan
+715|Kompres audio
+716|Perkecil file audio dengan memilih bitrate.
+717|Video ke GIF
+718|Ubah sebagian video menjadi GIF animasi.
+719|Buat GIF
+720|Putar dan potong video
+721|Putar video yang direkam miring atau potong ke 9:16 (Reels/TikTok), 1:1, 4:5, atau 16:9.
+722|Tanam subtitel (.srt, .ass, atau .vtt) ke dalam video agar tampil di pemutar atau media sosial mana pun.
+723|Beri subtitel
+724|Tambahkan musik ke video, dicampur dengan suara asli atau menggantikannya.
+725|Gabungkan beberapa lagu atau rekaman menjadi satu file, sesuai urutan daftar.
+726|Awal tidak valid. Gunakan format 00:01:30 (atau hanya detik).
+727|Akhir tidak valid. Gunakan format 00:02:45 (atau hanya detik).
+728|Akhir harus setelah awal.
+729|Format keluaran:
+730|Kompres berdasarkan:
+731|Ukuran akhir
+732|Ukuran yang diinginkan:
+733|setiap video akan berukuran kira-kira segini (2 tahap, lebih lambat)
+734|Pengodean:
+735|H.264 (kompatibel)
+736|H.265 (lebih kecil, lebih lambat)
+737|Audio:
+740|Hasil disimpan sebagai MP4 dengan akhiran _comprimido.
+741|Awal:
+742|Akhir:
+743|sampai akhir
+744|durasi file yang dipilih: {}
+745|Cepat (tanpa kehilangan)
+746|Presisi (kodekan ulang)
+747|Memotong tepat pada waktu yang ditentukan; lebih lama karena file dikodekan ulang.
+748|Instan dan tanpa kehilangan; pada video, potongan bisa jatuh beberapa detik sebelum awal.
+749|Kodekan ulang (disarankan)
+750|Cepat (hanya sambung)
+751|Bisa untuk video yang berbeda: semua memakai resolusi video pertama, dengan bingkai bila perlu. Disimpan sebagai MP4.
+752|Instan, tetapi hanya jika semua video punya format, resolusi, dan pengodean yang sama.
+753|Gunakan ↑ dan ↓ di daftar untuk mengubah urutan.
+754|Kecepatan:
+755|Kustom:
+756|Pertahankan audio (ikut dipercepat/diperlambat)
+757|Hapus audio
+758|Ambil bingkai
+759|Satu gambar setiap:
+760|PNG (tanpa kehilangan)
+761|Gambar disimpan di folder <nama video>_frames.
+762|Video disalin tanpa dikodekan ulang: cepat dan tanpa kehilangan kualitas.
+763|WAV dan FLAC tanpa kehilangan: tidak ada kualitas yang perlu dipilih.
+764|Volume target:
+765|Keras (−14, streaming)
+766|Standar (−16)
+767|Lembut (−23, TV)
+768|Pada video, gambar disalin tanpa kehilangan; hanya audio yang dikodekan ulang.
+769|MP3 (kompatibel)
+770|OPUS (lebih kecil)
+771|Bitrate:
+773|Kanal:
+774|Ubah ke mono (setengah ukuran; bagus untuk suara)
+775|64–96 kbps bagus untuk suara dan podcast; 128–160 kbps untuk musik.
+776|Durasi:
+777|video yang dipilih: {}
+778|Lebar:
+783|GIF cepat membesar: klip pendek, 480 px, dan 12 fps biasanya di bawah 5 MB.
+784|Putar:
+785|Jangan putar
+786|Cerminkan:
+787|Horizontal ↔
+788|Potong:
+789|Potongan berada di tengah. Audio disalin tanpa kehilangan.
+790|Subtitel:
+791|otomatis (nama sama dengan video)
+792|Subtitel
+793|Pilih subtitel
+794|Otomatis
+795|Ditemukan untuk video yang dipilih: {}
+796|Tidak ada subtitel dengan nama sama seperti video yang dipilih. Pilih file-nya.
+797|Setiap video memakai subtitel dengan namanya sendiri (video.srt), atau pilih satu untuk semua.
+798|Ukuran teks:
+799|Sedang
+800|Posisi:
+801|Musik:
+802|Semua file
+803|Pilih musik
+804|Suara asli:
+805|Campur dengan musik
+806|Ganti dengan musik
+807|Volume musik:
+808|Ulangi:
+809|Ulangi musik jika lebih pendek dari video
+810|Untuk musik latar di bawah suara bicara, 20–40% biasanya pas. Gambar disalin tanpa kehilangan.
+811|Gunakan ↑ dan ↓ di daftar untuk mengubah urutan. Video juga diterima (audionya dipakai).
+812|{} file
+813|{} video
+814|tidak ada subtitel dengan nama sama seperti video; pilih file subtitel.
+815|pilih musik.
+816|Conver — selesai
+817|Conver — kesalahan
+818|bahasa {lang} belum terpasang untuk OCR di Windows.
+819|Konversi gambar
+820|Kompres gambar
+821|Putar dan potong
+822|Sesuaikan warna
+823|Gambar ke PDF
+824|Konversi video
+825|Kecepatan
+826|Subtitel di video
+827|Konversi audio
+828|Unduhan
+829|Mikrofon dan jendela
+830|Daftar preset
+831|Daftar alur
+832|Lihat alur
+833|Jenis node
+834|Simpan alur
+835|Hapus alur
+836|Jalankan alur
+837|Dibatalkan oleh pengguna.
+838|[{}/{n}] {name}
+839|✔ {name}   {info}
+840|Selesai: {ok} dari {n} file.
+841|Memproses…
+842|✔ {}   {info}
+843|Selesai.
+844|Ubah ukuran gambar
+845|Ubah dimensi satu atau beberapa gambar, dalam persen atau piksel.
+846|Perkecil ukuran file dengan format tetap (JPG, PNG, WEBP…).
+847|Pilih 1 sampai 100. JPG dan WEBP tetap formatnya; yang lain menjadi JPG (atau WEBP jika transparan).
+848|Konversi format gambar
+849|Konversi antara PNG, JPG, WEBP, BMP, GIF, TIFF, dan ICO.
+850|Putar, cerminkan, dan potong
+851|Putar, cerminkan, atau potong gambar ke proporsi siap pakai (potongan di tengah).
+852|Menghapus informasi tersembunyi dari foto (EXIF, lokasi GPS, kamera, tanggal) tanpa kehilangan kualitas.
+853|Hapus latar foto orang, produk, dan hewan dengan kecerdasan buatan, di PC Anda dan tanpa internet.
+854|Perbesar gambar 2× atau 4× tanpa buram: kecerdasan buatan membuat ulang detailnya. Berjalan di PC Anda, tanpa internet.
+855|Perbesar
+856|Ubah kecerahan, kontras, dan saturasi atau terapkan filter. Periksa pratinjau sebelum menyimpan.
+857|Gabungkan beberapa gambar menjadi satu PDF, satu per halaman, sesuai urutan daftar.
+858|Buat PDF
+859|Lebar dan tinggi harus bilangan bulat positif.
+860|Masukkan lebar dan/atau tinggi dalam piksel.
+861|tanpa pratinjau
+862|Piksel
+863|Pertahankan proporsi
+864|Dengan proporsi dipertahankan, gambar muat di dalam lebar/tinggi yang diisi.
+865|Ringan = hampir tanpa kehilangan yang terlihat  •  Kuat = file jauh lebih kecil
+866|Ikon maksimal 256×256; gambar yang lebih besar diperkecil.
+867|Vertikal ↕
+868|JPG, PNG, dan WEBP: hanya metadata yang dihapus, gambar tidak dikompres ulang.
+869|Jika foto punya rotasi kamera, rotasi itu diterapkan dulu agar gambar tidak miring.
+870|Latar baru:
+871|Tepi:
+872|Halus (rambut, bulu)
+873|Transparan disimpan sebagai PNG. Gambar pertama butuh beberapa detik selagi model dimuat.
+874|⚠ Model AI tidak ditemukan: letakkan silueta.onnx di folder modelos.
+875|Perbesar:
+876|Cocok untuk foto kecil, tangkapan layar, dan gambar lama. Gambar besar butuh waktu lebih lama (pratinjau juga).
+877|⚠ Model AI tidak ditemukan: letakkan realesr-general-x4v3.onnx di folder modelos.
+878|Kecerahan:
+879|Kontras:
+880|Saturasi:
+881|Atur ulang
+882|Filter:
+883|Ukuran halaman:
+884|Gunakan ↑ dan ↓ di daftar untuk mengubah urutan halaman.
+885|Hasil
+886|Tambahkan gambar untuk melihat pratinjau
+887|Hasil: {}×{}  •  {}   ({})
+888|Membuat pratinjau…
+889|Halaman {}  •
+890|{page}Asli: {}×{}  •  {orig_size}
+891|Memuat…
+892|Tidak dapat membuka gambar ini.
+893|{} gambar
+894|{pages} halaman • {}
+895|Jangan gunakan
+896|Unduh video dan musik
+897|{n} tautan — akan diunduh berurutan
+898|Tempel tautan video, lagu, atau playlist di sini (satu atau beberapa, satu per baris)
+899|MP4 (video)
+900|MP3 (audio)
+901|Login peramban:
+902|untuk situs yang meminta akun (Instagram, Facebook). Tutup peramban sebelum mengunduh.
+903|Unduh juga:
+904|Subtitel (.srt, Portugis dan Inggris)
+905|Gambar sampul (.jpg)
+906|Unduh seluruh playlist (jika tautannya playlist)
+907|Unduh hanya konten yang Anda berhak unduh.
+908|Pilih folder keluaran yang valid.
+909|[tautan {}/{n}]
+910|{prefix}Mengambil informasi…
+911| ({failed} tautan gagal)
+912|Selesai: {total} file diunduh{errors}.
+913|{}: tidak dapat membuka PDF ({e})
+914|{} dilindungi kata sandi.
+915|tambahkan setidaknya 2 PDF.
+916|rentang tidak valid: "{part}". Gunakan misalnya 1-3, 7, 10-
+917|halaman {a} tidak ada (PDF berisi {total}).
+918|masukkan halamannya, misalnya 1-3, 7
+919|{} dari {total} halaman
+920|{total} PDF di folder {}
+921|{} dilindungi kata sandi; hapus kata sandinya dulu.
+922|PDF sudah dioptimalkan (tanpa pengurangan)
+923|{changed} gambar dikompres ulang • {}
+924|masukkan kata sandi.
+925|{} sudah dilindungi kata sandi.
+926|tidak dapat melindungi: {e}
+927|dilindungi kata sandi (AES-128)
+928|kata sandi salah.
+929|kata sandi dihapus
+930|PDF terlindungi: masukkan kata sandi.
+931|tidak dapat membuka PDF ({})
+932|{} gambar di folder {}
+933|{done} halaman dengan teks dikenali • {words_total} kata
+934| • {skipped} sudah berisi teks
+935|teks terlalu panjang untuk Kode QR.
+936|ffmpeg tidak ditemukan.
+937|tidak dapat menjalankan ffmpeg: {e}
+938|perekaman berhenti.
+939|tidak ada suara dari mikrofon ini. Pilih input lain dari daftar (mis.: "Mikrofon (…)").
+940|mikrofon berhenti merespons.
+941|nama ganda
+942|sudah ada file dengan nama ini
+943|tidak ada yang direkam.
+944|tidak dapat membuat folder sementara: {e}
+945|tidak dapat menggabungkan bagian rekaman: {e}
+946|UVR MDX-Net (67 MB)
+947|Hanya instrumental (karaoke)
+948|gagal menyimpan: {}
+949|audio terlalu pendek (kurang dari setengah detik).
+950|{} • {dur}
+952|Cepat (82 MB)
+953|Seimbang (264 MB)
+954|Akurat (574 MB)
+955|Whisper base (82 MB)
+956|Whisper small (264 MB)
+957|Whisper large-v3 turbo (574 MB)
+958|Deteksi otomatis
+959|Portugis
+960|Inggris
+961|Spanyol
+962|Prancis
+963|Jerman
+964|Italia
+965|Rusia
+966|Tionghoa
+967|Jepang
+968|Korea
+969|Arab
+970|Hindi
+971|Turki
+972|Polandia
+973|Ukraina
+974|Belanda
+975|Indonesia
+976|Vietnam
+977|Persia
+978|tidak dapat memulai Whisper: {e}
+979|Whisper gagal: {}
+980|Whisper tidak membuat file apa pun.
+981|{words} kata • {}
+982|salinan Conver ini tidak dipasang dengan penginstal dan bukan versi portabel; unduh dari situs.
+983|versi baru tidak punya file untuk salinan Conver ini; unduh dari situs.
+984|versi baru tidak memublikasikan checksum; unduh dari situs.
+985|file pembaruan tidak ada di daftar checksum; unduh dari situs.
+986|tidak dapat mengekstrak pembaruan: {e}
+987|tidak dapat mengekstrak pembaruan.
+988|tidak dapat memulai penginstal: {e}
+989|tidak dapat memulai pembaruan: {e}
+990|pembaruan otomatis tidak tersedia untuk salinan ini.
+991|Tidak dapat menyelesaikan pembaruan: {e}
+992|model perbesaran tidak ditemukan (folder modelos).
+993|sisi gambar akan lebih dari {MAX_SIDE} piksel; perkecil dulu atau gunakan 2×.
+994|MP3 (hanya audio)
+995|ffmpeg gagal: {}
+996|{mb} MB terlalu kecil untuk video {:.0} detik (minimal ≈ {:.1} MB).
+997|Kompres gambar
+998|Konversi gambar
+999|Kompres video
+1000|Konversi video
+1001|Konversi audio
+1002|✖ tidak dapat membuat folder {OUT_FOLDER}: {e}
+1003|Memantau {} — {}
+1004|Hasil masuk ke subfolder "{OUT_FOLDER}".
+1005|Memantau folder… ({count} diproses)
+1006|Memproses {name}…
+1007|{name}: {info}
+1008|{name}: {e}
+1009|Berhenti. {count} file diproses.
+1010|Pilih file
+1011|Tidak ada file
+1012|1 file
+1013|{n} file
+1014|+ Tambah
+1015|urutan:
+1016|Seret file ke sini
+1017|atau klik untuk memilih
+1021|Trek audio muncul di sini
+1022|0 dB
+1023|{d:.1} dB
+1024|Menunggu suara dari mikrofon…
+1025|⚠ Hampir tidak ada suara: bicaralah lebih dekat atau naikkan volume mikrofon di Windows.
+1026|Agak pelan: bicaralah lebih dekat ke mikrofon.
+1027|✔ Level bagus.
+1028|Folder yang sama dengan file asli
+1029|Pilih folder keluaran
+1030|Buka folder
+1031|Lepaskan untuk menambahkan
+1032|Gambar dan video masuk ke alat yang tepat

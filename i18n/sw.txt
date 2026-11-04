@@ -232,766 +232,778 @@
 237|Huchukua takriban sekunde 15 hadi 30 kwa kila dakika ya muziki, kutegemea kompyuta.
 238|Tenganisha
 239|Chagua dirisha
-240|●  REC
-241|Dirisha limepunguzwa au limefungwa.
-242|Inapakia onyesho la kukagua…
-243|Rekodi skrini
-244|Rekodi skrini nzima, dirisha moja au eneo kuwa MP4, ukiwa na maikrofoni au bila.
-245|Rekodi:
-246|Skrini nzima
-247|Dirisha moja
-248|Eneo moja
-249|Dirisha:
-250|hakuna dirisha lililopatikana
-251|Eneo (px):
-252|Upana
-253|Urefu
-254|Fremu kwa sekunde:
-255|Bila sauti
-256|Chaguo:
-257|Onyesha kishale
-258|Punguza Conver unapoanza
-259|Tazama
-260|Ili kusimamisha, rudi kwenye Conver (unabaki kwenye upau wa kazi) na ubofye Simamisha.
-261|Mipangilio iliyohifadhiwa
-262|Mipangilio unayoipenda, tayari kwa mbofyo mmoja, kwa mstari wa amri au na wakala wa AI (MCP).
-263|Bado hakuna mipangilio. Unda wa kwanza hapa chini.
-264|Futa
-265|Funga fomu
-266|+ Mpangilio mpya
-267|Rejesha iliyokuja tayari
-268|Jina:
-269|Maelezo:
-270|Zana:
-271|Hifadhi mpangilio
-272|✔ Mpangilio umehifadhiwa: {}
-273|Mstari wa amri: conver-cli preset "{}" faili…
-274|Tumia mpangilio
-275|Inatumia: {}
-276|Imekamilika: {} sawa, {} na hitilafu.
-277|Imehifadhiwa kwenye: {}
-278|Hitilafu.
-279|mtiririko una mzunguko (nodi inarudi kwa iliyotangulia).
-280|mtiririko unahitaji jina.
-281|kuna nodi mbili zenye kitambulisho {}.
-282|nodi {}: aina isiyojulikana "{}" (tazama flow_node_types).
-283|kiungo {} → {}: nodi {} haina tokeo "{}" (ina: {}).
-284|kiungo {} → {}: nodi {} haipokei viingizo.
-285|kiungo {} → {}: nodi haipo.
-286|PICHA
-287|VIDEO
-288|SAUTI
-289|UPAKUAJI
-290|ZANA
-291|Faili za kuingiza
-292|Hifadhi kwenye folda
-293|AI: maagizo
-294|AI: tathmini
-295|Chuja faili
-296|imeshindwa kuhifadhi mtiririko: {e}
-297|mtiririko haukupatikana: {name}
-298|imeshindwa kuunda folda ya kazi: {e}
-299|mtiririko ni mtupu.
-300|hakuna kilichofika
-301|▶ {title}
-302|vipengee {n}
-303|✔ {title}: {note}
-304|✖ {title}: {e}
-305|hakuna faili za kuingiza (ongeza faili kwenye nodi au tuma "files").
-306|faili {n}
-307|maandishi ni matupu.
-308|{} ndiyo, {} hapana
-309|imeshindwa kuunda {}: {e}
-310|{n} vimehifadhiwa katika {}
-311|andika maagizo kwa AI.
-312|   AI: {label}
-313|{label}: {e}
-314|majibu {n}
-315|andika kigezo cha tathmini.
-316|   {} {}: {reason}
-317|aina isiyojulikana: {other}
-318|zana isiyojulikana: {name}
-319|hakuna faili lililofika kwenye nodi hii.
-320|vipengee {}, {failed} vimeshindwa
-321|vipengee {}
-322|KUINGIZA NA KUTOA
-323|Ongeza nodi ya "Faili za kuingiza" ili kupokea faili.
-324|Mtiririko ulibadilishwa kutoka nje (MCP au programu nyingine) na umepakiwa upya.
-325|Mtiririko mpya
-326|Uotomatishaji
-327|Mtiririko wenye jina hilo tayari upo.
-328|+ Mpya
-329|Nakili
-330|nakala
-331|Bofya tena kufuta
-332|Futa
-333|🔍  Tafuta nodi…
-334|buruta faili hapa
-335|faili au folda {k}
-336|(tupu)
-337|andika maagizo
-338|andika kigezo
-339|Nyaraka\Conver
-340|kila kitu kinapita
-341|mipangilio chaguo-msingi
-342|Unda mtiririko kwa "+ Mpya".
-343|inaendelea…
-344|hapana
-345|Ondoa
-346|Nodi hii haipokei viingizo.
-347|Kiungo hicho kingeunda mzunguko.
-348|+  Ongeza nodi
-349|Tosheleza
-350|Onyesha mtiririko wote
-351|Ongeza nodi kwa kitufe "+ Ongeza nodi".
-352|Buruta kutoka nukta iliyo kulia mwa nodi hadi nodi nyingine ili kuziunganisha.
-353|Kiungo
-354|Ondoa kiungo
-355|Kidokezo: kitufe cha Delete pia huondoa.
-356|Mtiririko
-357|Maelezo
-358|Jinsi inavyofanya kazi
-359|1. Ongeza nodi kwa kitufe "+ Ongeza nodi" (zana, AI, vichujio).
-360|2. Buruta kutoka nukta iliyo kulia mwa nodi hadi nyingine ili kuunganisha: matokeo ya moja huenda kwa inayofuata.
-361|3. Bofya nodi ili kuirekebisha; buruta faili kwenye dirisha ili kuziweka kwenye kuingiza.
-362|4. Bofya Endesha mtiririko.
-363|Nodi za AI hutumia API iliyowekwa katika Mipangilio. Mawakala wa AI pia wanaweza kuunda na kuendesha mitiririko kupitia MCP (flow_save, flow_run).
-364|⚠ AI: {e}
-365|Weka AI
-366|Aina isiyojulikana: {}
-367|Jina kwenye ubao
-368|Folda ya kuhifadhi
-369|Nyaraka\Conver\<mtiririko>
-370|Katika maandishi, {text} huwa maandishi yanayofika na {file} huwa jina la faili.
-371|Ondoa nodi
-372|Faili na folda
-373|Bado hakuna: buruta faili kwenye dirisha au tumia vitufe vilivyo chini.
-374|Ondoa kwenye orodha
-375|+ Faili…
-376|+ Folda…
-377|Futa orodha
-378|Kutoka mstari wa amri au MCP, faili zinazotumwa kwa flow_run huchukua nafasi ya hizi.
-379|▶  Endesha mtiririko
-380|Inaendesha “{}”…
-381|Imekamilika, nodi {failed} zina hitilafu.
-382|Imekamilika: matokeo {n}.
-383|Rudi kwa chaguo-msingi
-384|(chaguo-msingi)
-385|(otomatiki)
-386|moja kwa kila mstari
-387|Muundo
-388|Ubora
-389|Kiwango
-390|Lugha
-391|Asilimia
-392|Dumisha uwiano
-393|Mwanzo
-394|Mwisho
-395|Muda (s)
-396|Ukubwa
-397|Zungusha (digrii)
-398|Kata kwa usahihi
-399|Kurasa
-400|Fremu kwa sekunde
-401|Geuza kwa mlalo
-402|Geuza kwa wima
-403|Usimbaji
-404|Dirisha
-405|Sauti
-406|Viungo
-407|Ukubwa wa mwisho (MB)
-408|Pakua manukuu
-409|Faili ya manukuu
-410|Hifadhi
-411|Ruka kurasa zenye maandishi tayari
-412|Sekunde
-413|Kipimo
-414|Ukolezi
-415|Ubora wa picha
-416|Badilisha sauti
-417|Eneo
-418|Mahali
-419|Orodha nzima ya kucheza
-420|Ukubwa wa ukurasa
-421|Nenosiri la mmiliki
-422|Nenosiri
-423|Muziki
-424|Mono
-425|Modeli
-426|Kipaza sauti
-427|Kiwango cha sauti lengwa (LUFS)
-428|Rudia
-429|Aina
-430|Dumisha sauti
-431|Kbps
-432|Hifadhi kama
-433|Kichujio
-434|Kigezo
-435|Kila (s)
-436|Ukingo
-437|Ubora (DPI)
-438|Punguza
-439|Pakua jalada
-440|Utofautishaji
-441|Rangi
-442|Kuingia kwa kivinjari
-443|Mwangaza
-444|Mandharinyuma
-445|Sauti (kbps)
-446|Uwiano
-447|Ruhusu kuchapisha
-448|Ruhusu kunakili
-449|Faili ya kutoa
-450|Jina
-451|Maagizo kwa AI
-452|Jibu moja kwa kila faili
-453|Pitisha faili mbele
-454|Hifadhi jibu kama
-455|Kigezo
-456|Aina zinazokubalika
-457|Viendelezi vinavyokubalika
-458|Ukubwa wa chini (MB)
-459|Ukubwa wa juu (MB)
-460|Hamisha badala ya kunakili
-461|Hifadhi maandishi kama .txt
-462|Haraka
-463|Wastani
-464|Sahihi
-465|Sauti ya mwimbaji na ala
-466|Sauti ya mwimbaji tu
-467|Ala pekee
-468|Hakuna
-469|Asili
-470|Uwazi
-471|Nyeupe
-472|Nyeusi na nyeupe
-473|Sepia
-474|Geuza rangi
-475|Juu
-476|Chini
-477|Ndogo
-478|Kubwa
-479|Laini
-480|Kali
-481|Video
-482|Sauti
-483|PDF
-484|Maandishi
-485|A4 wima
-486|A4 mlalo
-487|Bila kukata
-488|Geuza rangi
-489|Weka upana na/au urefu.
-490|Bila kudumisha uwiano, weka upana NA urefu.
-492| • imehifadhiwa kama PNG
-493|ubora {q} • {}
-494|imezungushwa {rotate}°
-495|imegeuzwa ↔
-496|imegeuzwa ↕
-497|ukataji {}
-498|hakuna mabadiliko
-500|metadata imeondolewa (mzunguko wa kamera umetumika kwenye picha)
-501|metadata imeondolewa ({})
-502|hakuna metadata iliyopatikana
-503|mandharinyuma imeondolewa • {kept:.0}% ya picha imebaki
-504|ukolezaji
-506|{w}x{h} → {}x{} (AI {scale}×)
-507|Ukubwa wa picha
-508|A4 wima
-509|A4 mlalo
-510|imeshindwa kuhifadhi: {e}
-511|siku {d} zilizopita
-512|miezi {} iliyopita
-513|miaka {} iliyopita
-514|Tarehe ya picha
-515|Mwangaza
-516|Kitundu
-517|Urefu wa lenzi
-518|Programu
-519|Mwandishi
-520|Hakimiliki
-521|Mahali (GPS)
-523|Jumla ya sehemu za EXIF
-524|Picha (EXIF)
-525|Muda
-526|Kasi ya biti jumla
-527|Jalada
-528|Video
-529|Sauti
-530|Manukuu
-531|Midia
-532|Nyimbo za data
-533|Lebo
-534|Folda
-535|{} (baiti {})
-536|Imebadilishwa
-537|Imeundwa
-538|Faili
-539|Vipimo
-540|{w} × {h} px (megapikseli {mp:.1})
-541|Rangi
-542| (yenye uwazi)
-543|Picha
-544|imeshindwa kusoma (imeharibika au inalindwa)
-545|imeshindwa kuuliza GitHub: {e}
-546|imeshindwa kufikia GitHub: {e}
-547|upakuaji umeshindwa: {e}
-548|faili iliyopakuliwa hailingani na sahihi iliyochapishwa; hakuna kilichobadilishwa.
-549|imeshindwa kubadilisha yt-dlp (inatumika?): {e}
-550|toleo lililopakuliwa halikufanya kazi; la awali limebaki.
-551|Tayari.
-552|Inaghairi…
-553|Inaanza…
-554|Hitilafu isiyotarajiwa.
-555|Vipakuliwa
-556|UOTOMATISHAJI
-557|Mitiririko ya uotomatishaji
-558|Badilisha ukubwa
-559|Punguza ubora
-560|Badilisha muundo
-561|Ondoa mandharinyuma
-562|Kuza kwa AI
-563|Zungusha / kata
-564|Marekebisho ya rangi
-565|Ondoa metadata
-566|Picha → PDF
-567|Kata kipande
-568|Unganisha video
-569|Badilisha kasi
-570|Video → GIF
-571|Chapisha manukuu
-572|Muziki wa nyuma
-573|Ondoa sauti / fremu
-574|Kata sauti
-575|Unganisha sauti
-576|Sawazisha sauti
-577|PDF → picha
-578|Linda kwa nenosiri
-579|Video na muziki
-580|Akili bandia (mitiririko ya uotomatishaji)
-581|Inatumiwa na nodi za "AI: maagizo" na "AI: tathmini". Faili zinazopita kwenye nodi hizi hutumwa kwa huduma iliyochaguliwa; sehemu nyingine ya Conver hubaki bila mtandao.
-582|Huduma:
-583|Anthropic (Claude)
-584|Inayooana na OpenAI
-585|mf.: gpt-4o-mini, llama3.1 (Ollama)
-586|Anwani ya API:
-587|Ufunguo wa API:
-588|umehifadhiwa (unalindwa na Windows)
-589|bandika ufunguo hapa
-590|Hifadhi ufunguo
-591|Jaribu muunganisho
-592|Inajaribu…
-593|✔ AI imejibu.
-594|kigeuzi cha kila kitu
-595|🔍  Tafuta zana…
-596|Ctrl+F
-597|Folda inayofuatiliwa  ●
-598|Kinasa sauti  ●
-599|Rekodi skrini  ●
-600|Hakuna zana iliyopatikana.
-601|⚙  Mipangilio
-602|🕘  Historia
-603|Mipangilio
-604|Weka Conver upendavyo.
-605|Lugha 20 zinazozungumzwa zaidi duniani. Majina ya faili na ujumbe wa FFmpeg na yt-dlp hayatafsiriwi.
-606|Mwonekano
-607|Angavu
-608|Giza
-609|Arifa
-610|Arifa ya Windows kazi ndefu inapoisha (Conver ikiwa nyuma)
-611|Cheza sauti inapoisha
-612|Jaribu arifa
-613|Hivi ndivyo arifa itakavyoonekana kazi ikiisha.
-614|arifa huonekana kwa jina "Windows PowerShell"; ndivyo Windows inavyoshughulikia programu zisizo na kisakinishi.
-615|Folda chaguo-msingi:
-616|Badilisha…
-617|Folda chaguo-msingi ya upakuaji
-618|Kuhusu
-619|Toleo:
-620|haikupatikana
-621|inakagua…
-622|Mradi:
-623|Uendeshaji otomatiki (mawakala wa AI na mstari wa amri)
-624|Mawakala wa AI (Claude, Cursor, VS Code…) wanaweza kutumia zana zote za Conver kupitia MCP. Bandika usanidi ulio hapa chini kwenye faili ya MCP ya wakala wako.
-625|Programu:
-626|Nakili usanidi wa MCP
-627|Nakili mfano wa mstari wa amri
-628|"{}" image_convert foto.png --format webp
-629|Kwenye mstari wa amri: conver-cli help  •  conver-cli <zana> faili… --chaguo thamani
-630|Muunganiko na Windows
-631|Onyesha "Fungua kwa Conver" kwenye menyu ya kubofya kulia (picha, video, sauti na PDF)
-632|Imeshindwa kubadilisha menyu: {e}
-633|Kwenye Windows 11, chaguo hili liko kwenye "Onyesha chaguo zaidi". Ukihamisha folda ya Conver, ondoa alama kisha uiweke tena.
-634|Masasisho
-635|Kagua toleo jipya la Conver wakati wa kufungua (huuliza GitHub)
-636|✔ una toleo jipya zaidi ({})
-637|toleo {} linapatikana
-638|Kagua sasa
-639|"Sasisha sasa" hupakua kisakinishi kipya, huhakiki sahihi yake na kusakinisha bila maswali: Conver hufunga na kufunguka tena yenyewe, na mipangilio ile ile.
-640|"Sasisha sasa" hupakua toleo jipya linalobebeka, huhakiki sahihi yake na kubadilisha faili za folda hii (folda dados inabaki): Conver hufunga na kufunguka tena yenyewe.
-641|Nakala hii haikusakinishwa kwa kisakinishi na si toleo linalobebeka: pakua toleo jipya kwenye tovuti.
-642|yt-dlp (injini ya upakuaji)
-643|Tovuti hubadilika mara kwa mara. Upakuaji ukiacha kufanya kazi, sasisha yt-dlp (inapakua toleo rasmi kutoka GitHub na kukagua sahihi).
-644|Sasisha yt-dlp
-645|Inapakua toleo jipya zaidi la yt-dlp…
-646|Tayari ulikuwa na toleo jipya zaidi ({after}).
-647|Imesasishwa: {before} → {after}.
-648|✔ {text}
-649|Kusasisha kumeshindwa.
-650|Inapakua Conver {}…
-651|Inasakinisha… Conver itafunga na kufunguka tena yenyewe.
-652|Pakua
-653|Sasisha sasa
-654|Toleo jipya la Conver linapatikana: {}
-655|Kipya ni nini
-656|Si sasa
-657|mwanzo ({}) unapita mwisho wa faili ({}).
-658|mwisho lazima uwe baada ya mwanzo.
-660|ongeza angalau video 2.
-661|{} haina video.
-662|Video {} • {}{extra} • {}
-663|{e} — kama video zinatofautiana, tumia "Simba upya"
-664|faili haina video.
-666|sauti imeondolewa • {}
-667|Picha {n} kwenye folda {}
-668|faili haina sauti.
-669|sauti imewekwa kuwa {lufs} LUFS
-670|mwanzo unapita mwisho wa video.
-672|9:16 (Reels/TikTok)
-673|1:1 (mlisho)
-674|4:5 (Instagram)
-675|16:9 (YouTube)
-676|chagua kuzungusha, kugeuza au kukata.
-677|imeshindwa kusoma manukuu: {e}
-678|manukuu: {}
-679|{} haina sauti.
-680|imeshindwa kusoma muda wa video.
-681|imechanganywa na sauti ya asili
-682|badala ya sauti ya asili
-683|{} {how} • sauti {volume}%
-684|ongeza angalau faili 2.
-685|Faili {} • {} • {}
-686|Badilisha muundo wa video
-687|Badilisha kati ya MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF au toa sauti kama MP3.
-688|Bana video
-689|Punguza ukubwa wa video kwa kuchagua kiwango cha kubana au ukubwa wa mwisho kwa MB.
-690|Kata kipande cha video
-691|Chagua mwanzo na mwisho kisha uhifadhi sehemu hiyo tu ya video.
-692|Kata
-693|Unganisha video kadhaa kuwa moja, kwa mpangilio wa orodha.
-694|Ongeza kasi au punguza (0,25× hadi 4×). Sauti hufuata bila kuwa nyembamba au nzito.
-695|Tumia
-696|Ondoa sauti / toa fremu
-697|Nyamazisha video au hifadhi picha kutoka kwake kila baada ya muda fulani.
-698|Badilisha muundo wa sauti
-699|Badilisha kati ya MP3, WAV, FLAC, OGG, M4A na OPUS. Pia hutoa sauti kutoka kwa video.
-700|Hifadhi sehemu tu ya wimbo au rekodi.
-701|Sawazisha sauti ya faili kadhaa (au video) kwenye kiwango kimoja, bila kupasuka.
-702|Sawazisha
-703|Bana sauti
-704|Punguza ukubwa wa faili za sauti kwa kuchagua kasi ya biti.
-705|Video kuwa GIF
-706|Geuza sehemu tu ya video kuwa GIF inayosonga.
-707|Tengeneza GIF
-708|Zungusha na kata video
-709|Zungusha video zilizorekodiwa kwa ubavu au zikate kuwa 9:16 (Reels/TikTok), 1:1, 4:5 au 16:9.
-710|Chapisha manukuu (.srt, .ass au .vtt) ndani ya video ili yaonekane kwenye kicheza chochote au mtandao wa kijamii.
-711|Weka manukuu
-712|Weka muziki kwenye video, uliochanganywa na sauti ya asili au badala yake.
-713|Unganisha nyimbo au rekodi kadhaa kuwa faili moja, kwa mpangilio wa orodha.
-714|Mwanzo si sahihi. Tumia muundo 00:01:30 (au sekunde tu).
-715|Mwisho si sahihi. Tumia muundo 00:02:45 (au sekunde tu).
-716|Mwisho lazima uwe baada ya mwanzo.
-717|Muundo wa matokeo:
-718|Ubora:
-719|Bana kwa:
-720|Ukubwa wa mwisho
-721|Ukubwa unaotakiwa:
-722|kila video itakuwa na takriban ukubwa huu (mizunguko 2, polepole zaidi)
-723|Ubora wa juu zaidi wa picha:
-724|Usimbaji:
-725|H.264 (inaoana)
-726|H.265 (ndogo zaidi, polepole)
-727|Sauti:
-730|Matokeo huhifadhiwa kama MP4 yenye kiambishi _comprimido.
-731|Mwanzo:
-732|Mwisho:
-733|hadi mwisho
-734|muda wa faili iliyochaguliwa: {}
-735|Haraka (bila kupoteza ubora)
-736|Sahihi (husimba upya)
-737|Hukata hasa kwenye nyakati ulizoweka; huchukua muda zaidi kwa sababu husimba faili upya.
-738|Papo hapo na bila kupoteza ubora; kwenye video, ukataji unaweza kuanza sekunde chache kabla ya mwanzo.
-739|Simba upya (inapendekezwa)
-740|Haraka (unganisha tu)
-741|Hufanya kazi na video tofauti: zote hupata ubora wa ile ya kwanza, na kingo ikihitajika. Huhifadhi kama MP4.
-742|Papo hapo, lakini hufanya kazi tu ikiwa video zote zina muundo, ubora na usimbaji uleule.
-743|Tumia ↑ na ↓ kwenye orodha kubadilisha mpangilio.
-744|Kasi:
-745|Maalum:
-746|Baki na sauti (inaongezwa/inapunguzwa kasi pamoja)
-747|Ondoa sauti
-748|Toa fremu
-749|Picha moja kila:
-750|PNG (bila kupoteza ubora)
-751|Picha huhifadhiwa kwenye folda <jina la video>_frames.
-752|Video inanakiliwa bila kusimbwa upya: haraka na bila kupoteza ubora.
-753|WAV na FLAC hazipotezi ubora: hakuna ubora wa kuchagua.
-754|Kiwango cha sauti kinacholengwa:
-755|Juu (−14, utiririshaji)
-756|Kawaida (−16)
-757|Laini (−23, TV)
-758|Kwenye video, picha inanakiliwa bila kupoteza ubora; sauti pekee ndiyo inasimbwa upya.
-759|MP3 (inaoana)
-760|OPUS (ndogo zaidi)
-761|Kasi ya biti:
-763|Chaneli:
-764|Badilisha kuwa mono (nusu ya ukubwa; nzuri kwa sauti ya kuongea)
-765|64–96 kbps ni nzuri kwa sauti ya kuongea na podikasti; 128–160 kbps kwa muziki.
-766|Muda:
-767|video iliyochaguliwa: {}
-768|Upana:
-773|GIF hukua haraka: vipande vifupi, 480 px na 12 fps kwa kawaida huwa chini ya MB 5.
-774|Zungusha:
-775|Usizungushe
-776|Geuza:
-777|Kwa mlalo ↔
-778|Kata:
-779|Ukataji uko katikati. Sauti inanakiliwa bila kupoteza ubora.
-780|Manukuu:
-781|kiotomatiki (jina sawa na video)
-782|Manukuu
-783|Chagua manukuu
-784|Kiotomatiki
-785|Yamepatikana kwa video iliyochaguliwa: {}
-786|Hakuna manukuu yenye jina sawa na video iliyochaguliwa. Chagua faili.
-787|Kila video hutumia manukuu yenye jina lake (video.srt), au chagua moja kwa zote.
-788|Ukubwa wa maandishi:
-789|Wastani
-790|Mahali:
-791|Muziki:
-792|Faili zote
-793|Chagua muziki
-794|Sauti ya asili:
-795|Changanya na muziki
-796|Badilisha kwa muziki
-797|Sauti ya muziki:
-798|Rudia:
-799|Rudia muziki kama ni mfupi kuliko video
-800|Kwa muziki wa nyuma chini ya mazungumzo, 20–40% kwa kawaida inafaa. Picha inanakiliwa bila kupoteza ubora.
-801|Tumia ↑ na ↓ kwenye orodha kubadilisha mpangilio. Video pia zinakubaliwa (sauti yake inatumika).
-802|Faili {}
-803|Video {}
-804|hakuna manukuu yenye jina sawa na video; chagua faili ya manukuu.
-805|chagua muziki.
-806|Conver — tayari
-807|Conver — hitilafu
-808|lugha {lang} haijasakinishwa kwa OCR kwenye Windows.
-809|Badilisha picha
-810|Bana picha
-811|Zungusha na kata
-812|Rekebisha rangi
-813|Picha kuwa PDF
-814|Badilisha video
-815|Kasi
-816|Manukuu kwenye video
-817|Badilisha sauti
-818|Upakuaji
-819|Maikrofoni na madirisha
-820|Orodha ya mipangilio
-821|Orodhesha mitiririko
-822|Tazama mtiririko
-823|Aina za nodi
-824|Hifadhi mtiririko
-825|Futa mtiririko
-826|Endesha mtiririko
-827|Imeghairiwa na mtumiaji.
-828|[{}/{n}] {name}
-829|✔ {name}   {info}
-830|Imekamilika: {ok} kati ya faili {n}.
-831|Inachakata…
-832|✔ {}   {info}
-833|Imekamilika.
-834|Badilisha ukubwa wa picha
-835|Badilisha vipimo vya picha moja au zaidi, kwa asilimia au pikseli.
-836|Punguza ukubwa wa faili huku ukibaki na muundo (JPG, PNG, WEBP…).
-837|Chagua kutoka 1 hadi 100. JPG na WEBP hubaki na muundo wao; nyingine huwa JPG (au WEBP kama zina uwazi).
-838|Badilisha muundo wa picha
-839|Badilisha kati ya PNG, JPG, WEBP, BMP, GIF, TIFF na ICO.
-840|Zungusha, geuza na kata
-841|Zungusha, geuza au kata picha kwa uwiano uliowekwa tayari (ukataji uko katikati).
-842|Hufuta taarifa zilizofichwa kwenye picha (EXIF, mahali pa GPS, kamera, tarehe) bila kupoteza ubora.
-843|Ondoa mandharinyuma ya picha za watu, bidhaa na wanyama kwa akili bandia, kwenye kompyuta yako na bila intaneti.
-844|Kuza picha mara 2 au 4 bila kufifia: akili bandia hutengeneza upya maelezo. Inafanya kazi kwenye kompyuta yako, bila intaneti.
-845|Kuza
-846|Badilisha mwangaza, utofautishaji na ukolezaji au tumia kichujio. Kagua onyesho la awali kabla ya kuhifadhi.
-847|Unganisha picha kadhaa kuwa PDF moja, picha moja kwa kila ukurasa, kwa mpangilio wa orodha.
-848|Tengeneza PDF
-849|Upana na urefu lazima viwe namba kamili chanya.
-850|Weka upana na/au urefu kwa pikseli.
-851|hakuna onyesho la awali
-852|Pikseli
-853|Dumisha uwiano
-854|Uwiano ukidumishwa, picha inatoshea ndani ya upana/urefu uliowekwa.
-855|Nyepesi = karibu hakuna upotevu unaoonekana  •  Kali = faili ndogo zaidi sana
-856|Aikoni ni hadi 256×256; picha kubwa zaidi hupunguzwa.
-857|Kwa wima ↕
-858|JPG, PNG na WEBP: metadata pekee ndiyo hufutwa, picha haibanwi upya.
-859|Kama picha ina mzunguko wa kamera, unatumika kwanza ili picha isiwe imelala ubavu.
-860|Mandharinyuma mapya:
-861|Kingo:
-862|Laini (nywele, manyoya)
-863|Uwazi huhifadhiwa kama PNG. Picha ya kwanza huchukua sekunde chache wakati modeli inapakia.
-864|⚠ Modeli ya AI haikupatikana: weka silueta.onnx kwenye folda modelos.
-865|Kuza:
-866|Nzuri kwa picha ndogo, picha za skrini na picha za zamani. Picha kubwa huchukua muda zaidi (hata onyesho la awali).
-867|⚠ Modeli ya AI haikupatikana: weka realesr-general-x4v3.onnx kwenye folda modelos.
-868|Mwangaza:
-869|Utofautishaji:
-870|Ukolezaji:
-871|Weka upya
-872|Kichujio:
-873|Ukubwa wa ukurasa:
-874|Tumia ↑ na ↓ kwenye orodha kubadilisha mpangilio wa kurasa.
-875|Matokeo
-876|Ongeza picha ili kuona onyesho la awali
-877|Matokeo: {}×{}  •  {}   ({})
-878|Inaandaa onyesho la awali…
-879|Ukurasa {}  •
-880|{page}Asili: {}×{}  •  {orig_size}
-881|Inapakia…
-882|Imeshindwa kufungua picha hii.
-883|Picha {}
-884|Kurasa {pages} • {}
-885|Usitumie
-886|Pakua video na muziki
-887|Viungo {n} — vitapakuliwa kwa foleni
-888|Bandika hapa kiungo cha video, wimbo au orodha ya kucheza (kimoja au zaidi, kimoja kwa kila mstari)
-889|MP4 (video)
-890|MP3 (sauti)
-891|Kuingia kwa kivinjari:
-892|kwa tovuti zinazohitaji akaunti (Instagram, Facebook). Funga kivinjari kabla ya kupakua.
-893|Pakua pia:
-894|Manukuu (.srt, Kireno na Kiingereza)
-895|Picha ya jalada (.jpg)
-896|Pakua orodha nzima ya kucheza (kama kiungo ni cha orodha)
-897|Pakua tu maudhui ambayo una haki ya kupakua.
-898|Chagua folda halali ya matokeo.
-899|[kiungo {}/{n}]
-900|{prefix}Inatafuta taarifa…
-901| (viungo {failed} vina hitilafu)
-902|Imekamilika: faili {total} zimepakuliwa{errors}.
-903|{}: imeshindwa kufungua PDF ({e})
-904|{} inalindwa kwa nenosiri.
-905|ongeza angalau PDF 2.
-906|kipindi si sahihi: "{part}". Tumia kitu kama 1-3, 7, 10-
-907|ukurasa {a} haupo (PDF ina {total}).
-908|weka kurasa, kwa mfano 1-3, 7
-909|{} kati ya kurasa {total}
-910|PDF {total} kwenye folda {}
-911|{} imelindwa kwa nenosiri; ondoa nenosiri kwanza.
-912|PDF ilikuwa tayari imeboreshwa (hakuna upunguzaji)
-913|picha {changed} zimebanwa upya • {}
-914|weka nenosiri.
-915|{} tayari imelindwa kwa nenosiri.
-916|imeshindwa kulinda: {e}
-917|imelindwa kwa nenosiri (AES-128)
-918|nenosiri si sahihi.
-919|nenosiri limeondolewa
-920|PDF imelindwa: weka nenosiri.
-921|imeshindwa kufungua PDF ({})
-922|picha {} kwenye folda {}
-923|kurasa {done} zenye maandishi yaliyotambuliwa • maneno {words_total}
-924| • {skipped} tayari zilikuwa na maandishi
-925|maandishi ni marefu mno kwa QR Code.
-926|ffmpeg haikupatikana.
-927|imeshindwa kuanzisha ffmpeg: {e}
-928|kurekodi kumesimama.
-929|hakuna sauti iliyotoka kwenye maikrofoni hii. Chagua ingizo lingine kwenye orodha (mf.: "Maikrofoni (…)").
-930|kipaza sauti kimeacha kujibu.
-931|jina linajirudia
-932|tayari kuna faili yenye jina hili
-933|hakuna kilichorekodiwa.
-934|UVR MDX-Net (67 MB)
-935|Ala tu (karaoke)
-936|imeshindwa kuhifadhi: {}
-937|sauti ni fupi mno (chini ya nusu sekunde).
-938|{} • {dur}
-940|Haraka (82 MB)
-941|Wastani (264 MB)
-942|Sahihi (574 MB)
-943|Whisper base (82 MB)
-944|Whisper small (264 MB)
-945|Whisper large-v3 turbo (574 MB)
-946|Tambua kiotomatiki
-947|Kireno
-948|Kiingereza
-949|Kihispania
-950|Kifaransa
-951|Kijerumani
-952|Kiitaliano
-953|Kirusi
-954|Kichina
-955|Kijapani
-956|Kikorea
-957|Kiarabu
-958|Kihindi
-959|Kituruki
-960|Kipolandi
-961|Kiukreni
-962|Kiholanzi
-963|Kiindonesia
-964|Kivietinamu
-965|Kiajemi
-966|imeshindwa kuanzisha Whisper: {e}
-967|hitilafu ya Whisper: {}
-968|Whisper haikuunda faili yoyote.
-969|maneno {words} • {}
-970|nakala hii ya Conver haikusakinishwa kwa kisakinishi na si inayobebeka; pakua kwenye tovuti.
-971|toleo jipya halina faili ya nakala hii ya Conver; pakua kwenye tovuti.
-972|toleo jipya halikuchapisha checksum zake; pakua kwenye tovuti.
-973|faili ya sasisho haimo kwenye orodha ya checksum; pakua kwenye tovuti.
-974|imeshindwa kufungua sasisho: {e}
-975|imeshindwa kufungua sasisho.
-976|imeshindwa kuanzisha kisakinishi: {e}
-977|imeshindwa kuanzisha sasisho: {e}
-978|usasishaji wa kiotomatiki haupatikani kwa nakala hii.
-979|Imeshindwa kukamilisha sasisho: {e}
-980|modeli ya kukuza haikupatikana (folda modelos).
-981|upande wa picha ungezidi pikseli {MAX_SIDE}; ipunguze kwanza au tumia 2×.
-982|MP3 (sauti tu)
-983|ffmpeg imeshindwa: {}
-984|MB {mb} ni ndogo mno kwa video ya sekunde {:.0} (angalau ≈ MB {:.1}).
-985|Bana picha
-986|Badilisha picha
-987|Bana video
-988|Badilisha video
-989|Badilisha sauti
-990|✖ imeshindwa kuunda folda {OUT_FOLDER}: {e}
-991|Inafuatilia {} — {}
-992|Matokeo huenda kwenye folda ndogo "{OUT_FOLDER}".
-993|Inafuatilia folda… (zimechakatwa {count})
-994|Inachakata {name}…
-995|{name}: {info}
-996|{name}: {e}
-997|Imesimamishwa. Faili {count} zimechakatwa.
-998|Chagua faili
-999|Hakuna faili
-1000|Faili 1
-1001|Faili {n}
-1002|+ Ongeza
-1003|mpangilio:
-1004|Buruta faili hapa
-1005|au bofya ili kuchagua
-1009|Wimbo wa sauti unaonekana hapa
-1010|0 dB
-1011|{d:.1} dB
-1012|Inasubiri sauti kutoka kwa kipaza sauti…
-1013|⚠ Karibu hakuna sauti: ongea karibu zaidi au ongeza sauti ya kipaza sauti kwenye Windows.
-1014|Chini kidogo: ongea karibu zaidi na kipaza sauti.
-1015|✔ Kiwango kizuri.
-1016|Folda ileile ya faili ya asili
-1017|Chagua folda ya matokeo
-1018|Fungua folda
-1019|Achia ili kuongeza
-1020|Picha na video huenda kwenye zana sahihi
+240|❚❚  IMESITISHWA
+241|●  REC
+242|Dirisha limepunguzwa au limefungwa.
+243|Inapakia onyesho la kukagua…
+244|Rekodi skrini
+245|Rekodi skrini nzima, monita moja, dirisha au eneo kama MP4, ukiwa na au bila kipaza sauti.
+246|Rekodi:
+247|Skrini nzima
+248|Monita moja
+249|Dirisha moja
+250|Eneo moja
+251|Ukiwa na monita zaidi ya moja, "Skrini nzima" hurekodi zote pamoja. Ili kurekodi moja tu, chagua "Monita moja".
+252|Monita:
+253|hakuna monita iliyopatikana
+254|Monita
+255|Dirisha:
+256|hakuna dirisha lililopatikana
+257|Eneo (px):
+258|Upana
+259|Urefu
+260|Ubora:
+261|Nyepesi (faili ndogo)
+262|Ubora wa juu zaidi wa picha:
+263|Asili
+264|Fremu kwa sekunde:
+265|Bila sauti
+266|Chaguo:
+267|Onyesha kishale
+268|Punguza Conver unapoanza
+269|❚❚  Imesitishwa
+270|▶  Endelea
+271|❚❚  Sitisha
+272|Tazama
+273|Ili kusitisha au kusimamisha, rudi kwa Conver (hubaki kwenye upau wa kazi). Sehemu zilizositishwa huunganishwa kuwa MP4 moja.
+274|Mipangilio iliyohifadhiwa
+275|Mipangilio unayoipenda, tayari kwa mbofyo mmoja, kwa mstari wa amri au na wakala wa AI (MCP).
+276|Bado hakuna mipangilio. Unda wa kwanza hapa chini.
+277|Futa
+278|Funga fomu
+279|+ Mpangilio mpya
+280|Rejesha iliyokuja tayari
+281|Jina:
+282|Maelezo:
+283|Zana:
+284|Hifadhi mpangilio
+285|✔ Mpangilio umehifadhiwa: {}
+286|Mstari wa amri: conver-cli preset "{}" faili…
+287|Tumia mpangilio
+288|Inatumia: {}
+289|Imekamilika: {} sawa, {} na hitilafu.
+290|Imehifadhiwa kwenye: {}
+291|Hitilafu.
+292|mtiririko una mzunguko (nodi inarudi kwa iliyotangulia).
+293|mtiririko unahitaji jina.
+294|kuna nodi mbili zenye kitambulisho {}.
+295|nodi {}: aina isiyojulikana "{}" (tazama flow_node_types).
+296|kiungo {} → {}: nodi {} haina tokeo "{}" (ina: {}).
+297|kiungo {} → {}: nodi {} haipokei viingizo.
+298|kiungo {} → {}: nodi haipo.
+299|PICHA
+300|VIDEO
+301|SAUTI
+302|UPAKUAJI
+303|ZANA
+304|Faili za kuingiza
+305|Hifadhi kwenye folda
+306|AI: maagizo
+307|AI: tathmini
+308|Chuja faili
+309|imeshindwa kuhifadhi mtiririko: {e}
+310|mtiririko haukupatikana: {name}
+311|imeshindwa kuunda folda ya kazi: {e}
+312|mtiririko ni mtupu.
+313|hakuna kilichofika
+314|▶ {title}
+315|vipengee {n}
+316|✔ {title}: {note}
+317|✖ {title}: {e}
+318|hakuna faili za kuingiza (ongeza faili kwenye nodi au tuma "files").
+319|faili {n}
+320|maandishi ni matupu.
+321|{} ndiyo, {} hapana
+322|imeshindwa kuunda {}: {e}
+323|{n} vimehifadhiwa katika {}
+324|andika maagizo kwa AI.
+325|   AI: {label}
+326|{label}: {e}
+327|majibu {n}
+328|andika kigezo cha tathmini.
+329|   {} {}: {reason}
+330|aina isiyojulikana: {other}
+331|zana isiyojulikana: {name}
+332|hakuna faili lililofika kwenye nodi hii.
+333|vipengee {}, {failed} vimeshindwa
+334|vipengee {}
+335|KUINGIZA NA KUTOA
+336|Ongeza nodi ya "Faili za kuingiza" ili kupokea faili.
+337|Mtiririko ulibadilishwa kutoka nje (MCP au programu nyingine) na umepakiwa upya.
+338|Mtiririko mpya
+339|Uotomatishaji
+340|Mtiririko wenye jina hilo tayari upo.
+341|+ Mpya
+342|Nakili
+343|nakala
+344|Bofya tena kufuta
+345|Futa
+346|🔍  Tafuta nodi…
+347|buruta faili hapa
+348|faili au folda {k}
+349|(tupu)
+350|andika maagizo
+351|andika kigezo
+352|Nyaraka\Conver
+353|kila kitu kinapita
+354|mipangilio chaguo-msingi
+355|Unda mtiririko kwa "+ Mpya".
+356|inaendelea…
+357|hapana
+358|Ondoa
+359|Nodi hii haipokei viingizo.
+360|Kiungo hicho kingeunda mzunguko.
+361|+  Ongeza nodi
+362|Tosheleza
+363|Onyesha mtiririko wote
+364|Ongeza nodi kwa kitufe "+ Ongeza nodi".
+365|Buruta kutoka nukta iliyo kulia mwa nodi hadi nodi nyingine ili kuziunganisha.
+366|Kiungo
+367|Ondoa kiungo
+368|Kidokezo: kitufe cha Delete pia huondoa.
+369|Mtiririko
+370|Maelezo
+371|Jinsi inavyofanya kazi
+372|1. Ongeza nodi kwa kitufe "+ Ongeza nodi" (zana, AI, vichujio).
+373|2. Buruta kutoka nukta iliyo kulia mwa nodi hadi nyingine ili kuunganisha: matokeo ya moja huenda kwa inayofuata.
+374|3. Bofya nodi ili kuirekebisha; buruta faili kwenye dirisha ili kuziweka kwenye kuingiza.
+375|4. Bofya Endesha mtiririko.
+376|Nodi za AI hutumia API iliyowekwa katika Mipangilio. Mawakala wa AI pia wanaweza kuunda na kuendesha mitiririko kupitia MCP (flow_save, flow_run).
+377|⚠ AI: {e}
+378|Weka AI
+379|Aina isiyojulikana: {}
+380|Jina kwenye ubao
+381|Folda ya kuhifadhi
+382|Nyaraka\Conver\<mtiririko>
+383|Katika maandishi, {text} huwa maandishi yanayofika na {file} huwa jina la faili.
+384|Ondoa nodi
+385|Faili na folda
+386|Bado hakuna: buruta faili kwenye dirisha au tumia vitufe vilivyo chini.
+387|Ondoa kwenye orodha
+388|+ Faili…
+389|+ Folda…
+390|Futa orodha
+391|Kutoka mstari wa amri au MCP, faili zinazotumwa kwa flow_run huchukua nafasi ya hizi.
+392|▶  Endesha mtiririko
+393|Inaendesha “{}”…
+394|Imekamilika, nodi {failed} zina hitilafu.
+395|Imekamilika: matokeo {n}.
+396|Rudi kwa chaguo-msingi
+397|(chaguo-msingi)
+398|(otomatiki)
+399|moja kwa kila mstari
+400|Muundo
+401|Ubora
+402|Kiwango
+403|Lugha
+404|Asilimia
+405|Dumisha uwiano
+406|Mwanzo
+407|Mwisho
+408|Muda (s)
+409|Ukubwa
+410|Zungusha (digrii)
+411|Kata kwa usahihi
+412|Kurasa
+413|Fremu kwa sekunde
+414|Geuza kwa mlalo
+415|Geuza kwa wima
+416|Usimbaji
+417|Dirisha
+418|Sauti
+419|Viungo
+420|Ukubwa wa mwisho (MB)
+421|Pakua manukuu
+422|Faili ya manukuu
+423|Hifadhi
+424|Ruka kurasa zenye maandishi tayari
+425|Sekunde
+426|Kipimo
+427|Ukolezi
+428|Ubora wa picha
+429|Badilisha sauti
+430|Eneo
+431|Mahali
+432|Orodha nzima ya kucheza
+433|Ukubwa wa ukurasa
+434|Nenosiri la mmiliki
+435|Nenosiri
+436|Muziki
+437|Mono
+438|Modeli
+439|Kipaza sauti
+440|Kiwango cha sauti lengwa (LUFS)
+441|Rudia
+442|Aina
+443|Dumisha sauti
+444|Kbps
+445|Hifadhi kama
+446|Kichujio
+447|Kigezo
+448|Kila (s)
+449|Ukingo
+450|Ubora (DPI)
+451|Punguza
+452|Pakua jalada
+453|Utofautishaji
+454|Rangi
+455|Kuingia kwa kivinjari
+456|Mwangaza
+457|Mandharinyuma
+458|Sauti (kbps)
+459|Uwiano
+460|Ruhusu kuchapisha
+461|Ruhusu kunakili
+462|Faili ya kutoa
+463|Jina
+464|Maagizo kwa AI
+465|Jibu moja kwa kila faili
+466|Pitisha faili mbele
+467|Hifadhi jibu kama
+468|Kigezo
+469|Aina zinazokubalika
+470|Viendelezi vinavyokubalika
+471|Ukubwa wa chini (MB)
+472|Ukubwa wa juu (MB)
+473|Hamisha badala ya kunakili
+474|Hifadhi maandishi kama .txt
+475|Haraka
+476|Wastani
+477|Sahihi
+478|Sauti ya mwimbaji na ala
+479|Sauti ya mwimbaji tu
+480|Ala pekee
+481|Hakuna
+482|Uwazi
+483|Nyeupe
+484|Nyeusi na nyeupe
+485|Sepia
+486|Geuza rangi
+487|Juu
+488|Chini
+489|Ndogo
+490|Kubwa
+491|Laini
+492|Kali
+493|Video
+494|Sauti
+495|PDF
+496|Maandishi
+497|A4 wima
+498|A4 mlalo
+499|Bila kukata
+500|Geuza rangi
+501|Weka upana na/au urefu.
+502|Bila kudumisha uwiano, weka upana NA urefu.
+504| • imehifadhiwa kama PNG
+505|ubora {q} • {}
+506|imezungushwa {rotate}°
+507|imegeuzwa ↔
+508|imegeuzwa ↕
+509|ukataji {}
+510|hakuna mabadiliko
+512|metadata imeondolewa (mzunguko wa kamera umetumika kwenye picha)
+513|metadata imeondolewa ({})
+514|hakuna metadata iliyopatikana
+515|mandharinyuma imeondolewa • {kept:.0}% ya picha imebaki
+516|ukolezaji
+518|{w}x{h} → {}x{} (AI {scale}×)
+519|Ukubwa wa picha
+520|A4 wima
+521|A4 mlalo
+522|imeshindwa kuhifadhi: {e}
+523|siku {d} zilizopita
+524|miezi {} iliyopita
+525|miaka {} iliyopita
+526|Tarehe ya picha
+527|Mwangaza
+528|Kitundu
+529|Urefu wa lenzi
+530|Programu
+531|Mwandishi
+532|Hakimiliki
+533|Mahali (GPS)
+535|Jumla ya sehemu za EXIF
+536|Picha (EXIF)
+537|Muda
+538|Kasi ya biti jumla
+539|Jalada
+540|Video
+541|Sauti
+542|Manukuu
+543|Midia
+544|Nyimbo za data
+545|Lebo
+546|Folda
+547|{} (baiti {})
+548|Imebadilishwa
+549|Imeundwa
+550|Faili
+551|Vipimo
+552|{w} × {h} px (megapikseli {mp:.1})
+553|Rangi
+554| (yenye uwazi)
+555|Picha
+556|imeshindwa kusoma (imeharibika au inalindwa)
+557|imeshindwa kuuliza GitHub: {e}
+558|imeshindwa kufikia GitHub: {e}
+559|upakuaji umeshindwa: {e}
+560|faili iliyopakuliwa hailingani na sahihi iliyochapishwa; hakuna kilichobadilishwa.
+561|imeshindwa kubadilisha yt-dlp (inatumika?): {e}
+562|toleo lililopakuliwa halikufanya kazi; la awali limebaki.
+563|Tayari.
+564|Inaghairi…
+565|Inaanza…
+566|Hitilafu isiyotarajiwa.
+567|Vipakuliwa
+568|UOTOMATISHAJI
+569|Mitiririko ya uotomatishaji
+570|Badilisha ukubwa
+571|Punguza ubora
+572|Badilisha muundo
+573|Ondoa mandharinyuma
+574|Kuza kwa AI
+575|Zungusha / kata
+576|Marekebisho ya rangi
+577|Ondoa metadata
+578|Picha → PDF
+579|Kata kipande
+580|Unganisha video
+581|Badilisha kasi
+582|Video → GIF
+583|Chapisha manukuu
+584|Muziki wa nyuma
+585|Ondoa sauti / fremu
+586|Kata sauti
+587|Unganisha sauti
+588|Sawazisha sauti
+589|PDF → picha
+590|Linda kwa nenosiri
+591|Video na muziki
+592|Akili bandia (mitiririko ya uotomatishaji)
+593|Inatumiwa na nodi za "AI: maagizo" na "AI: tathmini". Faili zinazopita kwenye nodi hizi hutumwa kwa huduma iliyochaguliwa; sehemu nyingine ya Conver hubaki bila mtandao.
+594|Huduma:
+595|Anthropic (Claude)
+596|Inayooana na OpenAI
+597|mf.: gpt-4o-mini, llama3.1 (Ollama)
+598|Anwani ya API:
+599|Ufunguo wa API:
+600|umehifadhiwa (unalindwa na Windows)
+601|bandika ufunguo hapa
+602|Hifadhi ufunguo
+603|Jaribu muunganisho
+604|Inajaribu…
+605|✔ AI imejibu.
+606|kigeuzi cha kila kitu
+607|🔍  Tafuta zana…
+608|Ctrl+F
+609|Folda inayofuatiliwa  ●
+610|Kinasa sauti  ●
+611|Rekodi skrini  ●
+612|Hakuna zana iliyopatikana.
+613|⚙  Mipangilio
+614|🕘  Historia
+615|Mipangilio
+616|Weka Conver upendavyo.
+617|Lugha 20 zinazozungumzwa zaidi duniani. Majina ya faili na ujumbe wa FFmpeg na yt-dlp hayatafsiriwi.
+618|Mwonekano
+619|Angavu
+620|Giza
+621|Arifa
+622|Arifa ya Windows kazi ndefu inapoisha (Conver ikiwa nyuma)
+623|Cheza sauti inapoisha
+624|Jaribu arifa
+625|Hivi ndivyo arifa itakavyoonekana kazi ikiisha.
+626|arifa huonekana kwa jina "Windows PowerShell"; ndivyo Windows inavyoshughulikia programu zisizo na kisakinishi.
+627|Folda chaguo-msingi:
+628|Badilisha…
+629|Folda chaguo-msingi ya upakuaji
+630|Kuhusu
+631|Toleo:
+632|haikupatikana
+633|inakagua…
+634|Mradi:
+635|Uendeshaji otomatiki (mawakala wa AI na mstari wa amri)
+636|Mawakala wa AI (Claude, Cursor, VS Code…) wanaweza kutumia zana zote za Conver kupitia MCP. Bandika usanidi ulio hapa chini kwenye faili ya MCP ya wakala wako.
+637|Programu:
+638|Nakili usanidi wa MCP
+639|Nakili mfano wa mstari wa amri
+640|"{}" image_convert foto.png --format webp
+641|Kwenye mstari wa amri: conver-cli help  •  conver-cli <zana> faili… --chaguo thamani
+642|Muunganiko na Windows
+643|Onyesha "Fungua kwa Conver" kwenye menyu ya kubofya kulia (picha, video, sauti na PDF)
+644|Imeshindwa kubadilisha menyu: {e}
+645|Kwenye Windows 11, chaguo hili liko kwenye "Onyesha chaguo zaidi". Ukihamisha folda ya Conver, ondoa alama kisha uiweke tena.
+646|Masasisho
+647|Kagua toleo jipya la Conver wakati wa kufungua (huuliza GitHub)
+648|✔ una toleo jipya zaidi ({})
+649|toleo {} linapatikana
+650|Kagua sasa
+651|"Sasisha sasa" hupakua kisakinishi kipya, huhakiki sahihi yake na kusakinisha bila maswali: Conver hufunga na kufunguka tena yenyewe, na mipangilio ile ile.
+652|"Sasisha sasa" hupakua toleo jipya linalobebeka, huhakiki sahihi yake na kubadilisha faili za folda hii (folda dados inabaki): Conver hufunga na kufunguka tena yenyewe.
+653|Nakala hii haikusakinishwa kwa kisakinishi na si toleo linalobebeka: pakua toleo jipya kwenye tovuti.
+654|yt-dlp (injini ya upakuaji)
+655|Tovuti hubadilika mara kwa mara. Upakuaji ukiacha kufanya kazi, sasisha yt-dlp (inapakua toleo rasmi kutoka GitHub na kukagua sahihi).
+656|Sasisha yt-dlp
+657|Inapakua toleo jipya zaidi la yt-dlp…
+658|Tayari ulikuwa na toleo jipya zaidi ({after}).
+659|Imesasishwa: {before} → {after}.
+660|✔ {text}
+661|Kusasisha kumeshindwa.
+662|Inapakua Conver {}…
+663|Inasakinisha… Conver itafunga na kufunguka tena yenyewe.
+664|Pakua
+665|Sasisha sasa
+666|Toleo jipya la Conver linapatikana: {}
+667|Kipya ni nini
+668|Si sasa
+669|mwanzo ({}) unapita mwisho wa faili ({}).
+670|mwisho lazima uwe baada ya mwanzo.
+672|ongeza angalau video 2.
+673|{} haina video.
+674|Video {} • {}{extra} • {}
+675|{e} — kama video zinatofautiana, tumia "Simba upya"
+676|faili haina video.
+678|sauti imeondolewa • {}
+679|Picha {n} kwenye folda {}
+680|faili haina sauti.
+681|sauti imewekwa kuwa {lufs} LUFS
+682|mwanzo unapita mwisho wa video.
+684|9:16 (Reels/TikTok)
+685|1:1 (mlisho)
+686|4:5 (Instagram)
+687|16:9 (YouTube)
+688|chagua kuzungusha, kugeuza au kukata.
+689|imeshindwa kusoma manukuu: {e}
+690|manukuu: {}
+691|{} haina sauti.
+692|imeshindwa kusoma muda wa video.
+693|imechanganywa na sauti ya asili
+694|badala ya sauti ya asili
+695|{} {how} • sauti {volume}%
+696|ongeza angalau faili 2.
+697|Faili {} • {} • {}
+698|Badilisha muundo wa video
+699|Badilisha kati ya MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF au toa sauti kama MP3.
+700|Bana video
+701|Punguza ukubwa wa video kwa kuchagua kiwango cha kubana au ukubwa wa mwisho kwa MB.
+702|Kata kipande cha video
+703|Chagua mwanzo na mwisho kisha uhifadhi sehemu hiyo tu ya video.
+704|Kata
+705|Unganisha video kadhaa kuwa moja, kwa mpangilio wa orodha.
+706|Ongeza kasi au punguza (0,25× hadi 4×). Sauti hufuata bila kuwa nyembamba au nzito.
+707|Tumia
+708|Ondoa sauti / toa fremu
+709|Nyamazisha video au hifadhi picha kutoka kwake kila baada ya muda fulani.
+710|Badilisha muundo wa sauti
+711|Badilisha kati ya MP3, WAV, FLAC, OGG, M4A na OPUS. Pia hutoa sauti kutoka kwa video.
+712|Hifadhi sehemu tu ya wimbo au rekodi.
+713|Sawazisha sauti ya faili kadhaa (au video) kwenye kiwango kimoja, bila kupasuka.
+714|Sawazisha
+715|Bana sauti
+716|Punguza ukubwa wa faili za sauti kwa kuchagua kasi ya biti.
+717|Video kuwa GIF
+718|Geuza sehemu tu ya video kuwa GIF inayosonga.
+719|Tengeneza GIF
+720|Zungusha na kata video
+721|Zungusha video zilizorekodiwa kwa ubavu au zikate kuwa 9:16 (Reels/TikTok), 1:1, 4:5 au 16:9.
+722|Chapisha manukuu (.srt, .ass au .vtt) ndani ya video ili yaonekane kwenye kicheza chochote au mtandao wa kijamii.
+723|Weka manukuu
+724|Weka muziki kwenye video, uliochanganywa na sauti ya asili au badala yake.
+725|Unganisha nyimbo au rekodi kadhaa kuwa faili moja, kwa mpangilio wa orodha.
+726|Mwanzo si sahihi. Tumia muundo 00:01:30 (au sekunde tu).
+727|Mwisho si sahihi. Tumia muundo 00:02:45 (au sekunde tu).
+728|Mwisho lazima uwe baada ya mwanzo.
+729|Muundo wa matokeo:
+730|Bana kwa:
+731|Ukubwa wa mwisho
+732|Ukubwa unaotakiwa:
+733|kila video itakuwa na takriban ukubwa huu (mizunguko 2, polepole zaidi)
+734|Usimbaji:
+735|H.264 (inaoana)
+736|H.265 (ndogo zaidi, polepole)
+737|Sauti:
+740|Matokeo huhifadhiwa kama MP4 yenye kiambishi _comprimido.
+741|Mwanzo:
+742|Mwisho:
+743|hadi mwisho
+744|muda wa faili iliyochaguliwa: {}
+745|Haraka (bila kupoteza ubora)
+746|Sahihi (husimba upya)
+747|Hukata hasa kwenye nyakati ulizoweka; huchukua muda zaidi kwa sababu husimba faili upya.
+748|Papo hapo na bila kupoteza ubora; kwenye video, ukataji unaweza kuanza sekunde chache kabla ya mwanzo.
+749|Simba upya (inapendekezwa)
+750|Haraka (unganisha tu)
+751|Hufanya kazi na video tofauti: zote hupata ubora wa ile ya kwanza, na kingo ikihitajika. Huhifadhi kama MP4.
+752|Papo hapo, lakini hufanya kazi tu ikiwa video zote zina muundo, ubora na usimbaji uleule.
+753|Tumia ↑ na ↓ kwenye orodha kubadilisha mpangilio.
+754|Kasi:
+755|Maalum:
+756|Baki na sauti (inaongezwa/inapunguzwa kasi pamoja)
+757|Ondoa sauti
+758|Toa fremu
+759|Picha moja kila:
+760|PNG (bila kupoteza ubora)
+761|Picha huhifadhiwa kwenye folda <jina la video>_frames.
+762|Video inanakiliwa bila kusimbwa upya: haraka na bila kupoteza ubora.
+763|WAV na FLAC hazipotezi ubora: hakuna ubora wa kuchagua.
+764|Kiwango cha sauti kinacholengwa:
+765|Juu (−14, utiririshaji)
+766|Kawaida (−16)
+767|Laini (−23, TV)
+768|Kwenye video, picha inanakiliwa bila kupoteza ubora; sauti pekee ndiyo inasimbwa upya.
+769|MP3 (inaoana)
+770|OPUS (ndogo zaidi)
+771|Kasi ya biti:
+773|Chaneli:
+774|Badilisha kuwa mono (nusu ya ukubwa; nzuri kwa sauti ya kuongea)
+775|64–96 kbps ni nzuri kwa sauti ya kuongea na podikasti; 128–160 kbps kwa muziki.
+776|Muda:
+777|video iliyochaguliwa: {}
+778|Upana:
+783|GIF hukua haraka: vipande vifupi, 480 px na 12 fps kwa kawaida huwa chini ya MB 5.
+784|Zungusha:
+785|Usizungushe
+786|Geuza:
+787|Kwa mlalo ↔
+788|Kata:
+789|Ukataji uko katikati. Sauti inanakiliwa bila kupoteza ubora.
+790|Manukuu:
+791|kiotomatiki (jina sawa na video)
+792|Manukuu
+793|Chagua manukuu
+794|Kiotomatiki
+795|Yamepatikana kwa video iliyochaguliwa: {}
+796|Hakuna manukuu yenye jina sawa na video iliyochaguliwa. Chagua faili.
+797|Kila video hutumia manukuu yenye jina lake (video.srt), au chagua moja kwa zote.
+798|Ukubwa wa maandishi:
+799|Wastani
+800|Mahali:
+801|Muziki:
+802|Faili zote
+803|Chagua muziki
+804|Sauti ya asili:
+805|Changanya na muziki
+806|Badilisha kwa muziki
+807|Sauti ya muziki:
+808|Rudia:
+809|Rudia muziki kama ni mfupi kuliko video
+810|Kwa muziki wa nyuma chini ya mazungumzo, 20–40% kwa kawaida inafaa. Picha inanakiliwa bila kupoteza ubora.
+811|Tumia ↑ na ↓ kwenye orodha kubadilisha mpangilio. Video pia zinakubaliwa (sauti yake inatumika).
+812|Faili {}
+813|Video {}
+814|hakuna manukuu yenye jina sawa na video; chagua faili ya manukuu.
+815|chagua muziki.
+816|Conver — tayari
+817|Conver — hitilafu
+818|lugha {lang} haijasakinishwa kwa OCR kwenye Windows.
+819|Badilisha picha
+820|Bana picha
+821|Zungusha na kata
+822|Rekebisha rangi
+823|Picha kuwa PDF
+824|Badilisha video
+825|Kasi
+826|Manukuu kwenye video
+827|Badilisha sauti
+828|Upakuaji
+829|Maikrofoni na madirisha
+830|Orodha ya mipangilio
+831|Orodhesha mitiririko
+832|Tazama mtiririko
+833|Aina za nodi
+834|Hifadhi mtiririko
+835|Futa mtiririko
+836|Endesha mtiririko
+837|Imeghairiwa na mtumiaji.
+838|[{}/{n}] {name}
+839|✔ {name}   {info}
+840|Imekamilika: {ok} kati ya faili {n}.
+841|Inachakata…
+842|✔ {}   {info}
+843|Imekamilika.
+844|Badilisha ukubwa wa picha
+845|Badilisha vipimo vya picha moja au zaidi, kwa asilimia au pikseli.
+846|Punguza ukubwa wa faili huku ukibaki na muundo (JPG, PNG, WEBP…).
+847|Chagua kutoka 1 hadi 100. JPG na WEBP hubaki na muundo wao; nyingine huwa JPG (au WEBP kama zina uwazi).
+848|Badilisha muundo wa picha
+849|Badilisha kati ya PNG, JPG, WEBP, BMP, GIF, TIFF na ICO.
+850|Zungusha, geuza na kata
+851|Zungusha, geuza au kata picha kwa uwiano uliowekwa tayari (ukataji uko katikati).
+852|Hufuta taarifa zilizofichwa kwenye picha (EXIF, mahali pa GPS, kamera, tarehe) bila kupoteza ubora.
+853|Ondoa mandharinyuma ya picha za watu, bidhaa na wanyama kwa akili bandia, kwenye kompyuta yako na bila intaneti.
+854|Kuza picha mara 2 au 4 bila kufifia: akili bandia hutengeneza upya maelezo. Inafanya kazi kwenye kompyuta yako, bila intaneti.
+855|Kuza
+856|Badilisha mwangaza, utofautishaji na ukolezaji au tumia kichujio. Kagua onyesho la awali kabla ya kuhifadhi.
+857|Unganisha picha kadhaa kuwa PDF moja, picha moja kwa kila ukurasa, kwa mpangilio wa orodha.
+858|Tengeneza PDF
+859|Upana na urefu lazima viwe namba kamili chanya.
+860|Weka upana na/au urefu kwa pikseli.
+861|hakuna onyesho la awali
+862|Pikseli
+863|Dumisha uwiano
+864|Uwiano ukidumishwa, picha inatoshea ndani ya upana/urefu uliowekwa.
+865|Nyepesi = karibu hakuna upotevu unaoonekana  •  Kali = faili ndogo zaidi sana
+866|Aikoni ni hadi 256×256; picha kubwa zaidi hupunguzwa.
+867|Kwa wima ↕
+868|JPG, PNG na WEBP: metadata pekee ndiyo hufutwa, picha haibanwi upya.
+869|Kama picha ina mzunguko wa kamera, unatumika kwanza ili picha isiwe imelala ubavu.
+870|Mandharinyuma mapya:
+871|Kingo:
+872|Laini (nywele, manyoya)
+873|Uwazi huhifadhiwa kama PNG. Picha ya kwanza huchukua sekunde chache wakati modeli inapakia.
+874|⚠ Modeli ya AI haikupatikana: weka silueta.onnx kwenye folda modelos.
+875|Kuza:
+876|Nzuri kwa picha ndogo, picha za skrini na picha za zamani. Picha kubwa huchukua muda zaidi (hata onyesho la awali).
+877|⚠ Modeli ya AI haikupatikana: weka realesr-general-x4v3.onnx kwenye folda modelos.
+878|Mwangaza:
+879|Utofautishaji:
+880|Ukolezaji:
+881|Weka upya
+882|Kichujio:
+883|Ukubwa wa ukurasa:
+884|Tumia ↑ na ↓ kwenye orodha kubadilisha mpangilio wa kurasa.
+885|Matokeo
+886|Ongeza picha ili kuona onyesho la awali
+887|Matokeo: {}×{}  •  {}   ({})
+888|Inaandaa onyesho la awali…
+889|Ukurasa {}  •
+890|{page}Asili: {}×{}  •  {orig_size}
+891|Inapakia…
+892|Imeshindwa kufungua picha hii.
+893|Picha {}
+894|Kurasa {pages} • {}
+895|Usitumie
+896|Pakua video na muziki
+897|Viungo {n} — vitapakuliwa kwa foleni
+898|Bandika hapa kiungo cha video, wimbo au orodha ya kucheza (kimoja au zaidi, kimoja kwa kila mstari)
+899|MP4 (video)
+900|MP3 (sauti)
+901|Kuingia kwa kivinjari:
+902|kwa tovuti zinazohitaji akaunti (Instagram, Facebook). Funga kivinjari kabla ya kupakua.
+903|Pakua pia:
+904|Manukuu (.srt, Kireno na Kiingereza)
+905|Picha ya jalada (.jpg)
+906|Pakua orodha nzima ya kucheza (kama kiungo ni cha orodha)
+907|Pakua tu maudhui ambayo una haki ya kupakua.
+908|Chagua folda halali ya matokeo.
+909|[kiungo {}/{n}]
+910|{prefix}Inatafuta taarifa…
+911| (viungo {failed} vina hitilafu)
+912|Imekamilika: faili {total} zimepakuliwa{errors}.
+913|{}: imeshindwa kufungua PDF ({e})
+914|{} inalindwa kwa nenosiri.
+915|ongeza angalau PDF 2.
+916|kipindi si sahihi: "{part}". Tumia kitu kama 1-3, 7, 10-
+917|ukurasa {a} haupo (PDF ina {total}).
+918|weka kurasa, kwa mfano 1-3, 7
+919|{} kati ya kurasa {total}
+920|PDF {total} kwenye folda {}
+921|{} imelindwa kwa nenosiri; ondoa nenosiri kwanza.
+922|PDF ilikuwa tayari imeboreshwa (hakuna upunguzaji)
+923|picha {changed} zimebanwa upya • {}
+924|weka nenosiri.
+925|{} tayari imelindwa kwa nenosiri.
+926|imeshindwa kulinda: {e}
+927|imelindwa kwa nenosiri (AES-128)
+928|nenosiri si sahihi.
+929|nenosiri limeondolewa
+930|PDF imelindwa: weka nenosiri.
+931|imeshindwa kufungua PDF ({})
+932|picha {} kwenye folda {}
+933|kurasa {done} zenye maandishi yaliyotambuliwa • maneno {words_total}
+934| • {skipped} tayari zilikuwa na maandishi
+935|maandishi ni marefu mno kwa QR Code.
+936|ffmpeg haikupatikana.
+937|imeshindwa kuanzisha ffmpeg: {e}
+938|kurekodi kumesimama.
+939|hakuna sauti iliyotoka kwenye maikrofoni hii. Chagua ingizo lingine kwenye orodha (mf.: "Maikrofoni (…)").
+940|kipaza sauti kimeacha kujibu.
+941|jina linajirudia
+942|tayari kuna faili yenye jina hili
+943|hakuna kilichorekodiwa.
+944|imeshindwa kuunda folda ya muda: {e}
+945|imeshindwa kuunganisha sehemu za rekodi: {e}
+946|UVR MDX-Net (67 MB)
+947|Ala tu (karaoke)
+948|imeshindwa kuhifadhi: {}
+949|sauti ni fupi mno (chini ya nusu sekunde).
+950|{} • {dur}
+952|Haraka (82 MB)
+953|Wastani (264 MB)
+954|Sahihi (574 MB)
+955|Whisper base (82 MB)
+956|Whisper small (264 MB)
+957|Whisper large-v3 turbo (574 MB)
+958|Tambua kiotomatiki
+959|Kireno
+960|Kiingereza
+961|Kihispania
+962|Kifaransa
+963|Kijerumani
+964|Kiitaliano
+965|Kirusi
+966|Kichina
+967|Kijapani
+968|Kikorea
+969|Kiarabu
+970|Kihindi
+971|Kituruki
+972|Kipolandi
+973|Kiukreni
+974|Kiholanzi
+975|Kiindonesia
+976|Kivietinamu
+977|Kiajemi
+978|imeshindwa kuanzisha Whisper: {e}
+979|hitilafu ya Whisper: {}
+980|Whisper haikuunda faili yoyote.
+981|maneno {words} • {}
+982|nakala hii ya Conver haikusakinishwa kwa kisakinishi na si inayobebeka; pakua kwenye tovuti.
+983|toleo jipya halina faili ya nakala hii ya Conver; pakua kwenye tovuti.
+984|toleo jipya halikuchapisha checksum zake; pakua kwenye tovuti.
+985|faili ya sasisho haimo kwenye orodha ya checksum; pakua kwenye tovuti.
+986|imeshindwa kufungua sasisho: {e}
+987|imeshindwa kufungua sasisho.
+988|imeshindwa kuanzisha kisakinishi: {e}
+989|imeshindwa kuanzisha sasisho: {e}
+990|usasishaji wa kiotomatiki haupatikani kwa nakala hii.
+991|Imeshindwa kukamilisha sasisho: {e}
+992|modeli ya kukuza haikupatikana (folda modelos).
+993|upande wa picha ungezidi pikseli {MAX_SIDE}; ipunguze kwanza au tumia 2×.
+994|MP3 (sauti tu)
+995|ffmpeg imeshindwa: {}
+996|MB {mb} ni ndogo mno kwa video ya sekunde {:.0} (angalau ≈ MB {:.1}).
+997|Bana picha
+998|Badilisha picha
+999|Bana video
+1000|Badilisha video
+1001|Badilisha sauti
+1002|✖ imeshindwa kuunda folda {OUT_FOLDER}: {e}
+1003|Inafuatilia {} — {}
+1004|Matokeo huenda kwenye folda ndogo "{OUT_FOLDER}".
+1005|Inafuatilia folda… (zimechakatwa {count})
+1006|Inachakata {name}…
+1007|{name}: {info}
+1008|{name}: {e}
+1009|Imesimamishwa. Faili {count} zimechakatwa.
+1010|Chagua faili
+1011|Hakuna faili
+1012|Faili 1
+1013|Faili {n}
+1014|+ Ongeza
+1015|mpangilio:
+1016|Buruta faili hapa
+1017|au bofya ili kuchagua
+1021|Wimbo wa sauti unaonekana hapa
+1022|0 dB
+1023|{d:.1} dB
+1024|Inasubiri sauti kutoka kwa kipaza sauti…
+1025|⚠ Karibu hakuna sauti: ongea karibu zaidi au ongeza sauti ya kipaza sauti kwenye Windows.
+1026|Chini kidogo: ongea karibu zaidi na kipaza sauti.
+1027|✔ Kiwango kizuri.
+1028|Folda ileile ya faili ya asili
+1029|Chagua folda ya matokeo
+1030|Fungua folda
+1031|Achia ili kuongeza
+1032|Picha na video huenda kwenye zana sahihi

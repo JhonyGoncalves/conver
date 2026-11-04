@@ -42,7 +42,7 @@ INTERNAL = {
     "Program Manager", "Helvetica", "WinAnsiEncoding", "Font", "Type1", "FConverOcr", "Image", "Subtype", "DeviceRGB",
     "DeviceGray", "ICCBased", "StdCF", "Videos", "Filter", "Width", "Height", "Encoding", "Resources", "Contents",
     "pipe:0", "mcpServers", "ET\\nQ\\n", "UVR-MDX-NET-Inst_HQ_3.onnx", "Authorization", "Bearer {}", "image/jpeg",
-    "tool:", "nothing arrived", "{base} {i}", "{}{port}  →  {}", "Documents",
+    "tool:", "nothing arrived", "{base} {i}", "{}{port}  →  {}", "Documents", "{} {}{main}  •  {}×{}",
 }
 # arquivos que não têm texto de tela: linha de comando/MCP (respondem em JSON e no terminal) e dados
 SKIP_FILES = {"cli.rs", "presets.rs", "search.rs", "captura.rs"}

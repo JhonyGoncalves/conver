@@ -1,5 +1,14 @@
 # Lista de mudanças
 
+## 1.4.1
+
+### Melhorias
+- **Gravar a tela:**
+  - nova opção **Um monitor**, para gravar só o monitor escolhido na lista, que mostra o principal e a resolução de cada um;
+  - **Pausar / Continuar** durante a gravação: os trechos são juntados num MP4 só, sem recomprimir, e o cronômetro conta só o tempo gravado;
+  - **qualidade** (Alta, Média ou Leve) e **resolução máxima** (Original, 1080p ou 720p);
+  - as mesmas opções no MCP e na linha de comando: `monitor`, `quality` e `resolution` no `screen_record`, e os monitores no `list_devices`.
+
 ## 1.4.0
 
 ### Novidades

@@ -782,6 +782,10 @@ fn t_screen_record(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     } else if let Some(Value::Object(r)) = a.get("region") {
         let g = |k: &str| r.get(k).and_then(Value::as_f64).unwrap_or(0.0);
         screenrec::Area::Regiao { x: g("x") as i32, y: g("y") as i32, w: g("width") as u32, h: g("height") as u32 }
+    } else if let Some(n) = a.num("monitor")?.filter(|n| *n >= 1.0) {
+        let list = screenrec::monitors();
+        let m = list.get(n as usize - 1).ok_or_else(|| format!("\"monitor\" {n}: só há {} monitor(es) (veja list_devices).", list.len()))?;
+        m.area()
     } else {
         screenrec::Area::TelaInteira
     };
@@ -790,6 +794,8 @@ fn t_screen_record(a: &Args, ctx: &Ctx) -> Result<Value, String> {
         fps: a.num_or("fps", 30.0)?.clamp(5.0, 60.0) as u32,
         mic: a.str("microphone").filter(|s| !s.trim().is_empty()),
         cursor: a.bool_or("show_cursor", true)?,
+        quality: a.choice("quality", &[("high", screenrec::Quality::Alta), ("medium", screenrec::Quality::Media), ("low", screenrec::Quality::Leve)], screenrec::Quality::Media)?,
+        max_height: a.choice("resolution", &[("original", None), ("1080p", Some(1080)), ("720p", Some(720))], None)?,
     };
     let dst = match a.str("output").filter(|s| !s.trim().is_empty()) {
         Some(p) => tools::unique_path(PathBuf::from(p).with_extension("mp4")),
@@ -803,7 +809,12 @@ fn t_screen_record(a: &Args, ctx: &Ctx) -> Result<Value, String> {
 }
 
 fn t_list_devices(_a: &Args, _ctx: &Ctx) -> Result<Value, String> {
-    Ok(json!({ "microphones": crate::recorder::devices(), "windows": screenrec::windows() }))
+    let monitors: Vec<Value> = screenrec::monitors()
+        .iter()
+        .enumerate()
+        .map(|(i, m)| json!({ "monitor": i + 1, "primary": m.primary, "x": m.x, "y": m.y, "width": m.w, "height": m.h }))
+        .collect();
+    Ok(json!({ "microphones": crate::recorder::devices(), "windows": screenrec::windows(), "monitors": monitors }))
 }
 
 fn t_preset_list(_a: &Args, _ctx: &Ctx) -> Result<Value, String> {
@@ -1033,13 +1044,16 @@ pub static TOOLS: &[Tool] = &[
             "out_dir": str_prop("Folder (default: Downloads).") }, "required": ["urls"] }), t_download),
     tool!("file_info", "Informações do arquivo", "Show details of files: resolution, duration, codecs, camera, GPS, pages…",
         schema(json!({ "files": files_prop("files") }), &["files"]), t_info),
-    tool!("screen_record", "Gravar a tela", "Record the screen (whole desktop, one window or a region) to MP4 for a number of seconds, optionally with a microphone.",
+    tool!("screen_record", "Gravar a tela", "Record the screen (whole desktop, one monitor, one window or a region) to MP4 for a number of seconds, optionally with a microphone, at a chosen quality and maximum resolution.",
         json!({ "type": "object", "properties": { "seconds": num_prop("Duration in seconds."), "window": str_prop("Exact title of a window to record (see list_devices)."),
             "region": json!({ "type": "object", "properties": { "x": { "type": "integer" }, "y": { "type": "integer" }, "width": { "type": "integer" }, "height": { "type": "integer" } }, "description": "Screen region." }),
+            "monitor": int_prop("Record only this monitor (1 = primary; see list_devices).", 1, 16, 1),
+            "quality": enum_prop("Video quality: high (bigger file), medium or low (smaller file).", &["high", "medium", "low"], "medium"),
+            "resolution": enum_prop("Maximum resolution (keeps the aspect ratio).", &["original", "1080p", "720p"], "original"),
             "fps": int_prop("Frames per second.", 5, 60, 30), "microphone": str_prop("Microphone name (see list_devices)."),
             "show_cursor": bool_prop("Show the mouse pointer.", true), "output": str_prop("Output MP4 path (default: Videos folder)."), "out_dir": str_prop("Output folder.") },
             "required": ["seconds"] }), t_screen_record),
-    tool!("list_devices", "Microfones e janelas", "List microphones and visible window titles (for screen_record).",
+    tool!("list_devices", "Microfones e janelas", "List microphones, visible window titles and monitors (for screen_record).",
         json!({ "type": "object", "properties": {} }), t_list_devices),
     tool!("preset_list", "Listar predefinições", "List the saved presets (favorite settings) and what tool/arguments each one uses.",
         json!({ "type": "object", "properties": {} }), t_preset_list),

@@ -232,766 +232,778 @@
 237|Yana ɗaukar kusan daƙiƙa 15 zuwa 30 a kowane minti na kiɗa, ya danganta da kwamfuta.
 238|Raba
 239|Zaɓi taga
-240|●  REC
-241|An rage taga ko an rufe ta.
-242|Ana loda samfoti…
-243|Naɗi allo
-244|Naɗi dukan allo, taga ɗaya ko wani yanki zuwa MP4, da makirufo ko ba tare da shi ba.
-245|Naɗa:
-246|Dukan allo
-247|Taga ɗaya
-248|Wani yanki
-249|Taga:
-250|ba a sami taga ba
-251|Yanki (px):
-252|Faɗi
-253|Tsawo
-254|Firam a kowane daƙiƙa:
-255|Ba sauti
-256|Zaɓuɓɓuka:
-257|Nuna kibiyar linzamin kwamfuta
-258|Rage Conver lokacin farawa
-259|Kalla
-260|Don tsayawa, koma Conver (yana nan a sandar ɗawainiya) ka danna Tsaya.
-261|Saitunan da aka ajiye
-262|Saitunan da kake so, a shirye da danna ɗaya, ta layin umarni ko ta wakilin AI (MCP).
-263|Babu saitin da aka ajiye tukuna. Ƙirƙiri na farko a ƙasa.
-264|Goge
-265|Rufe fom
-266|+ Sabon saiti
-267|Maido da waɗanda suka zo a shirye
-268|Suna:
-269|Bayani:
-270|Kayan aiki:
-271|Ajiye saiti
-272|✔ An ajiye saiti: {}
-273|Layin umarni: conver-cli preset "{}" fayiloli…
-274|Yi amfani da saiti
-275|Ana amfani da: {}
-276|An gama: {} sun yi, {} da kuskure.
-277|An adana a: {}
-278|Kuskure.
-279|gudanarwar tana da zagaye (wani node yana komawa na baya).
-280|gudanarwar tana buƙatar suna.
-281|akwai node biyu masu id {}.
-282|node {}: nau'in da ba a sani ba "{}" (duba flow_node_types).
-283|haɗi {} → {}: node {} ba shi da fita "{}" (yana da: {}).
-284|haɗi {} → {}: node {} ba ya karɓar shigarwa.
-285|haɗi {} → {}: node ba ya wanzu.
-286|HOTO
-287|BIDIYO
-288|SAUTI
-289|SAUKEWA
-290|KAYAN AIKI
-291|Fayilolin shigarwa
-292|Adana a babban fayil
-293|AI: umarni
-294|AI: kimantawa
-295|Tace fayiloli
-296|ba a iya adana gudanarwar ba: {e}
-297|ba a sami gudanarwa ba: {name}
-298|ba a iya ƙirƙirar babban fayil na aiki ba: {e}
-299|gudanarwar babu komai.
-300|babu abin da ya iso
-301|▶ {title}
-302|abubuwa {n}
-303|✔ {title}: {note}
-304|✖ {title}: {e}
-305|babu fayilolin shigarwa (ƙara fayiloli a node ko aika "files").
-306|fayiloli {n}
-307|rubutun babu komai.
-308|{} e, {} a'a
-309|ba a iya ƙirƙirar {} ba: {e}
-310|an adana {n} a {}
-311|rubuta umarni ga AI.
-312|   AI: {label}
-313|{label}: {e}
-314|amsoshi {n}
-315|rubuta ma'aunin kimantawa.
-316|   {} {}: {reason}
-317|nau'in da ba a sani ba: {other}
-318|kayan aikin da ba a sani ba: {name}
-319|babu fayil da ya iso wannan node.
-320|abubuwa {}, {failed} sun gaza
-321|abubuwa {}
-322|SHIGARWA DA FITARWA
-323|Ƙara node na "Fayilolin shigarwa" don karɓar fayiloli.
-324|An canza gudanarwar daga waje (MCP ko wani shiri) kuma an sake loda ta.
-325|Sabuwar gudanarwa
-326|Sarrafa kai
-327|Akwai gudanarwa mai wannan suna.
-328|+ Sabo
-329|Kwafi
-330|kwafi
-331|Sake dannawa don gogewa
-332|Goge
-333|🔍  Nemi node…
-334|ja fayiloli zuwa nan
-335|fayiloli ko manyan fayiloli {k}
-336|(babu komai)
-337|rubuta umarni
-338|rubuta ma'auni
-339|Takardu\Conver
-340|komai yana wucewa
-341|saitunan asali
-342|Ƙirƙiri gudanarwa da "+ Sabo".
-343|yana gudana…
-344|a'a
-345|Cire
-346|Wannan node ba ya karɓar shigarwa.
-347|Wannan haɗin zai haifar da zagaye.
-348|+  Ƙara node
-349|Daidaita
-350|Nuna dukan gudanarwar
-351|Ƙara node da maɓallin "+ Ƙara node".
-352|Ja daga ɗigon da ke dama na node zuwa wani node don haɗa su.
-353|Haɗi
-354|Cire haɗi
-355|Shawara: maɓallin Delete ma yana cirewa.
-356|Gudanarwa
-357|Bayani
-358|Yadda yake aiki
-359|1. Ƙara node da maɓallin "+ Ƙara node" (kayan aiki, AI, matattara).
-360|2. Ja daga ɗigon da ke dama na node zuwa wani don haɗa su: sakamakon ɗaya yana zuwa na gaba.
-361|3. Danna node don daidaita shi; ja fayiloli zuwa taga don saka su a shigarwa.
-362|4. Danna Gudanar da gudanarwa.
-363|Node na AI suna amfani da API da aka saita a Saituna. Wakilan AI ma za su iya ƙirƙira da gudanar da gudanarwa ta MCP (flow_save, flow_run).
-364|⚠ AI: {e}
-365|Saita AI
-366|Nau'in da ba a sani ba: {}
-367|Suna a allo
-368|Babban fayil na makoma
-369|Takardu\Conver\<gudanarwa>
-370|A cikin rubutu, {text} ya zama rubutun da ya iso, {file} kuma sunan fayil.
-371|Cire node
-372|Fayiloli da manyan fayiloli
-373|Babu tukuna: ja fayiloli zuwa taga ko yi amfani da maɓallan da ke ƙasa.
-374|Cire daga jeri
-375|+ Fayiloli…
-376|+ Babban fayil…
-377|Share jeri
-378|Daga layin umarni ko MCP, fayilolin da aka aika wa flow_run suna maye gurbin waɗannan.
-379|▶  Gudanar da gudanarwa
-380|Ana gudanar da “{}”…
-381|An gama, node {failed} suna da kuskure.
-382|An gama: sakamako {n}.
-383|Koma zuwa asali
-384|(asali)
-385|(atomatik)
-386|ɗaya a kowane layi
-387|Tsari
-388|Inganci
-389|Mataki
-390|Harshe
-391|Kashi
-392|Kiyaye daidaito
-393|Farko
-394|Ƙarshe
-395|Tsawon lokaci (s)
-396|Girma
-397|Juya (digiri)
-398|Yanke daidai
-399|Shafuka
-400|Firam a kowane daƙiƙa
-401|Juya a kwance
-402|Juya a tsaye
-403|Rufaffen sauti
-404|Taga
-405|Ƙara
-406|Mahaɗai
-407|Girman ƙarshe (MB)
-408|Sauke rubutun ƙasa
-409|Fayil na rubutun ƙasa
-410|Adana
-411|Tsallake shafukan da ke da rubutu
-412|Daƙiƙai
-413|Sikeli
-414|Cikar launi
-415|Ƙuduri
-416|Maye gurbin sauti
-417|Yanki
-418|Wuri
-419|Dukan jerin waƙoƙi
-420|Girman shafi
-421|Kalmar sirrin mai shi
-422|Kalmar sirri
-423|Kiɗa
-424|Mono
-425|Samfuri
-426|Makirufo
-427|Ƙarar da ake nufi (LUFS)
-428|Maimaita
-429|Nau'i
-430|Kiyaye sauti
-431|Kbps
-432|Adana a matsayin
-433|Matattara
-434|Ma'auni
-435|Kowane (s)
-436|Gefe
-437|Ƙuduri (DPI)
-438|Yanke
-439|Sauke hoton bango
-440|Bambanci
-441|Launi
-442|Shigar mai bincike
-443|Haske
-444|Bango
-445|Sauti (kbps)
-446|Daidaito
-447|Ba da izinin bugawa
-448|Ba da izinin kwafa
-449|Fayil na fitarwa
-450|Suna
-451|Umarni ga AI
-452|Amsa ɗaya ga kowane fayil
-453|Wuce fayiloli gaba
-454|Adana amsa a matsayin
-455|Ma'auni
-456|Nau'ikan da aka karɓa
-457|Ƙarin sunaye da aka karɓa
-458|Mafi ƙarancin girma (MB)
-459|Mafi girman girma (MB)
-460|Matsar maimakon kwafa
-461|Adana rubutu a matsayin .txt
-462|Sauri
-463|Daidaitacce
-464|Daidai
-465|Murya da kiɗa
-466|Murya kawai
-467|Kayan kiɗa kawai
-468|Babu
-469|Na asali
-470|Bayyananne
-471|Fari
-472|Baƙi da fari
-473|Sepia
-474|Juya launi
-475|Sama
-476|Ƙasa
-477|Ƙarami
-478|Babba
-479|Laushi
-480|Bayyananne
-481|Bidiyo
-482|Sautuka
-483|PDF
-484|Rubutu
-485|A4 a tsaye
-486|A4 a kwance
-487|Ba yanka
-488|Juya launuka
-489|Saka faɗi da/ko tsawo.
-490|Idan ba a kiyaye daidaito ba, saka faɗi DA tsawo.
-492| • an adana a matsayin PNG
-493|inganci {q} • {}
-494|an juya {rotate}°
-495|an madubanta ↔
-496|an madubanta ↕
-497|yanka {}
-498|babu canji
-500|an cire metadata (an yi amfani da juyawar kyamara a hoton)
-501|an cire metadata ({})
-502|ba a sami metadata ba
-503|an cire bango • an bar {kept:.0}% na hoton
-504|zurfin launi
-506|{w}x{h} → {}x{} (AI {scale}×)
-507|Girman hoto
-508|A4 a tsaye
-509|A4 a kwance
-510|ba a iya adanawa ba: {e}
-511|kwanaki {d} da suka wuce
-512|watanni {} da suka wuce
-513|shekaru {} da suka wuce
-514|Ranar hoto
-515|Haske
-516|Buɗewar ruwan tabarau
-517|Tazarar mayar da hankali
-518|Manhaja
-519|Marubuci
-520|Haƙƙin mallaka
-521|Wuri (GPS)
-523|Jimlar filayen EXIF
-524|Hoto (EXIF)
-525|Tsawon lokaci
-526|Jimlar saurin bit
-527|Murfi
-528|Bidiyo
-529|Sauti
-530|Fassarar rubutu
-531|Kafofin watsa labarai
-532|Waƙoƙi
-533|Alamomi
-534|Babban fayil
-535|{} (bytes {})
-536|An gyara
-537|An ƙirƙira
-538|Fayil
-539|Girma
-540|{w} × {h} px (megapixel {mp:.1})
-541|Launuka
-542| (da bayyanannun wurare)
-543|Hoto
-544|ba a iya karantawa ba (ya lalace ko yana da kariya)
-545|ba a iya tuntuɓar GitHub ba: {e}
-546|ba a iya isa GitHub ba: {e}
-547|saukewa ya kasa: {e}
-548|fayil ɗin da aka sauke bai yi daidai da sa hannun da aka wallafa ba; ba a canza komai ba.
-549|ba a iya maye gurbin yt-dlp ba (ana amfani da shi?): {e}
-550|sigar da aka sauke ba ta yi aiki ba; an bar ta baya.
-551|A shirye.
-552|Ana sokewa…
-553|Ana farawa…
-554|Kuskuren da ba a zata ba.
-555|Abubuwan da aka sauke
-556|SARRAFA KAI
-557|Gudanarwar sarrafa kai
-558|Canza girma
-559|Rage inganci
-560|Canza tsari
-561|Cire bango
-562|Ƙara girma da AI
-563|Juya / yanka
-564|Daidaita launi
-565|Cire metadata
-566|Hotuna → PDF
-567|Yanke wani yanki
-568|Haɗa bidiyo
-569|Canza sauri
-570|Bidiyo → GIF
-571|Ƙona fassarar rubutu
-572|Kiɗan baya
-573|Cire sauti / firam
-574|Yanke sauti
-575|Haɗa sauti
-576|Daidaita ƙarar sauti
-577|PDF → hotuna
-578|Kare da kalmar sirri
-579|Bidiyo da kiɗa
-580|Hankali na wucin gadi (gudanarwar sarrafa kai)
-581|Node na "AI: umarni" da "AI: kimantawa" ne ke amfani da shi. Fayilolin da ke wucewa ta waɗannan node ana aika su ga sabis ɗin da aka zaɓa; sauran Conver na aiki ba tare da intanet ba.
-582|Sabis:
-583|Anthropic (Claude)
-584|Mai jituwa da OpenAI
-585|misali: gpt-4o-mini, llama3.1 (Ollama)
-586|Adireshin API:
-587|Maɓallin API:
-588|an adana (Windows na kare shi)
-589|liƙa maɓallin a nan
-590|Adana maɓalli
-591|Gwada haɗi
-592|Ana gwadawa…
-593|✔ AI ta amsa.
-594|mai canza komai
-595|🔍  Nemi kayan aiki…
-596|Ctrl+F
-597|Babban fayil da ake sa ido  ●
-598|Mai rikodin sauti  ●
-599|Naɗi allo  ●
-600|Ba a sami kayan aiki ba.
-601|⚙  Saituna
-602|🕘  Tarihi
-603|Saituna
-604|Keɓance Conver.
-605|Harsuna 20 da aka fi magana a duniya. Ba a fassara sunayen fayiloli da saƙonnin FFmpeg da yt-dlp ba.
-606|Kamanni
-607|Haske
-608|Duhu
-609|Sanarwa
-610|Sanarwar Windows idan aiki mai tsawo ya ƙare (lokacin da Conver ke baya)
-611|Kunna sauti idan an gama
-612|Gwada sanarwa
-613|Haka sanarwa za ta bayyana idan aiki ya ƙare.
-614|sanarwa tana bayyana da sunan "Windows PowerShell"; haka Windows ke nuna manhajoji marasa mai sakawa.
-615|Babban fayil na asali:
-616|Canza…
-617|Babban fayil na asali na saukewa
-618|Game da
-619|Siga:
-620|ba a samu ba
-621|ana dubawa…
-622|Aiki:
-623|Sarrafa kai (wakilan AI da layin umarni)
-624|Wakilan AI (Claude, Cursor, VS Code…) za su iya amfani da duk kayan aikin Conver ta MCP. Liƙa saitin da ke ƙasa a fayil ɗin MCP na wakilinka.
-625|Shiri:
-626|Kwafi saitin MCP
-627|Kwafi misalin layin umarni
-628|"{}" image_convert foto.png --format webp
-629|A layin umarni: conver-cli help  •  conver-cli <kayan aiki> fayiloli… --zaɓi ƙima
-630|Haɗawa da Windows
-631|Nuna "Buɗe da Conver" a menu na danna dama (hotuna, bidiyo, sauti da PDF)
-632|Ba a iya canza menu ba: {e}
-633|A Windows 11, zaɓin yana cikin "Nuna ƙarin zaɓuɓɓuka". Idan ka matsar da babban fayil na Conver, cire alamar ka sake sakawa.
-634|Sabuntawa
-635|Duba sabuwar sigar Conver lokacin buɗewa (yana tambayar GitHub)
-636|✔ kana da sigar mafi sabuwa ({})
-637|akwai sigar {}
-638|Duba yanzu
-639|"Sabunta yanzu" yana sauke sabon mai sakawa, yana duba sa hannunsa kuma yana sakawa ba tare da tambaya ba: Conver zai rufe kuma ya sake buɗewa da kansa, da saitunan iri ɗaya.
-640|"Sabunta yanzu" yana sauke sabon sigar ɗaukuwa, yana duba sa hannunsa kuma yana maye fayilolin wannan babban fayil (ana ajiye babban fayil dados): Conver zai rufe kuma ya sake buɗewa da kansa.
-641|Ba a saka wannan kwafin da mai sakawa ba kuma ba sigar ɗaukuwa ba ce: sauke sabon sigar daga shafin yanar gizo.
-642|yt-dlp (injin saukewa)
-643|Shafukan intanet suna canzawa sau da yawa. Idan saukewa ya daina aiki, sabunta yt-dlp (yana sauke sigar hukuma daga GitHub kuma yana duba sa hannu).
-644|Sabunta yt-dlp
-645|Ana sauke sabuwar sigar yt-dlp…
-646|Kana da sigar mafi sabuwa tun tuni ({after}).
-647|An sabunta: {before} → {after}.
-648|✔ {text}
-649|Sabuntawa ya kasa.
-650|Ana sauke Conver {}…
-651|Ana sakawa… Conver zai rufe kuma ya sake buɗewa da kansa.
-652|Sauke
-653|Sabunta yanzu
-654|Akwai sabuwar sigar Conver: {}
-655|Abin da ya canza
-656|Ba yanzu ba
-657|farawa ({}) ya wuce ƙarshen fayil ({}).
-658|ƙarshe dole ya kasance bayan farawa.
-660|ƙara aƙalla bidiyo 2.
-661|{} ba shi da bidiyo.
-662|Bidiyo {} • {}{extra} • {}
-663|{e} — idan bidiyon sun bambanta, yi amfani da "Sake tsarawa"
-664|fayil ɗin ba shi da bidiyo.
-666|an cire sauti • {}
-667|Hotuna {n} a babban fayil {}
-668|fayil ɗin ba shi da sauti.
-669|an daidaita ƙarar zuwa {lufs} LUFS
-670|farawa ya wuce ƙarshen bidiyo.
-672|9:16 (Reels/TikTok)
-673|1:1 (feed)
-674|4:5 (Instagram)
-675|16:9 (YouTube)
-676|zaɓi juyawa, madubi ko yanka.
-677|ba a iya karanta fassarar rubutu ba: {e}
-678|fassarar rubutu: {}
-679|{} ba shi da sauti.
-680|ba a iya karanta tsawon bidiyon ba.
-681|an gauraya da sautin asali
-682|a maimakon sautin asali
-683|{} {how} • ƙara {volume}%
-684|ƙara aƙalla fayiloli 2.
-685|Fayiloli {} • {} • {}
-686|Canza tsarin bidiyo
-687|Canza tsakanin MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ko fitar da sauti a matsayin MP3.
-688|Matsa bidiyo
-689|Rage girman bidiyo ta zaɓar matakin matsawa ko girman ƙarshe a MB.
-690|Yanke yanki na bidiyo
-691|Zaɓi farawa da ƙarshe ka adana wannan sashe na bidiyon kawai.
-692|Yanke
-693|Haɗa bidiyo da yawa su zama ɗaya, bisa tsarin jerin.
-694|Ƙara sauri ko rage (0,25× zuwa 4×). Sauti yana bi ba tare da ya yi siriri ko kauri ba.
-695|Aiwatar
-696|Cire sauti / fitar da firam
-697|Kashe sautin bidiyo ko adana hotuna daga gare shi a kowane tazara.
-698|Canza tsarin sauti
-699|Canza tsakanin MP3, WAV, FLAC, OGG, M4A da OPUS. Yana kuma fitar da sauti daga bidiyo.
-700|Adana sashe ɗaya na waƙa ko rikodi kawai.
-701|Daidaita ƙarar sauti da yawa (ko bidiyo) zuwa mataki ɗaya, ba tare da fashewa ba.
-702|Daidaita
-703|Matsa sauti
-704|Rage girman fayilolin sauti ta zaɓar saurin bit.
-705|Bidiyo zuwa GIF
-706|Mayar da sashe ɗaya na bidiyo zuwa GIF mai motsi.
-707|Ƙirƙiri GIF
-708|Juya da yanka bidiyo
-709|Juya bidiyon da aka ɗauka a gefe ko yanka zuwa 9:16 (Reels/TikTok), 1:1, 4:5 ko 16:9.
-710|Ƙona fassarar rubutu (.srt, .ass ko .vtt) a cikin bidiyo, don ta bayyana a kowane mai kunnawa ko kafar sada zumunta.
-711|Saka fassara
-712|Saka kiɗa a bidiyo, a gauraya da sautin asali ko a maimakonsa.
-713|Haɗa waƙoƙi ko rikodi da yawa su zama fayil ɗaya, bisa tsarin jerin.
-714|Farawa bai dace ba. Yi amfani da tsarin 00:01:30 (ko daƙiƙa kawai).
-715|Ƙarshe bai dace ba. Yi amfani da tsarin 00:02:45 (ko daƙiƙa kawai).
-716|Ƙarshe dole ya kasance bayan farawa.
-717|Tsarin fitarwa:
-718|Inganci:
-719|Matsa ta:
-720|Girman ƙarshe
-721|Girman da ake so:
-722|kowane bidiyo zai kai kusan wannan girman (zagaye 2, a hankali)
-723|Mafi girman ƙuduri:
-724|Tsarawa:
-725|H.264 (mai dacewa)
-726|H.265 (ƙarami, a hankali)
-727|Sauti:
-730|Ana adana sakamakon a matsayin MP4 tare da kari _comprimido.
-731|Farawa:
-732|Ƙarshe:
-733|har zuwa ƙarshe
-734|tsawon fayil ɗin da aka zaɓa: {}
-735|Da sauri (ba tare da asara ba)
-736|Daidai (sake tsarawa)
-737|Yana yanke daidai a lokutan da aka bayar; yana ɗaukar lokaci saboda yana sake tsara fayil ɗin.
-738|Nan take kuma ba tare da asara ba; a bidiyo, yankan zai iya faɗawa ƴan daƙiƙoƙi kafin farawa.
-739|Sake tsarawa (an ba da shawara)
-740|Da sauri (haɗa kawai)
-741|Yana aiki da bidiyo daban-daban: duka suna samun ƙudurin na farko, da iyaka idan an buƙata. Yana adanawa a MP4.
-742|Nan take, amma yana aiki ne kawai idan duk bidiyon suna da tsari, ƙuduri da tsarawa iri ɗaya.
-743|Yi amfani da ↑ da ↓ a jerin don canza tsari.
-744|Sauri:
-745|Na musamman:
-746|Bar sautin (ana ƙara/rage saurinsa tare)
-747|Cire sauti
-748|Fitar da firam
-749|Hoto ɗaya kowane:
-750|PNG (ba tare da asara ba)
-751|Ana adana hotuna a babban fayil <sunan bidiyo>_frames.
-752|Ana kwafi bidiyon ba tare da sake tsarawa ba: da sauri kuma ba tare da rasa inganci ba.
-753|WAV da FLAC ba su da asara: babu inganci da za a zaɓa.
-754|Ƙarar da ake nufi:
-755|Mai ƙarfi (−14, yawo)
-756|Na yau da kullum (−16)
-757|Mai laushi (−23, TV)
-758|A bidiyo, ana kwafi hoto ba tare da asara ba; sauti kawai ake sake tsarawa.
-759|MP3 (mai dacewa)
-760|OPUS (ƙarami)
-761|Saurin bit:
-763|Tashoshi:
-764|Canza zuwa mono (rabin girma; yana da kyau ga murya)
-765|64–96 kbps yana da kyau ga murya da podcast; 128–160 kbps ga kiɗa.
-766|Tsawon lokaci:
-767|bidiyon da aka zaɓa: {}
-768|Faɗi:
-773|GIF suna girma da sauri: gajerun yankuna, 480 px da 12 fps yawanci suna ƙasa da MB 5.
-774|Juya:
-775|Kada a juya
-776|Madubi:
-777|A kwance ↔
-778|Yanka:
-779|Yankan yana tsakiya. Ana kwafi sauti ba tare da asara ba.
-780|Fassarar rubutu:
-781|kai tsaye (suna ɗaya da bidiyo)
-782|Fassarar rubutu
-783|Zaɓi fassarar rubutu
-784|Kai tsaye
-785|An samu don bidiyon da aka zaɓa: {}
-786|Babu fassarar rubutu mai suna ɗaya da bidiyon da aka zaɓa. Zaɓi fayil ɗin.
-787|Kowane bidiyo yana amfani da fassarar mai sunansa (video.srt), ko zaɓi ɗaya ga duka.
-788|Girman rubutu:
-789|Matsakaici
-790|Wuri:
-791|Kiɗa:
-792|Duk fayiloli
-793|Zaɓi kiɗa
-794|Sautin asali:
-795|Gauraya da kiɗa
-796|Maye gurbin da kiɗa
-797|Ƙarar kiɗa:
-798|Maimaita:
-799|Maimaita kiɗan idan ya fi bidiyon gajarta
-800|Don kiɗan baya ƙarƙashin magana, 20–40% yawanci ya dace. Ana kwafi hoto ba tare da asara ba.
-801|Yi amfani da ↑ da ↓ a jerin don canza tsari. Ana kuma karɓar bidiyo (ana amfani da sautinsu).
-802|Fayiloli {}
-803|Bidiyo {}
-804|babu fassarar rubutu mai suna ɗaya da bidiyon; zaɓi fayil ɗin fassara.
-805|zaɓi kiɗa.
-806|Conver — an gama
-807|Conver — kuskure
-808|ba a shigar da harshen {lang} don OCR a Windows ba.
-809|Canza hoto
-810|Matsa hoto
-811|Juya da yanke
-812|Daidaita launuka
-813|Hotuna zuwa PDF
-814|Canza bidiyo
-815|Gudu
-816|Fassarar ƙasa a bidiyo
-817|Canza sauti
-818|Saukewa
-819|Makirufo da tagogi
-820|Jerin saitunan
-821|Jera gudanarwa
-822|Duba gudanarwa
-823|Nau'ikan node
-824|Adana gudanarwa
-825|Goge gudanarwa
-826|Gudanar da gudanarwa
-827|Mai amfani ya soke.
-828|[{}/{n}] {name}
-829|✔ {name}   {info}
-830|An gama: {ok} cikin fayiloli {n}.
-831|Ana sarrafawa…
-832|✔ {}   {info}
-833|An gama.
-834|Canza girman hoto
-835|Canza girman hoto ɗaya ko fiye, da kashi ko da pixel.
-836|Rage girman fayil tare da kiyaye tsarin (JPG, PNG, WEBP…).
-837|Zaɓi daga 1 zuwa 100. JPG da WEBP suna kiyaye tsarinsu; sauran suna zama JPG (ko WEBP idan suna da bayyanannun wurare).
-838|Canza tsarin hoto
-839|Canza tsakanin PNG, JPG, WEBP, BMP, GIF, TIFF da ICO.
-840|Juya, madubanta da yanka
-841|Juya, madubanta ko yanka hotuna zuwa daidaiton da aka shirya (yankan yana tsakiya).
-842|Yana share ɓoyayyun bayanan hoto (EXIF, wurin GPS, kyamara, rana) ba tare da rasa inganci ba.
-843|Cire bangon hotunan mutane, kayayyaki da dabbobi da basirar wucin gadi, a kwamfutarka kuma ba tare da intanet ba.
-844|Ƙara girman hotuna sau 2 ko 4 ba tare da dushewa ba: basirar wucin gadi tana sake ƙirƙirar bayanai. Yana aiki a kwamfutarka, ba tare da intanet ba.
-845|Ƙara girma
-846|Canza haske, bambanci da zurfin launi ko saka matattara. Duba samfoti kafin adanawa.
-847|Haɗa hotuna da yawa a PDF ɗaya, hoto ɗaya a kowane shafi, bisa tsarin jerin.
-848|Ƙirƙiri PDF
-849|Faɗi da tsawo dole su zama lambobi cikakku masu kyau.
-850|Saka faɗi da/ko tsawo a pixel.
-851|babu samfoti
-852|Pixel
-853|Kiyaye daidaito
-854|Idan an kiyaye daidaito, hoton zai shiga cikin faɗi/tsawon da aka bayar.
-855|Ɗan kaɗan = kusan babu asarar da ake gani  •  Mai ƙarfi = fayil ƙarami sosai
-856|Gumaka mafi girma 256×256 ne; ana rage manyan hotuna.
-857|A tsaye ↕
-858|JPG, PNG da WEBP: metadata kawai ake sharewa, ba a sake matsa hoton ba.
-859|Idan hoton yana da juyawar kyamara, ana fara aiwatar da ita don kada hoton ya kwanta a gefe.
-860|Sabon bango:
-861|Gefe:
-862|Mai laushi (gashi, fur)
-863|Bayyananne yana adanawa a PNG. Hoton farko yana ɗaukar ƴan daƙiƙoƙi yayin da samfurin ke lodawa.
-864|⚠ Ba a sami samfurin AI ba: saka silueta.onnx a babban fayil modelos.
-865|Ƙara girma:
-866|Yana da kyau ga ƙananan hotuna, hotunan allo da tsofaffin hotuna. Manyan hotuna suna ɗaukar lokaci (har da samfoti).
-867|⚠ Ba a sami samfurin AI ba: saka realesr-general-x4v3.onnx a babban fayil modelos.
-868|Haske:
-869|Bambanci:
-870|Zurfin launi:
-871|Sake saitawa
-872|Matattara:
-873|Girman shafi:
-874|Yi amfani da ↑ da ↓ a jerin don canza tsarin shafuka.
-875|Sakamako
-876|Ƙara hoto don ganin samfoti
-877|Sakamako: {}×{}  •  {}   ({})
-878|Ana shirya samfoti…
-879|Shafi {}  •
-880|{page}Na asali: {}×{}  •  {orig_size}
-881|Ana lodawa…
-882|Ba a iya buɗe wannan hoton ba.
-883|Hotuna {}
-884|Shafuka {pages} • {}
-885|Kada a yi amfani
-886|Sauke bidiyo da kiɗa
-887|Mahaɗai {n} — za a sauke su bi da bi
-888|Liƙa mahaɗin bidiyo, waƙa ko jerin waƙoƙi a nan (ɗaya ko fiye, ɗaya a kowane layi)
-889|MP4 (bidiyo)
-890|MP3 (sauti)
-891|Shiga ta burauza:
-892|don shafukan da ke buƙatar asusu (Instagram, Facebook). Rufe burauzar kafin saukewa.
-893|Sauke tare da:
-894|Fassarar rubutu (.srt, Fotigal da Turanci)
-895|Hoton murfi (.jpg)
-896|Sauke jerin waƙoƙin gaba ɗaya (idan mahaɗin na jeri ne)
-897|Sauke abubuwan da kake da haƙƙin saukewa kawai.
-898|Zaɓi babban fayil na fitarwa mai inganci.
-899|[mahaɗi {}/{n}]
-900|{prefix}Ana neman bayanai…
-901| (mahaɗai {failed} da kuskure)
-902|An gama: an sauke fayiloli {total}{errors}.
-903|{}: ba a iya buɗe PDF ba ({e})
-904|{} yana da kariya da kalmar sirri.
-905|ƙara aƙalla PDF 2.
-906|tazara mara inganci: "{part}". Yi amfani da wani abu kamar 1-3, 7, 10-
-907|shafi {a} ba ya nan (PDF yana da {total}).
-908|saka shafukan, misali 1-3, 7
-909|{} cikin shafuka {total}
-910|PDF {total} a babban fayil {}
-911|{} yana da kariyar kalmar sirri; cire kalmar sirri tukuna.
-912|PDF ɗin an riga an inganta shi (babu raguwa)
-913|an sake matsa hotuna {changed} • {}
-914|shigar da kalmar sirri.
-915|{} yana da kariyar kalmar sirri tuni.
-916|ba a iya karewa ba: {e}
-917|an kare da kalmar sirri (AES-128)
-918|kalmar sirri ba daidai ba.
-919|an cire kalmar sirri
-920|PDF mai kariya: shigar da kalmar sirri.
-921|ba a iya buɗe PDF ba ({})
-922|hotuna {} a babban fayil {}
-923|shafuka {done} masu rubutun da aka gane • kalmomi {words_total}
-924| • {skipped} sun riga suna da rubutu
-925|rubutun ya yi tsayi da yawa don QR Code.
-926|ba a sami ffmpeg ba.
-927|ba a iya fara ffmpeg ba: {e}
-928|rikodi ya tsaya.
-929|babu sauti da ya zo daga wannan makirufo. Zaɓi wata shigarwa daga jerin (misali: "Makirufo (…)").
-930|makirufo ya daina amsawa.
-931|suna mai maimaituwa
-932|akwai fayil mai wannan suna tun tuni
-933|ba a naɗa komai ba.
-934|UVR MDX-Net (67 MB)
-935|Kiɗa kawai (karaoke)
-936|ba a iya ajiyewa ba: {}
-937|sautin ya yi gajarta sosai (ƙasa da rabin daƙiƙa).
-938|{} • {dur}
-940|Mai sauri (82 MB)
-941|Daidaitacce (264 MB)
-942|Mai inganci (574 MB)
-943|Whisper base (82 MB)
-944|Whisper small (264 MB)
-945|Whisper large-v3 turbo (574 MB)
-946|Gane kai tsaye
-947|Fotigal
-948|Turanci
-949|Sifaniyanci
-950|Faransanci
-951|Jamusanci
-952|Italiyanci
-953|Rashanci
-954|Sinanci
-955|Japananci
-956|Koriyanci
-957|Larabci
-958|Hindi
-959|Turkanci
-960|Polish
-961|Ukraniyanci
-962|Holanci
-963|Indonesiyanci
-964|Biyetnamanci
-965|Farisanci
-966|ba a iya fara Whisper ba: {e}
-967|kuskuren Whisper: {}
-968|Whisper bai ƙirƙiri wani fayil ba.
-969|kalmomi {words} • {}
-970|ba a saka wannan kwafin Conver da mai sakawa ba kuma ba ɗaukuwa ba ne; sauke daga shafin yanar gizo.
-971|sabon sigar ba shi da fayil ga wannan kwafin Conver; sauke daga shafin yanar gizo.
-972|sabon sigar bai wallafa jimlar tantancewa ba; sauke daga shafin yanar gizo.
-973|fayil ɗin sabuntawa ba ya cikin jerin tantancewa; sauke daga shafin yanar gizo.
-974|ba a iya fitar da sabuntawar ba: {e}
-975|ba a iya fitar da sabuntawar ba.
-976|ba a iya fara mai sakawa ba: {e}
-977|ba a iya fara sabuntawa ba: {e}
-978|sabuntawa ta atomatik ba ta samu ga wannan kwafin ba.
-979|Ba a iya kammala sabuntawa ba: {e}
-980|ba a sami samfurin ƙara girma ba (babban fayil modelos).
-981|gefen hoton zai wuce pikseli {MAX_SIDE}; rage shi tukuna ko yi amfani da 2×.
-982|MP3 (sauti kawai)
-983|ffmpeg ya kasa: {}
-984|MB {mb} ya yi ƙanƙanta ga bidiyo na daƙiƙa {:.0} (mafi ƙanƙanta ≈ MB {:.1}).
-985|Matsa hotuna
-986|Canza hotuna
-987|Matsa bidiyo
-988|Canza bidiyo
-989|Canza sauti
-990|✖ ba a iya ƙirƙirar babban fayil {OUT_FOLDER} ba: {e}
-991|Ana sa ido a {} — {}
-992|Sakamako yana zuwa ƙaramin babban fayil "{OUT_FOLDER}".
-993|Ana sa ido a babban fayil… (an sarrafa {count})
-994|Ana sarrafa {name}…
-995|{name}: {info}
-996|{name}: {e}
-997|An dakatar. An sarrafa fayiloli {count}.
-998|Zaɓi fayiloli
-999|Babu fayil
-1000|Fayil 1
-1001|Fayiloli {n}
-1002|+ Ƙara
-1003|tsari:
-1004|Ja fayiloli zuwa nan
-1005|ko danna don zaɓa
-1009|Waƙar sauti tana bayyana a nan
-1010|0 dB
-1011|{d:.1} dB
-1012|Ana jiran sauti daga makirufo…
-1013|⚠ Kusan babu sauti: yi magana kusa ko ka ƙara ƙarar makirufo a Windows.
-1014|Ɗan ƙasa kaɗan: yi magana kusa da makirufo.
-1015|✔ Matakin yana da kyau.
-1016|Babban fayil ɗaya da fayil na asali
-1017|Zaɓi babban fayil na fitarwa
-1018|Buɗe babban fayil
-1019|Saki don ƙarawa
-1020|Hotuna da bidiyo suna zuwa kayan aiki da ya dace
+240|❚❚  AN DAKATA
+241|●  REC
+242|An rage taga ko an rufe ta.
+243|Ana loda samfoti…
+244|Naɗi allo
+245|Naɗi dukan allo, mai saka idanu ɗaya, taga ko wani yanki a matsayin MP4, da makirufo ko babu.
+246|Naɗa:
+247|Dukan allo
+248|Mai saka idanu ɗaya
+249|Taga ɗaya
+250|Wani yanki
+251|Idan akwai masu saka idanu fiye da ɗaya, "Dukan allo" yana naɗa su duka tare. Don naɗa ɗaya kawai, zaɓi "Mai saka idanu ɗaya".
+252|Mai saka idanu:
+253|ba a sami mai saka idanu ba
+254|Mai saka idanu
+255|Taga:
+256|ba a sami taga ba
+257|Yanki (px):
+258|Faɗi
+259|Tsawo
+260|Inganci:
+261|Mai sauƙi (ƙaramin fayil)
+262|Mafi girman ƙuduri:
+263|Na asali
+264|Firam a kowane daƙiƙa:
+265|Ba sauti
+266|Zaɓuɓɓuka:
+267|Nuna kibiyar linzamin kwamfuta
+268|Rage Conver lokacin farawa
+269|❚❚  An dakata
+270|▶  Ci gaba
+271|❚❚  Dakata
+272|Kalla
+273|Don dakatawa ko tsayawa, koma Conver (yana nan a sandar ayyuka). Ana haɗa sassan da aka dakata su zama MP4 ɗaya.
+274|Saitunan da aka ajiye
+275|Saitunan da kake so, a shirye da danna ɗaya, ta layin umarni ko ta wakilin AI (MCP).
+276|Babu saitin da aka ajiye tukuna. Ƙirƙiri na farko a ƙasa.
+277|Goge
+278|Rufe fom
+279|+ Sabon saiti
+280|Maido da waɗanda suka zo a shirye
+281|Suna:
+282|Bayani:
+283|Kayan aiki:
+284|Ajiye saiti
+285|✔ An ajiye saiti: {}
+286|Layin umarni: conver-cli preset "{}" fayiloli…
+287|Yi amfani da saiti
+288|Ana amfani da: {}
+289|An gama: {} sun yi, {} da kuskure.
+290|An adana a: {}
+291|Kuskure.
+292|gudanarwar tana da zagaye (wani node yana komawa na baya).
+293|gudanarwar tana buƙatar suna.
+294|akwai node biyu masu id {}.
+295|node {}: nau'in da ba a sani ba "{}" (duba flow_node_types).
+296|haɗi {} → {}: node {} ba shi da fita "{}" (yana da: {}).
+297|haɗi {} → {}: node {} ba ya karɓar shigarwa.
+298|haɗi {} → {}: node ba ya wanzu.
+299|HOTO
+300|BIDIYO
+301|SAUTI
+302|SAUKEWA
+303|KAYAN AIKI
+304|Fayilolin shigarwa
+305|Adana a babban fayil
+306|AI: umarni
+307|AI: kimantawa
+308|Tace fayiloli
+309|ba a iya adana gudanarwar ba: {e}
+310|ba a sami gudanarwa ba: {name}
+311|ba a iya ƙirƙirar babban fayil na aiki ba: {e}
+312|gudanarwar babu komai.
+313|babu abin da ya iso
+314|▶ {title}
+315|abubuwa {n}
+316|✔ {title}: {note}
+317|✖ {title}: {e}
+318|babu fayilolin shigarwa (ƙara fayiloli a node ko aika "files").
+319|fayiloli {n}
+320|rubutun babu komai.
+321|{} e, {} a'a
+322|ba a iya ƙirƙirar {} ba: {e}
+323|an adana {n} a {}
+324|rubuta umarni ga AI.
+325|   AI: {label}
+326|{label}: {e}
+327|amsoshi {n}
+328|rubuta ma'aunin kimantawa.
+329|   {} {}: {reason}
+330|nau'in da ba a sani ba: {other}
+331|kayan aikin da ba a sani ba: {name}
+332|babu fayil da ya iso wannan node.
+333|abubuwa {}, {failed} sun gaza
+334|abubuwa {}
+335|SHIGARWA DA FITARWA
+336|Ƙara node na "Fayilolin shigarwa" don karɓar fayiloli.
+337|An canza gudanarwar daga waje (MCP ko wani shiri) kuma an sake loda ta.
+338|Sabuwar gudanarwa
+339|Sarrafa kai
+340|Akwai gudanarwa mai wannan suna.
+341|+ Sabo
+342|Kwafi
+343|kwafi
+344|Sake dannawa don gogewa
+345|Goge
+346|🔍  Nemi node…
+347|ja fayiloli zuwa nan
+348|fayiloli ko manyan fayiloli {k}
+349|(babu komai)
+350|rubuta umarni
+351|rubuta ma'auni
+352|Takardu\Conver
+353|komai yana wucewa
+354|saitunan asali
+355|Ƙirƙiri gudanarwa da "+ Sabo".
+356|yana gudana…
+357|a'a
+358|Cire
+359|Wannan node ba ya karɓar shigarwa.
+360|Wannan haɗin zai haifar da zagaye.
+361|+  Ƙara node
+362|Daidaita
+363|Nuna dukan gudanarwar
+364|Ƙara node da maɓallin "+ Ƙara node".
+365|Ja daga ɗigon da ke dama na node zuwa wani node don haɗa su.
+366|Haɗi
+367|Cire haɗi
+368|Shawara: maɓallin Delete ma yana cirewa.
+369|Gudanarwa
+370|Bayani
+371|Yadda yake aiki
+372|1. Ƙara node da maɓallin "+ Ƙara node" (kayan aiki, AI, matattara).
+373|2. Ja daga ɗigon da ke dama na node zuwa wani don haɗa su: sakamakon ɗaya yana zuwa na gaba.
+374|3. Danna node don daidaita shi; ja fayiloli zuwa taga don saka su a shigarwa.
+375|4. Danna Gudanar da gudanarwa.
+376|Node na AI suna amfani da API da aka saita a Saituna. Wakilan AI ma za su iya ƙirƙira da gudanar da gudanarwa ta MCP (flow_save, flow_run).
+377|⚠ AI: {e}
+378|Saita AI
+379|Nau'in da ba a sani ba: {}
+380|Suna a allo
+381|Babban fayil na makoma
+382|Takardu\Conver\<gudanarwa>
+383|A cikin rubutu, {text} ya zama rubutun da ya iso, {file} kuma sunan fayil.
+384|Cire node
+385|Fayiloli da manyan fayiloli
+386|Babu tukuna: ja fayiloli zuwa taga ko yi amfani da maɓallan da ke ƙasa.
+387|Cire daga jeri
+388|+ Fayiloli…
+389|+ Babban fayil…
+390|Share jeri
+391|Daga layin umarni ko MCP, fayilolin da aka aika wa flow_run suna maye gurbin waɗannan.
+392|▶  Gudanar da gudanarwa
+393|Ana gudanar da “{}”…
+394|An gama, node {failed} suna da kuskure.
+395|An gama: sakamako {n}.
+396|Koma zuwa asali
+397|(asali)
+398|(atomatik)
+399|ɗaya a kowane layi
+400|Tsari
+401|Inganci
+402|Mataki
+403|Harshe
+404|Kashi
+405|Kiyaye daidaito
+406|Farko
+407|Ƙarshe
+408|Tsawon lokaci (s)
+409|Girma
+410|Juya (digiri)
+411|Yanke daidai
+412|Shafuka
+413|Firam a kowane daƙiƙa
+414|Juya a kwance
+415|Juya a tsaye
+416|Rufaffen sauti
+417|Taga
+418|Ƙara
+419|Mahaɗai
+420|Girman ƙarshe (MB)
+421|Sauke rubutun ƙasa
+422|Fayil na rubutun ƙasa
+423|Adana
+424|Tsallake shafukan da ke da rubutu
+425|Daƙiƙai
+426|Sikeli
+427|Cikar launi
+428|Ƙuduri
+429|Maye gurbin sauti
+430|Yanki
+431|Wuri
+432|Dukan jerin waƙoƙi
+433|Girman shafi
+434|Kalmar sirrin mai shi
+435|Kalmar sirri
+436|Kiɗa
+437|Mono
+438|Samfuri
+439|Makirufo
+440|Ƙarar da ake nufi (LUFS)
+441|Maimaita
+442|Nau'i
+443|Kiyaye sauti
+444|Kbps
+445|Adana a matsayin
+446|Matattara
+447|Ma'auni
+448|Kowane (s)
+449|Gefe
+450|Ƙuduri (DPI)
+451|Yanke
+452|Sauke hoton bango
+453|Bambanci
+454|Launi
+455|Shigar mai bincike
+456|Haske
+457|Bango
+458|Sauti (kbps)
+459|Daidaito
+460|Ba da izinin bugawa
+461|Ba da izinin kwafa
+462|Fayil na fitarwa
+463|Suna
+464|Umarni ga AI
+465|Amsa ɗaya ga kowane fayil
+466|Wuce fayiloli gaba
+467|Adana amsa a matsayin
+468|Ma'auni
+469|Nau'ikan da aka karɓa
+470|Ƙarin sunaye da aka karɓa
+471|Mafi ƙarancin girma (MB)
+472|Mafi girman girma (MB)
+473|Matsar maimakon kwafa
+474|Adana rubutu a matsayin .txt
+475|Sauri
+476|Daidaitacce
+477|Daidai
+478|Murya da kiɗa
+479|Murya kawai
+480|Kayan kiɗa kawai
+481|Babu
+482|Bayyananne
+483|Fari
+484|Baƙi da fari
+485|Sepia
+486|Juya launi
+487|Sama
+488|Ƙasa
+489|Ƙarami
+490|Babba
+491|Laushi
+492|Bayyananne
+493|Bidiyo
+494|Sautuka
+495|PDF
+496|Rubutu
+497|A4 a tsaye
+498|A4 a kwance
+499|Ba yanka
+500|Juya launuka
+501|Saka faɗi da/ko tsawo.
+502|Idan ba a kiyaye daidaito ba, saka faɗi DA tsawo.
+504| • an adana a matsayin PNG
+505|inganci {q} • {}
+506|an juya {rotate}°
+507|an madubanta ↔
+508|an madubanta ↕
+509|yanka {}
+510|babu canji
+512|an cire metadata (an yi amfani da juyawar kyamara a hoton)
+513|an cire metadata ({})
+514|ba a sami metadata ba
+515|an cire bango • an bar {kept:.0}% na hoton
+516|zurfin launi
+518|{w}x{h} → {}x{} (AI {scale}×)
+519|Girman hoto
+520|A4 a tsaye
+521|A4 a kwance
+522|ba a iya adanawa ba: {e}
+523|kwanaki {d} da suka wuce
+524|watanni {} da suka wuce
+525|shekaru {} da suka wuce
+526|Ranar hoto
+527|Haske
+528|Buɗewar ruwan tabarau
+529|Tazarar mayar da hankali
+530|Manhaja
+531|Marubuci
+532|Haƙƙin mallaka
+533|Wuri (GPS)
+535|Jimlar filayen EXIF
+536|Hoto (EXIF)
+537|Tsawon lokaci
+538|Jimlar saurin bit
+539|Murfi
+540|Bidiyo
+541|Sauti
+542|Fassarar rubutu
+543|Kafofin watsa labarai
+544|Waƙoƙi
+545|Alamomi
+546|Babban fayil
+547|{} (bytes {})
+548|An gyara
+549|An ƙirƙira
+550|Fayil
+551|Girma
+552|{w} × {h} px (megapixel {mp:.1})
+553|Launuka
+554| (da bayyanannun wurare)
+555|Hoto
+556|ba a iya karantawa ba (ya lalace ko yana da kariya)
+557|ba a iya tuntuɓar GitHub ba: {e}
+558|ba a iya isa GitHub ba: {e}
+559|saukewa ya kasa: {e}
+560|fayil ɗin da aka sauke bai yi daidai da sa hannun da aka wallafa ba; ba a canza komai ba.
+561|ba a iya maye gurbin yt-dlp ba (ana amfani da shi?): {e}
+562|sigar da aka sauke ba ta yi aiki ba; an bar ta baya.
+563|A shirye.
+564|Ana sokewa…
+565|Ana farawa…
+566|Kuskuren da ba a zata ba.
+567|Abubuwan da aka sauke
+568|SARRAFA KAI
+569|Gudanarwar sarrafa kai
+570|Canza girma
+571|Rage inganci
+572|Canza tsari
+573|Cire bango
+574|Ƙara girma da AI
+575|Juya / yanka
+576|Daidaita launi
+577|Cire metadata
+578|Hotuna → PDF
+579|Yanke wani yanki
+580|Haɗa bidiyo
+581|Canza sauri
+582|Bidiyo → GIF
+583|Ƙona fassarar rubutu
+584|Kiɗan baya
+585|Cire sauti / firam
+586|Yanke sauti
+587|Haɗa sauti
+588|Daidaita ƙarar sauti
+589|PDF → hotuna
+590|Kare da kalmar sirri
+591|Bidiyo da kiɗa
+592|Hankali na wucin gadi (gudanarwar sarrafa kai)
+593|Node na "AI: umarni" da "AI: kimantawa" ne ke amfani da shi. Fayilolin da ke wucewa ta waɗannan node ana aika su ga sabis ɗin da aka zaɓa; sauran Conver na aiki ba tare da intanet ba.
+594|Sabis:
+595|Anthropic (Claude)
+596|Mai jituwa da OpenAI
+597|misali: gpt-4o-mini, llama3.1 (Ollama)
+598|Adireshin API:
+599|Maɓallin API:
+600|an adana (Windows na kare shi)
+601|liƙa maɓallin a nan
+602|Adana maɓalli
+603|Gwada haɗi
+604|Ana gwadawa…
+605|✔ AI ta amsa.
+606|mai canza komai
+607|🔍  Nemi kayan aiki…
+608|Ctrl+F
+609|Babban fayil da ake sa ido  ●
+610|Mai rikodin sauti  ●
+611|Naɗi allo  ●
+612|Ba a sami kayan aiki ba.
+613|⚙  Saituna
+614|🕘  Tarihi
+615|Saituna
+616|Keɓance Conver.
+617|Harsuna 20 da aka fi magana a duniya. Ba a fassara sunayen fayiloli da saƙonnin FFmpeg da yt-dlp ba.
+618|Kamanni
+619|Haske
+620|Duhu
+621|Sanarwa
+622|Sanarwar Windows idan aiki mai tsawo ya ƙare (lokacin da Conver ke baya)
+623|Kunna sauti idan an gama
+624|Gwada sanarwa
+625|Haka sanarwa za ta bayyana idan aiki ya ƙare.
+626|sanarwa tana bayyana da sunan "Windows PowerShell"; haka Windows ke nuna manhajoji marasa mai sakawa.
+627|Babban fayil na asali:
+628|Canza…
+629|Babban fayil na asali na saukewa
+630|Game da
+631|Siga:
+632|ba a samu ba
+633|ana dubawa…
+634|Aiki:
+635|Sarrafa kai (wakilan AI da layin umarni)
+636|Wakilan AI (Claude, Cursor, VS Code…) za su iya amfani da duk kayan aikin Conver ta MCP. Liƙa saitin da ke ƙasa a fayil ɗin MCP na wakilinka.
+637|Shiri:
+638|Kwafi saitin MCP
+639|Kwafi misalin layin umarni
+640|"{}" image_convert foto.png --format webp
+641|A layin umarni: conver-cli help  •  conver-cli <kayan aiki> fayiloli… --zaɓi ƙima
+642|Haɗawa da Windows
+643|Nuna "Buɗe da Conver" a menu na danna dama (hotuna, bidiyo, sauti da PDF)
+644|Ba a iya canza menu ba: {e}
+645|A Windows 11, zaɓin yana cikin "Nuna ƙarin zaɓuɓɓuka". Idan ka matsar da babban fayil na Conver, cire alamar ka sake sakawa.
+646|Sabuntawa
+647|Duba sabuwar sigar Conver lokacin buɗewa (yana tambayar GitHub)
+648|✔ kana da sigar mafi sabuwa ({})
+649|akwai sigar {}
+650|Duba yanzu
+651|"Sabunta yanzu" yana sauke sabon mai sakawa, yana duba sa hannunsa kuma yana sakawa ba tare da tambaya ba: Conver zai rufe kuma ya sake buɗewa da kansa, da saitunan iri ɗaya.
+652|"Sabunta yanzu" yana sauke sabon sigar ɗaukuwa, yana duba sa hannunsa kuma yana maye fayilolin wannan babban fayil (ana ajiye babban fayil dados): Conver zai rufe kuma ya sake buɗewa da kansa.
+653|Ba a saka wannan kwafin da mai sakawa ba kuma ba sigar ɗaukuwa ba ce: sauke sabon sigar daga shafin yanar gizo.
+654|yt-dlp (injin saukewa)
+655|Shafukan intanet suna canzawa sau da yawa. Idan saukewa ya daina aiki, sabunta yt-dlp (yana sauke sigar hukuma daga GitHub kuma yana duba sa hannu).
+656|Sabunta yt-dlp
+657|Ana sauke sabuwar sigar yt-dlp…
+658|Kana da sigar mafi sabuwa tun tuni ({after}).
+659|An sabunta: {before} → {after}.
+660|✔ {text}
+661|Sabuntawa ya kasa.
+662|Ana sauke Conver {}…
+663|Ana sakawa… Conver zai rufe kuma ya sake buɗewa da kansa.
+664|Sauke
+665|Sabunta yanzu
+666|Akwai sabuwar sigar Conver: {}
+667|Abin da ya canza
+668|Ba yanzu ba
+669|farawa ({}) ya wuce ƙarshen fayil ({}).
+670|ƙarshe dole ya kasance bayan farawa.
+672|ƙara aƙalla bidiyo 2.
+673|{} ba shi da bidiyo.
+674|Bidiyo {} • {}{extra} • {}
+675|{e} — idan bidiyon sun bambanta, yi amfani da "Sake tsarawa"
+676|fayil ɗin ba shi da bidiyo.
+678|an cire sauti • {}
+679|Hotuna {n} a babban fayil {}
+680|fayil ɗin ba shi da sauti.
+681|an daidaita ƙarar zuwa {lufs} LUFS
+682|farawa ya wuce ƙarshen bidiyo.
+684|9:16 (Reels/TikTok)
+685|1:1 (feed)
+686|4:5 (Instagram)
+687|16:9 (YouTube)
+688|zaɓi juyawa, madubi ko yanka.
+689|ba a iya karanta fassarar rubutu ba: {e}
+690|fassarar rubutu: {}
+691|{} ba shi da sauti.
+692|ba a iya karanta tsawon bidiyon ba.
+693|an gauraya da sautin asali
+694|a maimakon sautin asali
+695|{} {how} • ƙara {volume}%
+696|ƙara aƙalla fayiloli 2.
+697|Fayiloli {} • {} • {}
+698|Canza tsarin bidiyo
+699|Canza tsakanin MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ko fitar da sauti a matsayin MP3.
+700|Matsa bidiyo
+701|Rage girman bidiyo ta zaɓar matakin matsawa ko girman ƙarshe a MB.
+702|Yanke yanki na bidiyo
+703|Zaɓi farawa da ƙarshe ka adana wannan sashe na bidiyon kawai.
+704|Yanke
+705|Haɗa bidiyo da yawa su zama ɗaya, bisa tsarin jerin.
+706|Ƙara sauri ko rage (0,25× zuwa 4×). Sauti yana bi ba tare da ya yi siriri ko kauri ba.
+707|Aiwatar
+708|Cire sauti / fitar da firam
+709|Kashe sautin bidiyo ko adana hotuna daga gare shi a kowane tazara.
+710|Canza tsarin sauti
+711|Canza tsakanin MP3, WAV, FLAC, OGG, M4A da OPUS. Yana kuma fitar da sauti daga bidiyo.
+712|Adana sashe ɗaya na waƙa ko rikodi kawai.
+713|Daidaita ƙarar sauti da yawa (ko bidiyo) zuwa mataki ɗaya, ba tare da fashewa ba.
+714|Daidaita
+715|Matsa sauti
+716|Rage girman fayilolin sauti ta zaɓar saurin bit.
+717|Bidiyo zuwa GIF
+718|Mayar da sashe ɗaya na bidiyo zuwa GIF mai motsi.
+719|Ƙirƙiri GIF
+720|Juya da yanka bidiyo
+721|Juya bidiyon da aka ɗauka a gefe ko yanka zuwa 9:16 (Reels/TikTok), 1:1, 4:5 ko 16:9.
+722|Ƙona fassarar rubutu (.srt, .ass ko .vtt) a cikin bidiyo, don ta bayyana a kowane mai kunnawa ko kafar sada zumunta.
+723|Saka fassara
+724|Saka kiɗa a bidiyo, a gauraya da sautin asali ko a maimakonsa.
+725|Haɗa waƙoƙi ko rikodi da yawa su zama fayil ɗaya, bisa tsarin jerin.
+726|Farawa bai dace ba. Yi amfani da tsarin 00:01:30 (ko daƙiƙa kawai).
+727|Ƙarshe bai dace ba. Yi amfani da tsarin 00:02:45 (ko daƙiƙa kawai).
+728|Ƙarshe dole ya kasance bayan farawa.
+729|Tsarin fitarwa:
+730|Matsa ta:
+731|Girman ƙarshe
+732|Girman da ake so:
+733|kowane bidiyo zai kai kusan wannan girman (zagaye 2, a hankali)
+734|Tsarawa:
+735|H.264 (mai dacewa)
+736|H.265 (ƙarami, a hankali)
+737|Sauti:
+740|Ana adana sakamakon a matsayin MP4 tare da kari _comprimido.
+741|Farawa:
+742|Ƙarshe:
+743|har zuwa ƙarshe
+744|tsawon fayil ɗin da aka zaɓa: {}
+745|Da sauri (ba tare da asara ba)
+746|Daidai (sake tsarawa)
+747|Yana yanke daidai a lokutan da aka bayar; yana ɗaukar lokaci saboda yana sake tsara fayil ɗin.
+748|Nan take kuma ba tare da asara ba; a bidiyo, yankan zai iya faɗawa ƴan daƙiƙoƙi kafin farawa.
+749|Sake tsarawa (an ba da shawara)
+750|Da sauri (haɗa kawai)
+751|Yana aiki da bidiyo daban-daban: duka suna samun ƙudurin na farko, da iyaka idan an buƙata. Yana adanawa a MP4.
+752|Nan take, amma yana aiki ne kawai idan duk bidiyon suna da tsari, ƙuduri da tsarawa iri ɗaya.
+753|Yi amfani da ↑ da ↓ a jerin don canza tsari.
+754|Sauri:
+755|Na musamman:
+756|Bar sautin (ana ƙara/rage saurinsa tare)
+757|Cire sauti
+758|Fitar da firam
+759|Hoto ɗaya kowane:
+760|PNG (ba tare da asara ba)
+761|Ana adana hotuna a babban fayil <sunan bidiyo>_frames.
+762|Ana kwafi bidiyon ba tare da sake tsarawa ba: da sauri kuma ba tare da rasa inganci ba.
+763|WAV da FLAC ba su da asara: babu inganci da za a zaɓa.
+764|Ƙarar da ake nufi:
+765|Mai ƙarfi (−14, yawo)
+766|Na yau da kullum (−16)
+767|Mai laushi (−23, TV)
+768|A bidiyo, ana kwafi hoto ba tare da asara ba; sauti kawai ake sake tsarawa.
+769|MP3 (mai dacewa)
+770|OPUS (ƙarami)
+771|Saurin bit:
+773|Tashoshi:
+774|Canza zuwa mono (rabin girma; yana da kyau ga murya)
+775|64–96 kbps yana da kyau ga murya da podcast; 128–160 kbps ga kiɗa.
+776|Tsawon lokaci:
+777|bidiyon da aka zaɓa: {}
+778|Faɗi:
+783|GIF suna girma da sauri: gajerun yankuna, 480 px da 12 fps yawanci suna ƙasa da MB 5.
+784|Juya:
+785|Kada a juya
+786|Madubi:
+787|A kwance ↔
+788|Yanka:
+789|Yankan yana tsakiya. Ana kwafi sauti ba tare da asara ba.
+790|Fassarar rubutu:
+791|kai tsaye (suna ɗaya da bidiyo)
+792|Fassarar rubutu
+793|Zaɓi fassarar rubutu
+794|Kai tsaye
+795|An samu don bidiyon da aka zaɓa: {}
+796|Babu fassarar rubutu mai suna ɗaya da bidiyon da aka zaɓa. Zaɓi fayil ɗin.
+797|Kowane bidiyo yana amfani da fassarar mai sunansa (video.srt), ko zaɓi ɗaya ga duka.
+798|Girman rubutu:
+799|Matsakaici
+800|Wuri:
+801|Kiɗa:
+802|Duk fayiloli
+803|Zaɓi kiɗa
+804|Sautin asali:
+805|Gauraya da kiɗa
+806|Maye gurbin da kiɗa
+807|Ƙarar kiɗa:
+808|Maimaita:
+809|Maimaita kiɗan idan ya fi bidiyon gajarta
+810|Don kiɗan baya ƙarƙashin magana, 20–40% yawanci ya dace. Ana kwafi hoto ba tare da asara ba.
+811|Yi amfani da ↑ da ↓ a jerin don canza tsari. Ana kuma karɓar bidiyo (ana amfani da sautinsu).
+812|Fayiloli {}
+813|Bidiyo {}
+814|babu fassarar rubutu mai suna ɗaya da bidiyon; zaɓi fayil ɗin fassara.
+815|zaɓi kiɗa.
+816|Conver — an gama
+817|Conver — kuskure
+818|ba a shigar da harshen {lang} don OCR a Windows ba.
+819|Canza hoto
+820|Matsa hoto
+821|Juya da yanke
+822|Daidaita launuka
+823|Hotuna zuwa PDF
+824|Canza bidiyo
+825|Gudu
+826|Fassarar ƙasa a bidiyo
+827|Canza sauti
+828|Saukewa
+829|Makirufo da tagogi
+830|Jerin saitunan
+831|Jera gudanarwa
+832|Duba gudanarwa
+833|Nau'ikan node
+834|Adana gudanarwa
+835|Goge gudanarwa
+836|Gudanar da gudanarwa
+837|Mai amfani ya soke.
+838|[{}/{n}] {name}
+839|✔ {name}   {info}
+840|An gama: {ok} cikin fayiloli {n}.
+841|Ana sarrafawa…
+842|✔ {}   {info}
+843|An gama.
+844|Canza girman hoto
+845|Canza girman hoto ɗaya ko fiye, da kashi ko da pixel.
+846|Rage girman fayil tare da kiyaye tsarin (JPG, PNG, WEBP…).
+847|Zaɓi daga 1 zuwa 100. JPG da WEBP suna kiyaye tsarinsu; sauran suna zama JPG (ko WEBP idan suna da bayyanannun wurare).
+848|Canza tsarin hoto
+849|Canza tsakanin PNG, JPG, WEBP, BMP, GIF, TIFF da ICO.
+850|Juya, madubanta da yanka
+851|Juya, madubanta ko yanka hotuna zuwa daidaiton da aka shirya (yankan yana tsakiya).
+852|Yana share ɓoyayyun bayanan hoto (EXIF, wurin GPS, kyamara, rana) ba tare da rasa inganci ba.
+853|Cire bangon hotunan mutane, kayayyaki da dabbobi da basirar wucin gadi, a kwamfutarka kuma ba tare da intanet ba.
+854|Ƙara girman hotuna sau 2 ko 4 ba tare da dushewa ba: basirar wucin gadi tana sake ƙirƙirar bayanai. Yana aiki a kwamfutarka, ba tare da intanet ba.
+855|Ƙara girma
+856|Canza haske, bambanci da zurfin launi ko saka matattara. Duba samfoti kafin adanawa.
+857|Haɗa hotuna da yawa a PDF ɗaya, hoto ɗaya a kowane shafi, bisa tsarin jerin.
+858|Ƙirƙiri PDF
+859|Faɗi da tsawo dole su zama lambobi cikakku masu kyau.
+860|Saka faɗi da/ko tsawo a pixel.
+861|babu samfoti
+862|Pixel
+863|Kiyaye daidaito
+864|Idan an kiyaye daidaito, hoton zai shiga cikin faɗi/tsawon da aka bayar.
+865|Ɗan kaɗan = kusan babu asarar da ake gani  •  Mai ƙarfi = fayil ƙarami sosai
+866|Gumaka mafi girma 256×256 ne; ana rage manyan hotuna.
+867|A tsaye ↕
+868|JPG, PNG da WEBP: metadata kawai ake sharewa, ba a sake matsa hoton ba.
+869|Idan hoton yana da juyawar kyamara, ana fara aiwatar da ita don kada hoton ya kwanta a gefe.
+870|Sabon bango:
+871|Gefe:
+872|Mai laushi (gashi, fur)
+873|Bayyananne yana adanawa a PNG. Hoton farko yana ɗaukar ƴan daƙiƙoƙi yayin da samfurin ke lodawa.
+874|⚠ Ba a sami samfurin AI ba: saka silueta.onnx a babban fayil modelos.
+875|Ƙara girma:
+876|Yana da kyau ga ƙananan hotuna, hotunan allo da tsofaffin hotuna. Manyan hotuna suna ɗaukar lokaci (har da samfoti).
+877|⚠ Ba a sami samfurin AI ba: saka realesr-general-x4v3.onnx a babban fayil modelos.
+878|Haske:
+879|Bambanci:
+880|Zurfin launi:
+881|Sake saitawa
+882|Matattara:
+883|Girman shafi:
+884|Yi amfani da ↑ da ↓ a jerin don canza tsarin shafuka.
+885|Sakamako
+886|Ƙara hoto don ganin samfoti
+887|Sakamako: {}×{}  •  {}   ({})
+888|Ana shirya samfoti…
+889|Shafi {}  •
+890|{page}Na asali: {}×{}  •  {orig_size}
+891|Ana lodawa…
+892|Ba a iya buɗe wannan hoton ba.
+893|Hotuna {}
+894|Shafuka {pages} • {}
+895|Kada a yi amfani
+896|Sauke bidiyo da kiɗa
+897|Mahaɗai {n} — za a sauke su bi da bi
+898|Liƙa mahaɗin bidiyo, waƙa ko jerin waƙoƙi a nan (ɗaya ko fiye, ɗaya a kowane layi)
+899|MP4 (bidiyo)
+900|MP3 (sauti)
+901|Shiga ta burauza:
+902|don shafukan da ke buƙatar asusu (Instagram, Facebook). Rufe burauzar kafin saukewa.
+903|Sauke tare da:
+904|Fassarar rubutu (.srt, Fotigal da Turanci)
+905|Hoton murfi (.jpg)
+906|Sauke jerin waƙoƙin gaba ɗaya (idan mahaɗin na jeri ne)
+907|Sauke abubuwan da kake da haƙƙin saukewa kawai.
+908|Zaɓi babban fayil na fitarwa mai inganci.
+909|[mahaɗi {}/{n}]
+910|{prefix}Ana neman bayanai…
+911| (mahaɗai {failed} da kuskure)
+912|An gama: an sauke fayiloli {total}{errors}.
+913|{}: ba a iya buɗe PDF ba ({e})
+914|{} yana da kariya da kalmar sirri.
+915|ƙara aƙalla PDF 2.
+916|tazara mara inganci: "{part}". Yi amfani da wani abu kamar 1-3, 7, 10-
+917|shafi {a} ba ya nan (PDF yana da {total}).
+918|saka shafukan, misali 1-3, 7
+919|{} cikin shafuka {total}
+920|PDF {total} a babban fayil {}
+921|{} yana da kariyar kalmar sirri; cire kalmar sirri tukuna.
+922|PDF ɗin an riga an inganta shi (babu raguwa)
+923|an sake matsa hotuna {changed} • {}
+924|shigar da kalmar sirri.
+925|{} yana da kariyar kalmar sirri tuni.
+926|ba a iya karewa ba: {e}
+927|an kare da kalmar sirri (AES-128)
+928|kalmar sirri ba daidai ba.
+929|an cire kalmar sirri
+930|PDF mai kariya: shigar da kalmar sirri.
+931|ba a iya buɗe PDF ba ({})
+932|hotuna {} a babban fayil {}
+933|shafuka {done} masu rubutun da aka gane • kalmomi {words_total}
+934| • {skipped} sun riga suna da rubutu
+935|rubutun ya yi tsayi da yawa don QR Code.
+936|ba a sami ffmpeg ba.
+937|ba a iya fara ffmpeg ba: {e}
+938|rikodi ya tsaya.
+939|babu sauti da ya zo daga wannan makirufo. Zaɓi wata shigarwa daga jerin (misali: "Makirufo (…)").
+940|makirufo ya daina amsawa.
+941|suna mai maimaituwa
+942|akwai fayil mai wannan suna tun tuni
+943|ba a naɗa komai ba.
+944|ba a iya ƙirƙirar babban fayil na wucin gadi ba: {e}
+945|ba a iya haɗa sassan naɗin ba: {e}
+946|UVR MDX-Net (67 MB)
+947|Kiɗa kawai (karaoke)
+948|ba a iya ajiyewa ba: {}
+949|sautin ya yi gajarta sosai (ƙasa da rabin daƙiƙa).
+950|{} • {dur}
+952|Mai sauri (82 MB)
+953|Daidaitacce (264 MB)
+954|Mai inganci (574 MB)
+955|Whisper base (82 MB)
+956|Whisper small (264 MB)
+957|Whisper large-v3 turbo (574 MB)
+958|Gane kai tsaye
+959|Fotigal
+960|Turanci
+961|Sifaniyanci
+962|Faransanci
+963|Jamusanci
+964|Italiyanci
+965|Rashanci
+966|Sinanci
+967|Japananci
+968|Koriyanci
+969|Larabci
+970|Hindi
+971|Turkanci
+972|Polish
+973|Ukraniyanci
+974|Holanci
+975|Indonesiyanci
+976|Biyetnamanci
+977|Farisanci
+978|ba a iya fara Whisper ba: {e}
+979|kuskuren Whisper: {}
+980|Whisper bai ƙirƙiri wani fayil ba.
+981|kalmomi {words} • {}
+982|ba a saka wannan kwafin Conver da mai sakawa ba kuma ba ɗaukuwa ba ne; sauke daga shafin yanar gizo.
+983|sabon sigar ba shi da fayil ga wannan kwafin Conver; sauke daga shafin yanar gizo.
+984|sabon sigar bai wallafa jimlar tantancewa ba; sauke daga shafin yanar gizo.
+985|fayil ɗin sabuntawa ba ya cikin jerin tantancewa; sauke daga shafin yanar gizo.
+986|ba a iya fitar da sabuntawar ba: {e}
+987|ba a iya fitar da sabuntawar ba.
+988|ba a iya fara mai sakawa ba: {e}
+989|ba a iya fara sabuntawa ba: {e}
+990|sabuntawa ta atomatik ba ta samu ga wannan kwafin ba.
+991|Ba a iya kammala sabuntawa ba: {e}
+992|ba a sami samfurin ƙara girma ba (babban fayil modelos).
+993|gefen hoton zai wuce pikseli {MAX_SIDE}; rage shi tukuna ko yi amfani da 2×.
+994|MP3 (sauti kawai)
+995|ffmpeg ya kasa: {}
+996|MB {mb} ya yi ƙanƙanta ga bidiyo na daƙiƙa {:.0} (mafi ƙanƙanta ≈ MB {:.1}).
+997|Matsa hotuna
+998|Canza hotuna
+999|Matsa bidiyo
+1000|Canza bidiyo
+1001|Canza sauti
+1002|✖ ba a iya ƙirƙirar babban fayil {OUT_FOLDER} ba: {e}
+1003|Ana sa ido a {} — {}
+1004|Sakamako yana zuwa ƙaramin babban fayil "{OUT_FOLDER}".
+1005|Ana sa ido a babban fayil… (an sarrafa {count})
+1006|Ana sarrafa {name}…
+1007|{name}: {info}
+1008|{name}: {e}
+1009|An dakatar. An sarrafa fayiloli {count}.
+1010|Zaɓi fayiloli
+1011|Babu fayil
+1012|Fayil 1
+1013|Fayiloli {n}
+1014|+ Ƙara
+1015|tsari:
+1016|Ja fayiloli zuwa nan
+1017|ko danna don zaɓa
+1021|Waƙar sauti tana bayyana a nan
+1022|0 dB
+1023|{d:.1} dB
+1024|Ana jiran sauti daga makirufo…
+1025|⚠ Kusan babu sauti: yi magana kusa ko ka ƙara ƙarar makirufo a Windows.
+1026|Ɗan ƙasa kaɗan: yi magana kusa da makirufo.
+1027|✔ Matakin yana da kyau.
+1028|Babban fayil ɗaya da fayil na asali
+1029|Zaɓi babban fayil na fitarwa
+1030|Buɗe babban fayil
+1031|Saki don ƙarawa
+1032|Hotuna da bidiyo suna zuwa kayan aiki da ya dace
