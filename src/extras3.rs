@@ -83,12 +83,12 @@ impl RecorderPage {
             ui.add_enabled_ui(!recording, |ui| {
                 row(ui, p, "Microfone:", |ui| {
                     if devices.is_empty() {
-                        ui.label(RichText::new("nenhuma entrada de áudio encontrada").color(p.accent));
+                        ui.label(RichText::new(crate::i18n::tr("nenhuma entrada de áudio encontrada")).color(p.accent));
                     } else {
                         self.device = self.device.min(devices.len() - 1);
-                        egui::ComboBox::from_id_salt("mic").selected_text(&devices[self.device]).width(320.0).show_ui(ui, |ui| {
+                        egui::ComboBox::from_id_salt("mic").selected_text(crate::i18n::tr(&devices[self.device])).width(320.0).show_ui(ui, |ui| {
                             for (i, d) in devices.iter().enumerate() {
-                                ui.selectable_value(&mut self.device, i, d);
+                                ui.selectable_value(&mut self.device, i, crate::i18n::tr(d));
                             }
                         });
                     }
@@ -100,9 +100,9 @@ impl RecorderPage {
                     segmented(ui, p, &mut self.fmt, &[(AFmt::Mp3, "MP3"), (AFmt::Wav, "WAV (sem perda)"), (AFmt::M4a, "M4A")]);
                 });
                 row(ui, p, "Salvar em:", |ui| {
-                    ui.label(RichText::new(self.folder.display().to_string()).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr(self.folder.display().to_string())).color(p.text));
                     if widgets::secondary(ui, p, "Escolher…", true) {
-                        if let Some(d) = rfd::FileDialog::new().set_title("Pasta das gravações").pick_folder() {
+                        if let Some(d) = rfd::FileDialog::new().set_title(crate::i18n::tr("Pasta das gravações")).pick_folder() {
                             self.folder = d;
                         }
                     }
@@ -114,11 +114,11 @@ impl RecorderPage {
             ui.vertical_centered(|ui| {
                 let secs = self.rec.as_ref().map(|r| r.seconds()).unwrap_or(0.0);
                 let (dot, color) = if recording { ("●  Gravando", p.accent) } else { ("Pronto para gravar", p.muted) };
-                ui.label(RichText::new(dot).family(bold()).color(color));
-                ui.label(RichText::new(video::fmt_time(secs)).family(bold()).size(52.0).color(p.text));
+                ui.label(RichText::new(crate::i18n::tr(dot)).family(bold()).color(color));
+                ui.label(RichText::new(crate::i18n::tr(video::fmt_time(secs))).family(bold()).size(52.0).color(p.text));
                 if self.rec.as_ref().is_some_and(|r| r.silent()) {
                     ui.label(
-                        RichText::new("⚠ Nenhum som está chegando desta entrada. Pare e escolha outro microfone na lista.")
+                        RichText::new(crate::i18n::tr("⚠ Nenhum som está chegando desta entrada. Pare e escolha outro microfone na lista."))
                             .color(p.accent),
                     );
                 }
@@ -144,7 +144,7 @@ impl RecorderPage {
         });
         if let Some((good, text)) = &self.msg {
             ui.horizontal(|ui| {
-                ui.label(RichText::new(text).color(if *good { p.ok } else { p.accent }));
+                ui.label(RichText::new(crate::i18n::tr(text)).color(if *good { p.ok } else { p.accent }));
                 if let (true, Some(last)) = (*good, &self.last) {
                     if widgets::secondary(ui, p, "Ouvir", true) {
                         tools::open_file(last);
@@ -234,13 +234,13 @@ impl OcrPage {
             ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), Layout::top_down(Align::Min), |ui| {
                 card(ui, p, |ui| {
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new("Texto encontrado").family(bold()).color(p.text));
+                        ui.label(RichText::new(crate::i18n::tr("Texto encontrado")).family(bold()).color(p.text));
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             if widgets::secondary(ui, p, "Salvar .txt", !self.text.is_empty()) {
                                 let name = selected.as_ref().and_then(|s| s.file_stem()).map(|s| s.to_string_lossy().into_owned());
                                 if let Some(dst) = rfd::FileDialog::new()
                                     .set_file_name(format!("{}.txt", name.unwrap_or_else(|| "texto".into())))
-                                    .add_filter("Texto", &["txt"])
+                                    .add_filter(crate::i18n::tr("Texto"), &["txt"])
                                     .save_file()
                                 {
                                     self.msg = Some(match std::fs::write(&dst, &self.text) {
@@ -256,7 +256,7 @@ impl OcrPage {
                     });
                     match &result {
                         Some(Err(e)) => {
-                            ui.label(RichText::new(format!("✖ {e}")).color(p.accent));
+                            ui.label(RichText::new(crate::i18n::tr(format!("✖ {e}"))).color(p.accent));
                         }
                         None if selected.is_some() => hint(ui, p, "Clique em \"Ler texto\" para reconhecer o texto desta imagem."),
                         Some(Ok(t)) if t.trim().is_empty() => hint(ui, p, "Nenhum texto encontrado nesta imagem."),
@@ -267,7 +267,7 @@ impl OcrPage {
                             egui::TextEdit::multiline(&mut self.text)
                                 .desired_width(f32::INFINITY)
                                 .desired_rows(12)
-                                .hint_text("O texto aparece aqui. Você pode corrigir antes de copiar."),
+                                .hint_text(crate::i18n::tr("O texto aparece aqui. Você pode corrigir antes de copiar.")),
                         );
                     });
                 });
@@ -281,9 +281,9 @@ impl OcrPage {
                     .chain(langs.iter().map(|(_, n)| n.clone()))
                     .collect();
                 self.lang = self.lang.min(names.len() - 1);
-                egui::ComboBox::from_id_salt("ocr_lang").selected_text(&names[self.lang]).width(260.0).show_ui(ui, |ui| {
+                egui::ComboBox::from_id_salt("ocr_lang").selected_text(crate::i18n::tr(&names[self.lang])).width(260.0).show_ui(ui, |ui| {
                     for (i, n) in names.iter().enumerate() {
-                        ui.selectable_value(&mut self.lang, i, n);
+                        ui.selectable_value(&mut self.lang, i, crate::i18n::tr(n));
                     }
                 });
             });
@@ -296,7 +296,7 @@ impl OcrPage {
                 hint(ui, p, "tire um print com Win+Shift+S e cole aqui");
             });
             if langs.is_empty() {
-                ui.label(RichText::new("Nenhum idioma de OCR instalado no Windows. Instale em Configurações › Hora e idioma › Idioma.").color(p.accent));
+                ui.label(RichText::new(crate::i18n::tr("Nenhum idioma de OCR instalado no Windows. Instale em Configurações › Hora e idioma › Idioma.")).color(p.accent));
             } else {
                 hint(ui, p, "Outros idiomas: Configurações do Windows › Hora e idioma › Idioma › adicionar o idioma com \"Reconhecimento óptico\".");
             }
@@ -307,7 +307,7 @@ impl OcrPage {
             }
         }
         if let Some(m) = &self.msg {
-            ui.label(RichText::new(m).color(if m.starts_with('✔') { p.ok } else { p.accent }));
+            ui.label(RichText::new(crate::i18n::tr(m)).color(if m.starts_with('✔') { p.ok } else { p.accent }));
         }
 
         match widgets::action_bar(ui, p, &self.job, "Ler texto", !self.queue.files.is_empty()) {
@@ -375,12 +375,12 @@ impl InfoPage {
             ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), Layout::top_down(Align::Min), |ui| {
                 card(ui, p, |ui| {
                     let Some(path) = self.queue.selected_path().cloned() else {
-                        ui.label(RichText::new("Adicione ou arraste um arquivo para ver as informações.").color(p.muted));
+                        ui.label(RichText::new(crate::i18n::tr("Adicione ou arraste um arquivo para ver as informações.")).color(p.muted));
                         return;
                     };
                     let info = self.cache.entry(path.clone()).or_insert_with(|| info::read(&path));
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(tools::file_name(&path)).family(bold()).color(p.text));
+                        ui.label(RichText::new(crate::i18n::tr(tools::file_name(&path))).family(bold()).color(p.text));
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             if widgets::secondary(ui, p, "Copiar tudo", true) && copy_text(&info.as_text()) {
                                 self.msg = Some("✔ Informações copiadas.".into());
@@ -396,11 +396,11 @@ impl InfoPage {
                     egui::ScrollArea::vertical().id_salt("info").max_height(height).auto_shrink([false, true]).show(ui, |ui| {
                         for sec in &info.sections {
                             ui.add_space(6.0);
-                            ui.label(RichText::new(sec.title).family(bold()).size(13.0).color(p.accent));
+                            ui.label(RichText::new(crate::i18n::tr(sec.title)).family(bold()).size(13.0).color(p.accent));
                             egui::Grid::new(("info_grid", sec.title)).num_columns(2).spacing([16.0, 4.0]).striped(false).show(ui, |ui| {
                                 for (k, v) in &sec.rows {
-                                    ui.label(RichText::new(k).color(p.muted));
-                                    ui.add(egui::Label::new(RichText::new(v).color(p.text)).wrap());
+                                    ui.label(RichText::new(crate::i18n::tr(k)).color(p.muted));
+                                    ui.add(egui::Label::new(RichText::new(crate::i18n::tr(v)).color(p.text)).wrap());
                                     ui.end_row();
                                 }
                             });
@@ -408,7 +408,7 @@ impl InfoPage {
                         if info.gps.is_some() {
                             ui.add_space(6.0);
                             ui.label(
-                                RichText::new("⚠ Esta foto tem a localização de onde foi tirada. Use \"Remover metadados\" antes de compartilhar.")
+                                RichText::new(crate::i18n::tr("⚠ Esta foto tem a localização de onde foi tirada. Use \"Remover metadados\" antes de compartilhar."))
                                     .color(p.accent),
                             );
                         }
@@ -417,7 +417,7 @@ impl InfoPage {
             });
         });
         if let Some(m) = &self.msg {
-            ui.label(RichText::new(m).color(p.ok));
+            ui.label(RichText::new(crate::i18n::tr(m)).color(p.ok));
         }
     }
 }

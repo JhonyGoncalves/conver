@@ -31,14 +31,14 @@ pub fn card<R>(ui: &mut Ui, p: &Palette, add: impl FnOnce(&mut Ui) -> R) -> R {
 }
 
 pub fn header(ui: &mut Ui, p: &Palette, title: &str, subtitle: &str) {
-    ui.label(RichText::new(title).heading().color(p.text));
-    ui.label(RichText::new(subtitle).color(p.muted));
+    ui.label(RichText::new(crate::i18n::tr(title)).heading().color(p.text));
+    ui.label(RichText::new(crate::i18n::tr(subtitle)).color(p.muted));
     ui.add_space(8.0);
 }
 
 pub fn primary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
     let (fill, color) = if enabled { (p.accent, p.on_accent) } else { (p.border, p.muted) };
-    let b = Button::new(RichText::new(text).family(bold()).size(15.0).color(color))
+    let b = Button::new(RichText::new(crate::i18n::tr(text)).family(bold()).size(15.0).color(color))
         .fill(fill)
         .stroke(Stroke::NONE)
         .corner_radius(8)
@@ -53,7 +53,7 @@ pub fn primary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
 }
 
 pub fn secondary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
-    let b = Button::new(RichText::new(text).color(p.text))
+    let b = Button::new(RichText::new(crate::i18n::tr(text)).color(p.text))
         .fill(Color32::TRANSPARENT)
         .stroke(Stroke::new(1.0f32, p.border))
         .corner_radius(8)
@@ -77,7 +77,7 @@ pub fn segmented<T: PartialEq + Copy>(ui: &mut Ui, p: &Palette, value: &mut T, o
                 let ordered: Vec<&(T, &str)> = if rtl { opts.iter().rev().collect() } else { opts.iter().collect() };
                 for (v, label) in ordered {
                     let sel = *value == *v;
-                    let b = Button::new(RichText::new(*label).color(if sel { p.on_accent } else { p.text }))
+                    let b = Button::new(RichText::new(crate::i18n::tr(*label)).color(if sel { p.on_accent } else { p.text }))
                         .fill(if sel { p.accent } else { Color32::TRANSPARENT })
                         .stroke(Stroke::NONE)
                         .corner_radius(6)
@@ -97,7 +97,7 @@ pub fn row<R>(ui: &mut Ui, p: &Palette, label: &str, add: impl FnOnce(&mut Ui) -
     ui.horizontal(|ui| {
         ui.allocate_ui_with_layout(vec2(150.0, 30.0), Layout::left_to_right(Align::Center), |ui| {
             ui.set_min_size(vec2(150.0, 30.0));
-            ui.label(RichText::new(label).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr(label)).color(p.text));
         });
         add(ui)
     })
@@ -105,7 +105,7 @@ pub fn row<R>(ui: &mut Ui, p: &Palette, label: &str, add: impl FnOnce(&mut Ui) -
 }
 
 pub fn hint(ui: &mut Ui, p: &Palette, text: &str) {
-    ui.label(RichText::new(text).size(12.5).color(p.muted));
+    ui.label(RichText::new(crate::i18n::tr(text)).size(12.5).color(p.muted));
 }
 
 pub fn fit(size: (f32, f32), max: egui::Vec2) -> egui::Vec2 {
@@ -242,11 +242,11 @@ impl FileQueue {
     }
 
     pub fn pick(&mut self) {
-        let mut dialog = rfd::FileDialog::new().set_title("Selecione os arquivos");
+        let mut dialog = rfd::FileDialog::new().set_title(crate::i18n::tr("Selecione os arquivos"));
         if !self.exts.is_empty() {
-            dialog = dialog.add_filter(self.kind, self.exts);
+            dialog = dialog.add_filter(crate::i18n::tr(self.kind), self.exts);
         }
-        if let Some(paths) = dialog.add_filter("Todos os arquivos", &["*"]).pick_files() {
+        if let Some(paths) = dialog.add_filter(crate::i18n::tr("Todos os arquivos"), &["*"]).pick_files() {
             let first_new = self.files.len();
             if self.add(paths) > 0 {
                 self.selected = first_new;
@@ -277,7 +277,7 @@ pub fn file_list(
                 1 => "1 arquivo".to_string(),
                 n => format!("{n} arquivos"),
             };
-            ui.label(RichText::new(text).family(bold()).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr(text)).family(bold()).color(p.text));
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 if secondary(ui, p, "Limpar", n > 0) {
                     q.files.clear();
@@ -296,7 +296,7 @@ pub fn file_list(
                         q.files.swap(i, i - 1);
                         q.selected -= 1;
                     }
-                    ui.label(RichText::new("ordem:").size(12.5).color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr("ordem:")).size(12.5).color(p.muted));
                 }
             });
         });
@@ -308,18 +308,18 @@ pub fn file_list(
             let painter = ui.painter();
             painter.rect_filled(rect, 10, if hovered { p.accent_soft } else { p.input });
             dashed_border(painter, rect.shrink(1.0), if hovered { p.accent } else { p.border });
-            painter.text(rect.center() - vec2(0.0, 22.0), Align2::CENTER_CENTER, "⬇", FontId::proportional(30.0), p.accent);
+            painter.text(rect.center() - vec2(0.0, 22.0), Align2::CENTER_CENTER, crate::i18n::tr("⬇"), FontId::proportional(30.0), p.accent);
             painter.text(
                 rect.center() + vec2(0.0, 14.0),
                 Align2::CENTER_CENTER,
-                "Arraste arquivos para cá",
+                crate::i18n::tr("Arraste arquivos para cá"),
                 FontId::new(16.0, bold()),
                 p.text,
             );
             painter.text(
                 rect.center() + vec2(0.0, 38.0),
                 Align2::CENTER_CENTER,
-                "ou clique para selecionar",
+                crate::i18n::tr("ou clique para selecionar"),
                 FontId::proportional(13.0),
                 p.muted,
             );
@@ -372,7 +372,7 @@ pub fn file_list(
                         let slot = Rect::from_min_size(egui::pos2(x, rect.center().y - 14.0), vec2(42.0, 28.0));
                         ui.painter().rect_filled(slot, 6, p.accent);
                         let ext: String = tools::ext_lower(path).to_uppercase().chars().take(4).collect();
-                        ui.painter().text(slot.center(), Align2::CENTER_CENTER, ext, FontId::new(11.0, bold()), p.on_accent);
+                        ui.painter().text(slot.center(), Align2::CENTER_CENTER, crate::i18n::tr(ext), FontId::new(11.0, bold()), p.on_accent);
                         x += 52.0;
                     }
 
@@ -382,7 +382,7 @@ pub fn file_list(
                     painter.text(
                         egui::pos2(x, rect.center().y - 9.0),
                         Align2::LEFT_CENTER,
-                        tools::file_name(path),
+                        crate::i18n::tr(tools::file_name(path)),
                         FontId::proportional(14.0),
                         p.text,
                     );
@@ -397,7 +397,7 @@ pub fn file_list(
                     painter.text(
                         egui::pos2(x, rect.center().y + 10.0),
                         Align2::LEFT_CENTER,
-                        sub,
+                        crate::i18n::tr(sub),
                         FontId::proportional(12.0),
                         p.muted,
                     );
@@ -410,12 +410,12 @@ pub fn file_list(
                         ui.painter().text(
                             close.center(),
                             Align2::CENTER_CENTER,
-                            "×",
+                            crate::i18n::tr("×"),
                             FontId::proportional(18.0),
                             if close_resp.hovered() { p.on_accent } else { p.muted },
                         );
                     }
-                    if close_resp.on_hover_text("Remover da lista").clicked() {
+                    if close_resp.on_hover_text(crate::i18n::tr("Remover da lista")).clicked() {
                         remove = Some(i);
                     } else if resp.clicked() {
                         q.selected = i;
@@ -429,6 +429,22 @@ pub fn file_list(
             }
         }
     });
+}
+
+/// Fundo quadriculado, como nos editores de imagem, para mostrar áreas transparentes.
+pub fn checkerboard(painter: &egui::Painter, rect: Rect) {
+    let cell = 10.0;
+    painter.rect_filled(rect, 0, Color32::from_gray(250));
+    let (cols, rows) = ((rect.width() / cell).ceil() as i32, (rect.height() / cell).ceil() as i32);
+    for y in 0..rows {
+        for x in 0..cols {
+            if (x + y) % 2 == 0 {
+                let min = rect.min + vec2(x as f32 * cell, y as f32 * cell);
+                let r = Rect::from_min_max(min, (min + vec2(cell, cell)).min(rect.max));
+                painter.rect_filled(r, 0, Color32::from_gray(214));
+            }
+        }
+    }
 }
 
 fn dashed_border(painter: &egui::Painter, rect: Rect, color: Color32) {
@@ -457,10 +473,10 @@ impl OutDir {
 
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
         ui.horizontal(|ui| {
-            ui.label(RichText::new("Salvar em:").color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Salvar em:")).color(p.text));
             let text = match &self.path {
-                Some(d) => RichText::new(d.display().to_string()).color(p.text),
-                None => RichText::new("Mesma pasta do arquivo original").color(p.muted),
+                Some(d) => RichText::new(crate::i18n::tr(d.display().to_string())).color(p.text),
+                None => RichText::new(crate::i18n::tr("Mesma pasta do arquivo original")).color(p.muted),
             };
             let right = if self.allow_same { 200.0 } else { 110.0 };
             Frame::default()
@@ -473,7 +489,7 @@ impl OutDir {
                     ui.add(egui::Label::new(text).truncate());
                 });
             if secondary(ui, p, "Escolher…", true) {
-                if let Some(d) = rfd::FileDialog::new().set_title("Escolha a pasta de saída").pick_folder() {
+                if let Some(d) = rfd::FileDialog::new().set_title(crate::i18n::tr("Escolha a pasta de saída")).pick_folder() {
                     self.path = Some(d);
                 }
             }
@@ -498,7 +514,7 @@ pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: b
     let st = job.state();
     let running = st.running;
     ui.add_space(4.0);
-    ui.label(RichText::new(&st.status).color(p.muted));
+    ui.label(RichText::new(crate::i18n::tr(&st.status)).color(p.muted));
     let bar = vec2(ui.available_width(), 40.0);
     ui.allocate_ui_with_layout(bar, Layout::right_to_left(Align::Center), |ui| {
         if primary(ui, p, label, can_start && !running) {
@@ -541,7 +557,7 @@ pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: b
                                 LogKind::Err => p.accent,
                                 LogKind::Info => p.muted,
                             };
-                            ui.label(RichText::new(line).size(13.0).color(color));
+                            ui.label(RichText::new(crate::i18n::tr(line)).size(13.0).color(color));
                         }
                     });
             });
@@ -559,12 +575,12 @@ pub fn paint_drop_overlay(ctx: &egui::Context, p: &Palette) {
     painter.rect_filled(screen, 0, p.bg.gamma_multiply(0.92));
     let r = screen.shrink(24.0);
     painter.rect_stroke(r, 16, Stroke::new(3.0f32, p.accent), StrokeKind::Inside);
-    painter.text(r.center() - vec2(0.0, 30.0), Align2::CENTER_CENTER, "⬇", FontId::proportional(48.0), p.accent);
-    painter.text(r.center() + vec2(0.0, 24.0), Align2::CENTER_CENTER, "Solte para adicionar", FontId::new(24.0, bold()), p.text);
+    painter.text(r.center() - vec2(0.0, 30.0), Align2::CENTER_CENTER, crate::i18n::tr("⬇"), FontId::proportional(48.0), p.accent);
+    painter.text(r.center() + vec2(0.0, 24.0), Align2::CENTER_CENTER, crate::i18n::tr("Solte para adicionar"), FontId::new(24.0, bold()), p.text);
     painter.text(
         r.center() + vec2(0.0, 56.0),
         Align2::CENTER_CENTER,
-        "Imagens e vídeos vão para a ferramenta certa",
+        crate::i18n::tr("Imagens e vídeos vão para a ferramenta certa"),
         FontId::proportional(14.0),
         p.muted,
     );

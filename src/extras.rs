@@ -46,7 +46,7 @@ impl RenamePage {
             });
             ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), Layout::top_down(Align::Min), |ui| {
                 card(ui, p, |ui| {
-                    ui.label(RichText::new("Novos nomes").family(bold()).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr("Novos nomes")).family(bold()).color(p.text));
                     ui.add_space(4.0);
                     egui::ScrollArea::vertical()
                         .id_salt("rename_preview")
@@ -55,11 +55,11 @@ impl RenamePage {
                         .auto_shrink([false, false])
                         .show(ui, |ui| {
                             if self.queue.files.is_empty() {
-                                ui.label(RichText::new("Adicione arquivos para ver os novos nomes.").color(p.muted));
+                                ui.label(RichText::new(crate::i18n::tr("Adicione arquivos para ver os novos nomes.")).color(p.muted));
                             }
                             for ((f, n), prob) in self.queue.files.iter().zip(&names).zip(&problems) {
                                 let old = tools::file_name(f);
-                                ui.add(egui::Label::new(RichText::new(&old).size(12.5).color(p.muted)).truncate());
+                                ui.add(egui::Label::new(RichText::new(crate::i18n::tr(&old)).size(12.5).color(p.muted)).truncate());
                                 let color = if prob.is_some() {
                                     p.accent
                                 } else if *n == old {
@@ -71,7 +71,7 @@ impl RenamePage {
                                     Some(why) => format!("→ {n}   ({why})"),
                                     None => format!("→ {n}"),
                                 };
-                                ui.add(egui::Label::new(RichText::new(text).color(color)).truncate());
+                                ui.add(egui::Label::new(RichText::new(crate::i18n::tr(text)).color(color)).truncate());
                                 ui.add_space(4.0);
                             }
                         });
@@ -83,25 +83,25 @@ impl RenamePage {
         let r = &mut self.rules;
         card(ui, p, |ui| {
             row(ui, p, "Nome base:", |ui| {
-                ui.add(egui::TextEdit::singleline(&mut r.base).hint_text("vazio = manter o nome atual").desired_width(240.0));
+                ui.add(egui::TextEdit::singleline(&mut r.base).hint_text(crate::i18n::tr("vazio = manter o nome atual")).desired_width(240.0));
             });
             row(ui, p, "Trocar texto:", |ui| {
-                ui.add(egui::TextEdit::singleline(&mut r.find).hint_text("procurar").desired_width(150.0));
-                ui.label("por");
-                ui.add(egui::TextEdit::singleline(&mut r.replace).hint_text("substituir").desired_width(150.0));
+                ui.add(egui::TextEdit::singleline(&mut r.find).hint_text(crate::i18n::tr("procurar")).desired_width(150.0));
+                ui.label(crate::i18n::tr("por"));
+                ui.add(egui::TextEdit::singleline(&mut r.replace).hint_text(crate::i18n::tr("substituir")).desired_width(150.0));
             });
             row(ui, p, "Adicionar:", |ui| {
-                ui.add(egui::TextEdit::singleline(&mut r.prefix).hint_text("antes (prefixo)").desired_width(150.0));
-                ui.add(egui::TextEdit::singleline(&mut r.suffix).hint_text("depois (sufixo)").desired_width(150.0));
+                ui.add(egui::TextEdit::singleline(&mut r.prefix).hint_text(crate::i18n::tr("antes (prefixo)")).desired_width(150.0));
+                ui.add(egui::TextEdit::singleline(&mut r.suffix).hint_text(crate::i18n::tr("depois (sufixo)")).desired_width(150.0));
             });
             row(ui, p, "Numeração:", |ui| {
-                ui.checkbox(&mut r.numbering, "Numerar");
+                ui.checkbox(&mut r.numbering, crate::i18n::tr("Numerar"));
                 ui.add_enabled_ui(r.numbering, |ui| {
-                    ui.label("começando em");
+                    ui.label(crate::i18n::tr("começando em"));
                     ui.add(egui::DragValue::new(&mut r.start).range(0..=999_999));
-                    ui.label("dígitos");
+                    ui.label(crate::i18n::tr("dígitos"));
                     ui.add(egui::DragValue::new(&mut r.digits).range(1..=6));
-                    ui.label("separador");
+                    ui.label(crate::i18n::tr("separador"));
                     ui.add(egui::TextEdit::singleline(&mut r.sep).desired_width(40.0));
                 });
             });
@@ -116,9 +116,9 @@ impl RenamePage {
         let ok = !self.queue.files.is_empty() && changed > 0 && problems.iter().all(Option::is_none);
         ui.horizontal(|ui| {
             if let Some((good, text)) = &self.msg {
-                ui.label(RichText::new(text).color(if *good { p.ok } else { p.accent }));
+                ui.label(RichText::new(crate::i18n::tr(text)).color(if *good { p.ok } else { p.accent }));
             } else if changed > 0 {
-                ui.label(RichText::new(format!("{changed} arquivo(s) serão renomeados.")).color(p.muted));
+                ui.label(RichText::new(crate::i18n::tr(format!("{changed} arquivo(s) serão renomeados."))).color(p.muted));
             }
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 if widgets::primary(ui, p, "Renomear", ok) {
@@ -197,10 +197,10 @@ impl QrPage {
             let left = (ui.available_width() * 0.55).max(320.0);
             ui.allocate_ui_with_layout(vec2(left, 420.0), Layout::top_down(Align::Min), |ui| {
                 card(ui, p, |ui| {
-                    ui.label(RichText::new("Conteúdo").family(bold()).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr("Conteúdo")).family(bold()).color(p.text));
                     ui.add(
                         egui::TextEdit::multiline(&mut self.text)
-                            .hint_text("https://… ou qualquer texto")
+                            .hint_text(crate::i18n::tr("https://… ou qualquer texto"))
                             .desired_rows(4)
                             .desired_width(f32::INFINITY),
                     );
@@ -236,7 +236,7 @@ impl QrPage {
             });
             ui.allocate_ui_with_layout(vec2(ui.available_width(), 420.0), Layout::top_down(Align::Min), |ui| {
                 card(ui, p, |ui| {
-                    ui.label(RichText::new("Prévia").family(bold()).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr("Prévia")).family(bold()).color(p.text));
                     let side = (ui.available_width() - 20.0).min(300.0);
                     ui.vertical_centered(|ui| {
                         Frame::default().fill(Color32::WHITE).corner_radius(8).inner_margin(Margin::same(6)).show(ui, |ui| {
@@ -246,13 +246,13 @@ impl QrPage {
                                 }
                                 Some(Err(e)) => {
                                     ui.allocate_ui(vec2(side, side), |ui| {
-                                        ui.centered_and_justified(|ui| ui.label(RichText::new(e).color(p.accent)));
+                                        ui.centered_and_justified(|ui| ui.label(RichText::new(crate::i18n::tr(e)).color(p.accent)));
                                     });
                                 }
                                 None => {
                                     ui.allocate_ui(vec2(side, side), |ui| {
                                         ui.centered_and_justified(|ui| {
-                                            ui.label(RichText::new("Digite algo para gerar").color(Color32::GRAY))
+                                            ui.label(RichText::new(crate::i18n::tr("Digite algo para gerar")).color(Color32::GRAY))
                                         });
                                     });
                                 }
@@ -268,7 +268,7 @@ impl QrPage {
                         if widgets::primary(ui, p, "Salvar PNG…", img.is_some()) {
                             if let (Some(img), Some(dst)) = (
                                 &img,
-                                rfd::FileDialog::new().set_file_name("qrcode.png").add_filter("PNG", &["png"]).save_file(),
+                                rfd::FileDialog::new().set_file_name("qrcode.png").add_filter(crate::i18n::tr("PNG"), &["png"]).save_file(),
                             ) {
                                 let dst = if tools::ext_lower(&dst) == "png" { dst } else { dst.with_extension("png") };
                                 self.msg = Some(match img.save(&dst) {
@@ -296,7 +296,7 @@ impl QrPage {
                         }
                     });
                     if let Some((good, text)) = &self.msg {
-                        ui.add(egui::Label::new(RichText::new(text).color(if *good { p.ok } else { p.accent })).wrap());
+                        ui.add(egui::Label::new(RichText::new(crate::i18n::tr(text)).color(if *good { p.ok } else { p.accent })).wrap());
                     }
                 });
             });
@@ -337,8 +337,8 @@ impl HistoryPage {
             card(ui, p, |ui| {
                 ui.add_space(30.0);
                 ui.vertical_centered(|ui| {
-                    ui.label(RichText::new("Nada por aqui ainda").family(bold()).size(16.0).color(p.text));
-                    ui.label(RichText::new("Os arquivos que você converter ou baixar aparecem nesta lista.").color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr("Nada por aqui ainda")).family(bold()).size(16.0).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr("Os arquivos que você converter ou baixar aparecem nesta lista.")).color(p.muted));
                 });
                 ui.add_space(30.0);
             });
@@ -356,19 +356,19 @@ impl HistoryPage {
                         ui.vertical(|ui| {
                             ui.set_width((ui.available_width() - 210.0).max(200.0));
                             ui.horizontal(|ui| {
-                                ui.label(RichText::new(&e.tool).family(bold()).color(p.accent));
-                                ui.label(RichText::new(&e.time).size(12.5).color(p.muted));
+                                ui.label(RichText::new(crate::i18n::tr(&e.tool)).family(bold()).color(p.accent));
+                                ui.label(RichText::new(crate::i18n::tr(&e.time)).size(12.5).color(p.muted));
                             });
                             let out = tools::file_name(&e.output);
-                            ui.add(egui::Label::new(RichText::new(format!("{} → {out}", e.input)).color(p.text)).truncate());
+                            ui.add(egui::Label::new(RichText::new(crate::i18n::tr(format!("{} → {out}", e.input))).color(p.text)).truncate());
                             if !e.info.is_empty() {
-                                ui.add(egui::Label::new(RichText::new(&e.info).size(12.5).color(p.muted)).truncate());
+                                ui.add(egui::Label::new(RichText::new(crate::i18n::tr(&e.info)).size(12.5).color(p.muted)).truncate());
                             }
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             let exists = e.output.exists();
                             if !exists {
-                                ui.label(RichText::new("arquivo não existe mais").size(12.5).color(p.muted));
+                                ui.label(RichText::new(crate::i18n::tr("arquivo não existe mais")).size(12.5).color(p.muted));
                             } else {
                                 if widgets::secondary(ui, p, "Mostrar na pasta", true) {
                                     tools::show_in_folder(&e.output);

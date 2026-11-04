@@ -23,13 +23,14 @@ Na página de [releases](https://github.com/JhonyGoncalves/conver/releases/lates
 | `Conver-x.y.z-instalador.exe` | Instala o Conver no seu usuário (não pede administrador), cria atalhos e pode adicionar **"Abrir com Conver"** ao menu do botão direito. |
 | `Conver-x.y.z-portatil.zip` | Não instala nada: extraia em qualquer pasta (ou pendrive) e abra o `Conver.exe`. As configurações ficam na própria pasta. |
 
-Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg e o yt-dlp já vêm junto — não é preciso instalar mais nada.
+Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedor de fundo já vêm junto — não é preciso instalar mais nada.
 
 > **Aviso do Windows SmartScreen:** como o Conver é novo e não tem assinatura digital paga, o Windows pode mostrar "O Windows protegeu o computador". Clique em **Mais informações → Executar assim mesmo**. Os arquivos de cada versão têm a soma SHA-256 publicada na release, para você conferir.
 
 ## O que o Conver faz
 
 **Imagem**
+- **Remover fundo** com IA, no próprio computador e sem internet: fundo transparente (PNG) ou de uma cor, borda definida ou suave
 - Redimensionar (porcentagem ou pixels), comprimir, diminuir qualidade e converter entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO
 - Girar, espelhar e recortar (1:1, 4:3, 16:9, 9:16…)
 - Ajustes de cor: brilho, contraste, saturação, preto e branco, sépia
@@ -68,6 +69,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg e o yt-dlp já vêm junto — n�
 **No dia a dia**
 - Arraste arquivos para a janela (ou para o ícone do Conver) e eles vão para a ferramenta certa
 - "Abrir com Conver" no menu do botão direito
+- **20 idiomas** (Configurações → Idioma): português, inglês, chinês, espanhol, árabe, francês, russo, indonésio, urdu, alemão, japonês, vietnamita, turco, hauçá, coreano, italiano, persa, suaíli, polonês e ucraniano
 - Tema claro e escuro, aviso com som e notificação ao terminar tarefas longas
 - Avisa quando sai uma versão nova
 
@@ -86,7 +88,9 @@ O Conver é escrito em [Rust](https://www.rust-lang.org/) com a interface [egui]
 ```powershell
 # 1. ferramentas
 winget install Rustlang.Rustup Gyan.FFmpeg JRSoftware.InnoSetup
-# 2. coloque o yt-dlp.exe em Conver\bin (ou no PATH) — https://github.com/yt-dlp/yt-dlp/releases
+# 2. coloque em Conver\bin o yt-dlp.exe (https://github.com/yt-dlp/yt-dlp/releases) e o onnxruntime.dll
+#    (pasta lib do onnxruntime-win-x64-1.22.0.zip, https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0)
+#    e em Conver\modelos o silueta.onnx (https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
 # 3. compile e gere a versão portátil e o instalador em dist\
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
@@ -103,9 +107,11 @@ Para só rodar durante o desenvolvimento: `cargo run --release` (com `ffmpeg.exe
 | `src/video.rs`, `media.rs`, `media_extra.rs` | Vídeo e áudio com o FFmpeg |
 | `src/download.rs` | Downloads com o yt-dlp |
 | `src/pdf.rs`, `ocr.rs`, `info.rs`, `recorder.rs` | PDF, OCR, informações e gravador |
+| `src/bgremove.rs` | Removedor de fundo (modelo ONNX) |
+| `src/i18n.rs`, `i18n/*.txt` | Idiomas: o texto em português do código é a chave; cada idioma tem linhas `número\|tradução` alinhadas com `i18n/keys.txt` |
 | `src/integration.rs` | Menu do botão direito, atualizações, instância única |
 | `installer/conver.iss` | Script do instalador (Inno Setup) |
 
 ## Licença
 
-O código do Conver está sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3) e o yt-dlp (Unlicense) como programas separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).
+O código do Conver está sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3), o yt-dlp (Unlicense), o ONNX Runtime (MIT) e o modelo silueta (MIT/Apache 2.0) como componentes separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).

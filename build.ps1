@@ -1,8 +1,9 @@
-# Gera a versão do Conver para distribuir:
+﻿# Gera a versão do Conver para distribuir:
 #   dist\Conver-<versão>-portatil.zip   (é só extrair e usar; as configurações ficam na própria pasta)
 #   dist\Conver-<versão>-instalador.exe (instala para o usuário atual, com atalhos e menu do botão direito)
 #
-# Precisa de: Rust, ffmpeg.exe e yt-dlp.exe (em Conver\bin ou no PATH) e Inno Setup 6 para o instalador.
+# Precisa de: Rust, ffmpeg.exe e yt-dlp.exe (em Conver\bin ou no PATH), onnxruntime.dll (Conver\bin),
+# silueta.onnx (Conver\modelos) e Inno Setup 6 para o instalador.
 # Uso: powershell -ExecutionPolicy Bypass -File build.ps1 [-Repo dono/conver]
 param([string]$Repo = "JhonyGoncalves/conver")
 
@@ -27,6 +28,14 @@ foreach ($tool in "ffmpeg", "yt-dlp") {
         if (-not $found) { throw "coloque o $tool.exe em Conver\bin (ou no PATH)" }
         Copy-Item $found.Source "Conver\bin\$tool.exe"
     }
+}
+# removedor de fundo: ONNX Runtime e o modelo silueta (rembg)
+$extras = @{
+    "Conver\bin\onnxruntime.dll"  = "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-win-x64-1.22.0.zip (lib\onnxruntime.dll)"
+    "Conver\modelos\silueta.onnx" = "https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx"
+}
+foreach ($f in $extras.Keys) {
+    if (-not (Test-Path $f)) { throw "falta $f - baixe de $($extras[$f])" }
 }
 Copy-Item LICENSE Conver\licencas\Conver-LICENSE.txt -Force
 Copy-Item THIRD-PARTY.md Conver\licencas\TERCEIROS.md -Force

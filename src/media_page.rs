@@ -228,9 +228,9 @@ impl MediaPage {
         match self.tool {
             MTool::VConvert => {
                 row(ui, p, "Formato de saída:", |ui| {
-                    egui::ComboBox::from_id_salt("vfmt").selected_text(self.fmt.label()).width(180.0).show_ui(ui, |ui| {
+                    egui::ComboBox::from_id_salt("vfmt").selected_text(crate::i18n::tr(self.fmt.label())).width(180.0).show_ui(ui, |ui| {
                         for f in VFmt::ALL {
-                            ui.selectable_value(&mut self.fmt, f, f.label());
+                            ui.selectable_value(&mut self.fmt, f, crate::i18n::tr(f.label()));
                         }
                     });
                 });
@@ -273,10 +273,10 @@ impl MediaPage {
             }
             MTool::VTrim | MTool::ATrim => {
                 row(ui, p, "Início:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.start).hint_text("00:00:00").desired_width(110.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.start).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
                     ui.add_space(16.0);
-                    ui.label("Fim:");
-                    ui.add(egui::TextEdit::singleline(&mut self.end).hint_text("até o fim").desired_width(110.0));
+                    ui.label(crate::i18n::tr("Fim:"));
+                    ui.add(egui::TextEdit::singleline(&mut self.end).hint_text(crate::i18n::tr("até o fim")).desired_width(110.0));
                     if let Some(d) = self.queue.selected_path().and_then(|f| durs.get(f)) {
                         hint(ui, p, &format!("duração do arquivo selecionado: {}", video::fmt_time(d)));
                     }
@@ -294,7 +294,7 @@ impl MediaPage {
                     },
                 );
                 if let Err(e) = self.trim_range() {
-                    ui.label(RichText::new(e).color(p.accent));
+                    ui.label(RichText::new(crate::i18n::tr(e)).color(p.accent));
                 }
             }
             MTool::Merge => {
@@ -325,7 +325,7 @@ impl MediaPage {
                     ui.add(egui::Slider::new(&mut self.factor, 0.25..=4.0).step_by(0.05).suffix("×"));
                 });
                 row(ui, p, "Áudio:", |ui| {
-                    ui.checkbox(&mut self.keep_audio, "Manter o áudio (acelerado/desacelerado junto)");
+                    ui.checkbox(&mut self.keep_audio, crate::i18n::tr("Manter o áudio (acelerado/desacelerado junto)"));
                 });
             }
             MTool::AudioFrames => {
@@ -387,15 +387,15 @@ impl MediaPage {
                     );
                 });
                 row(ui, p, "Canais:", |ui| {
-                    ui.checkbox(&mut self.mono, "Converter para mono (metade do tamanho; bom para voz)");
+                    ui.checkbox(&mut self.mono, crate::i18n::tr("Converter para mono (metade do tamanho; bom para voz)"));
                 });
                 hint(ui, p, "64–96 kbps é ótimo para voz e podcasts; 128–160 kbps para música.");
             }
             MTool::Gif => {
                 row(ui, p, "Início:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.gif_start).hint_text("00:00:00").desired_width(110.0));
+                    ui.add(egui::TextEdit::singleline(&mut self.gif_start).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
                     ui.add_space(16.0);
-                    ui.label("Duração:");
+                    ui.label(crate::i18n::tr("Duração:"));
                     ui.add(egui::DragValue::new(&mut self.gif_len).range(0.5..=60.0).speed(0.1).suffix(" s"));
                     if let Some(d) = self.queue.selected_path().and_then(|f| durs.get(f)) {
                         hint(ui, p, &format!("vídeo selecionado: {}", video::fmt_time(d)));
@@ -409,7 +409,7 @@ impl MediaPage {
                 });
                 hint(ui, p, "GIFs ficam grandes rápido: trechos curtos, 480 px e 12 fps costumam ficar abaixo de 5 MB.");
                 if video::parse_timecode(&self.gif_start).is_none() && !self.gif_start.trim().is_empty() {
-                    ui.label(RichText::new("Início inválido. Use o formato 00:01:30 (ou só segundos).").color(p.accent));
+                    ui.label(RichText::new(crate::i18n::tr("Início inválido. Use o formato 00:01:30 (ou só segundos).")).color(p.accent));
                 }
             }
             MTool::VTransform => {
@@ -417,7 +417,7 @@ impl MediaPage {
                     segmented(ui, p, &mut self.vrotate, &[(0, "Não girar"), (90, "90° ↻"), (180, "180°"), (270, "90° ↺")]);
                 });
                 row(ui, p, "Espelhar:", |ui| {
-                    ui.checkbox(&mut self.vflip, "Na horizontal ↔");
+                    ui.checkbox(&mut self.vflip, crate::i18n::tr("Na horizontal ↔"));
                 });
                 row(ui, p, "Recortar:", |ui| {
                     let opts: Vec<(VAspect, &str)> = VAspect::ALL.iter().map(|a| (*a, a.label())).collect();
@@ -431,11 +431,11 @@ impl MediaPage {
                         Some(f) => tools::file_name(f),
                         None => "automática (mesmo nome do vídeo)".into(),
                     };
-                    ui.label(RichText::new(text).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr(text)).color(p.text));
                     if widgets::secondary(ui, p, "Escolher…", true) {
                         if let Some(f) = rfd::FileDialog::new()
-                            .add_filter("Legendas", &["srt", "ass", "ssa", "vtt"])
-                            .set_title("Escolha a legenda")
+                            .add_filter(crate::i18n::tr("Legendas"), &["srt", "ass", "ssa", "vtt"])
+                            .set_title(crate::i18n::tr("Escolha a legenda"))
                             .pick_file()
                         {
                             self.sub_file = Some(f);
@@ -451,7 +451,7 @@ impl MediaPage {
                         Some(Some(f)) => hint(ui, p, &format!("Encontrada para o vídeo selecionado: {}", tools::file_name(&f))),
                         Some(None) => {
                             ui.label(
-                                RichText::new("Nenhuma legenda com o mesmo nome do vídeo selecionado. Escolha o arquivo.").color(p.accent),
+                                RichText::new(crate::i18n::tr("Nenhuma legenda com o mesmo nome do vídeo selecionado. Escolha o arquivo.")).color(p.accent),
                             );
                         }
                         None => hint(ui, p, "Cada vídeo usa a legenda com o mesmo nome dele (video.srt), ou escolha uma para todos."),
@@ -467,12 +467,12 @@ impl MediaPage {
             MTool::Music => {
                 row(ui, p, "Música:", |ui| {
                     let text = self.music.as_ref().map(|f| tools::file_name(f)).unwrap_or_else(|| "nenhuma escolhida".into());
-                    ui.label(RichText::new(text).color(if self.music.is_some() { p.text } else { p.accent }));
+                    ui.label(RichText::new(crate::i18n::tr(text)).color(if self.music.is_some() { p.text } else { p.accent }));
                     if widgets::secondary(ui, p, "Escolher…", true) {
                         if let Some(f) = rfd::FileDialog::new()
-                            .add_filter("Áudio", media::AUDIO_EXTS)
-                            .add_filter("Todos os arquivos", &["*"])
-                            .set_title("Escolha a música")
+                            .add_filter(crate::i18n::tr("Áudio"), media::AUDIO_EXTS)
+                            .add_filter(crate::i18n::tr("Todos os arquivos"), &["*"])
+                            .set_title(crate::i18n::tr("Escolha a música"))
                             .pick_file()
                         {
                             self.music = Some(f);
@@ -486,7 +486,7 @@ impl MediaPage {
                     ui.add(egui::Slider::new(&mut self.music_vol, 0..=200).suffix("%"));
                 });
                 row(ui, p, "Repetir:", |ui| {
-                    ui.checkbox(&mut self.music_loop, "Repetir a música se ela for mais curta que o vídeo");
+                    ui.checkbox(&mut self.music_loop, crate::i18n::tr("Repetir a música se ela for mais curta que o vídeo"));
                 });
                 hint(ui, p, "Para música de fundo com fala, 20–40% costuma ficar bom. A imagem é copiada sem perda.");
             }
@@ -499,7 +499,7 @@ impl MediaPage {
             }
         }
         if tools::find_tool("ffmpeg").is_none() {
-            ui.label(RichText::new("⚠ ffmpeg não encontrado — coloque o ffmpeg.exe na pasta bin.").color(p.accent));
+            ui.label(RichText::new(crate::i18n::tr("⚠ ffmpeg não encontrado — coloque o ffmpeg.exe na pasta bin.")).color(p.accent));
         }
     }
 

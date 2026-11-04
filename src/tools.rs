@@ -25,6 +25,14 @@ pub fn find_tool(name: &str) -> Option<PathBuf> {
         .or_else(|| which(&file))
 }
 
+/// Arquivo qualquer em `bin\` ao lado do Conver.exe (ou, no desenvolvimento, em `Conver\bin` do projeto).
+pub fn find_tool_file(file: &str) -> Option<PathBuf> {
+    let dir = exe_dir();
+    [dir.join("bin").join(file), dir.join(file), PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Conver").join("bin").join(file)]
+        .into_iter()
+        .find(|c| c.is_file())
+}
+
 pub fn find_in_path(name: &str) -> Option<PathBuf> {
     which(&format!("{name}.exe"))
 }

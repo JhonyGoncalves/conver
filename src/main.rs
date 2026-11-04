@@ -1,11 +1,13 @@
 #![windows_subsystem = "windows"]
 //! Conver — conversor universal.
 
+mod bgremove;
 mod download;
 mod extras;
 mod extras2;
 mod extras3;
 mod history;
+mod i18n;
 mod imaging;
 mod info;
 mod integration;
@@ -57,11 +59,12 @@ struct Config {
     notify: bool,
     sound: bool,
     check_updates: bool,
+    lang: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { dark: false, download_dir: None, notify: true, sound: true, check_updates: true }
+        Self { dark: false, download_dir: None, notify: true, sound: true, check_updates: true, lang: i18n::system_default().into() }
     }
 }
 
@@ -109,7 +112,7 @@ enum Page {
     Settings,
 }
 
-const IMG_TOOLS: [ImgTool; 8] = [
+const IMG_TOOLS: [ImgTool; 9] = [
     ImgTool::Resize,
     ImgTool::Compress,
     ImgTool::Quality,
@@ -118,6 +121,7 @@ const IMG_TOOLS: [ImgTool; 8] = [
     ImgTool::Strip,
     ImgTool::Pdf,
     ImgTool::Adjust,
+    ImgTool::RemoveBg,
 ];
 
 const MEDIA_TOOLS: [MTool; 15] = [
@@ -146,6 +150,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Img(ImgTool::Compress), "Comprimir"),
             (Page::Img(ImgTool::Quality), "Diminuir qualidade"),
             (Page::Img(ImgTool::Convert), "Converter formato"),
+            (Page::Img(ImgTool::RemoveBg), "Remover fundo"),
             (Page::Img(ImgTool::Transform), "Girar / recortar"),
             (Page::Img(ImgTool::Adjust), "Ajustes de cor"),
             (Page::Img(ImgTool::Strip), "Remover metadados"),
@@ -236,6 +241,7 @@ impl ConverApp {
         let ctx = &cc.egui_ctx;
         theme::install_fonts(ctx);
         let cfg = Config::load();
+        i18n::set(&cfg.lang);
         notify::configure(cfg.notify, cfg.sound);
         let pal = Palette::new(cfg.dark);
         theme::apply(ctx, &pal);
@@ -380,8 +386,8 @@ impl ConverApp {
             ui.add(egui::Image::new((self.logo.id(), vec2(38.0, 38.0))));
             ui.vertical(|ui| {
                 ui.spacing_mut().item_spacing.y = 0.0;
-                ui.label(RichText::new("Conver").family(bold()).size(24.0).color(p.accent));
-                ui.label(RichText::new("conversor universal").size(12.0).color(p.muted));
+                ui.label(RichText::new(crate::i18n::tr("Conver")).family(bold()).size(24.0).color(p.accent));
+                ui.label(RichText::new(crate::i18n::tr("conversor universal")).size(12.0).color(p.muted));
             });
         });
         ui.add_space(6.0);
@@ -394,7 +400,7 @@ impl ConverApp {
                 ui.spacing_mut().item_spacing.y = 2.0;
                 for (section, items) in NAV {
                     ui.add_space(8.0);
-                    ui.label(RichText::new(*section).family(bold()).size(11.5).color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr(*section)).family(bold()).size(11.5).color(p.muted));
                     for (page, label) in *items {
                         let label = match page {
                             Page::Watch if self.watch.running() => "Pasta vigiada  ●",
@@ -426,7 +432,29 @@ impl ConverApp {
         widgets::header(ui, &p, "Configurações", "Personalize o Conver.");
 
         card(ui, &p, |ui| {
-            ui.label(RichText::new("Aparência").family(bold()).size(16.0).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Idioma")).family(bold()).size(16.0).color(p.text));
+            ui.add_space(4.0);
+            let current = i18n::current();
+            let label = |l: &i18n::Lang| {
+                if l.code == "pt" { l.name.to_string() } else { format!("{}  ({})", l.name, crate::i18n::tr(l.pt_name)) }
+            };
+            let mut chosen = current.code;
+            egui::ComboBox::from_id_salt("lang").selected_text(crate::i18n::tr(label(current))).width(300.0).show_ui(ui, |ui| {
+                for l in i18n::LANGS.iter() {
+                    ui.selectable_value(&mut chosen, l.code, crate::i18n::tr(label(l)));
+                }
+            });
+            if chosen != current.code {
+                i18n::set(chosen);
+                self.cfg.lang = chosen.to_string();
+                self.cfg.save();
+            }
+            widgets::hint(ui, &p, "Os 20 idiomas mais falados do mundo. Nomes de arquivos e mensagens do FFmpeg e do yt-dlp não são traduzidos.");
+        });
+        ui.add_space(4.0);
+
+        card(ui, &p, |ui| {
+            ui.label(RichText::new(crate::i18n::tr("Aparência")).family(bold()).size(16.0).color(p.text));
             ui.add_space(6.0);
             let mut dark = self.cfg.dark;
             ui.horizontal(|ui| {
@@ -445,11 +473,11 @@ impl ConverApp {
 
         let p = self.pal;
         card(ui, &p, |ui| {
-            ui.label(RichText::new("Avisos").family(bold()).size(16.0).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Avisos")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             let (mut n, mut snd) = (self.cfg.notify, self.cfg.sound);
-            ui.checkbox(&mut n, "Notificação do Windows quando uma tarefa demorada terminar (com o Conver em segundo plano)");
-            ui.checkbox(&mut snd, "Tocar um som ao terminar");
+            ui.checkbox(&mut n, crate::i18n::tr("Notificação do Windows quando uma tarefa demorada terminar (com o Conver em segundo plano)"));
+            ui.checkbox(&mut snd, crate::i18n::tr("Tocar um som ao terminar"));
             if (n, snd) != (self.cfg.notify, self.cfg.sound) {
                 self.cfg.notify = n;
                 self.cfg.sound = snd;
@@ -467,12 +495,12 @@ impl ConverApp {
         ui.add_space(4.0);
 
         card(ui, &p, |ui| {
-            ui.label(RichText::new("Downloads").family(bold()).size(16.0).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Downloads")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             row(ui, &p, "Pasta padrão:", |ui| {
-                ui.label(RichText::new(self.cfg.download_dir().display().to_string()).color(p.text));
+                ui.label(RichText::new(crate::i18n::tr(self.cfg.download_dir().display().to_string())).color(p.text));
                 if widgets::secondary(ui, &p, "Alterar…", true) {
-                    if let Some(d) = rfd::FileDialog::new().set_title("Pasta padrão dos downloads").pick_folder() {
+                    if let Some(d) = rfd::FileDialog::new().set_title(crate::i18n::tr("Pasta padrão dos downloads")).pick_folder() {
                         self.cfg.download_dir = Some(d.clone());
                         self.cfg.save();
                         self.download.out.path = Some(d);
@@ -483,9 +511,9 @@ impl ConverApp {
         ui.add_space(4.0);
 
         card(ui, &p, |ui| {
-            ui.label(RichText::new("Sobre").family(bold()).size(16.0).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Sobre")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
-            row(ui, &p, "Versão:", |ui| ui.label(format!("Conver {}", env!("CARGO_PKG_VERSION"))));
+            row(ui, &p, "Versão:", |ui| ui.label(crate::i18n::tr(format!("Conver {}", env!("CARGO_PKG_VERSION")))));
             let about = self.about.lock().unwrap();
             let (ff, yt) = match &*about {
                 Some(a) => (
@@ -498,26 +526,26 @@ impl ConverApp {
                 ),
                 None => ("verificando…".into(), "verificando…".into()),
             };
-            row(ui, &p, "ffmpeg:", |ui| ui.add(egui::Label::new(ff).truncate()));
-            row(ui, &p, "yt-dlp:", |ui| ui.label(yt));
+            row(ui, &p, "ffmpeg:", |ui| ui.add(egui::Label::new(crate::i18n::tr(ff)).truncate()));
+            row(ui, &p, "yt-dlp:", |ui| ui.label(crate::i18n::tr(yt)));
             drop(about);
             row(ui, &p, "Projeto:", |ui| {
-                ui.hyperlink_to(integration::repo_url().replace("https://", ""), integration::repo_url());
+                ui.hyperlink_to(crate::i18n::tr(integration::repo_url().replace("https://", "")), integration::repo_url());
             });
         });
         ui.add_space(4.0);
 
         card(ui, &p, |ui| {
-            ui.label(RichText::new("Integração com o Windows").family(bold()).size(16.0).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Integração com o Windows")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             let mut on = self.menu_on;
-            ui.checkbox(&mut on, "Mostrar \"Abrir com Conver\" no menu do botão direito (imagens, vídeos, áudios e PDFs)");
+            ui.checkbox(&mut on, crate::i18n::tr("Mostrar \"Abrir com Conver\" no menu do botão direito (imagens, vídeos, áudios e PDFs)"));
             if on != self.menu_on {
                 let r = if on { integration::register_menu() } else { integration::unregister_menu(); Ok(()) };
                 match r {
                     Ok(()) => self.menu_on = on,
                     Err(e) => {
-                        rfd::MessageDialog::new().set_title("Conver").set_description(format!("Não foi possível alterar o menu: {e}")).show();
+                        rfd::MessageDialog::new().set_title(crate::i18n::tr("Conver")).set_description(crate::i18n::tr(format!("Não foi possível alterar o menu: {e}"))).show();
                     }
                 }
             }
@@ -526,10 +554,10 @@ impl ConverApp {
         ui.add_space(4.0);
 
         card(ui, &p, |ui| {
-            ui.label(RichText::new("Atualizações").family(bold()).size(16.0).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Atualizações")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             let mut check = self.cfg.check_updates;
-            ui.checkbox(&mut check, "Verificar se há uma versão nova do Conver ao abrir (consulta o GitHub)");
+            ui.checkbox(&mut check, crate::i18n::tr("Verificar se há uma versão nova do Conver ao abrir (consulta o GitHub)"));
             if check != self.cfg.check_updates {
                 self.cfg.check_updates = check;
                 self.cfg.save();
@@ -558,10 +586,10 @@ impl ConverApp {
                         let _ = std::process::Command::new("explorer").arg(url).spawn();
                     }
                 }
-                ui.label(RichText::new(text).color(color));
+                ui.label(RichText::new(crate::i18n::tr(text)).color(color));
             });
             ui.add_space(8.0);
-            ui.label(RichText::new("yt-dlp (motor dos downloads)").family(bold()).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("yt-dlp (motor dos downloads)")).family(bold()).color(p.text));
             widgets::hint(ui, &p, "Os sites mudam com frequência. Se os downloads pararem de funcionar, atualize o yt-dlp (baixa a versão oficial do GitHub e confere a assinatura).");
             match widgets::action_bar(ui, &p, &self.ytdlp_job, "Atualizar yt-dlp", true) {
                 widgets::Act::Start => {
@@ -611,7 +639,7 @@ impl ConverApp {
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new(format!("Nova versão do Conver disponível: {}", rel.0)).family(bold()).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr(format!("Nova versão do Conver disponível: {}", rel.0))).family(bold()).color(p.text));
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         if widgets::secondary(ui, &p, "Agora não", true) {
                             self.update_dismissed = true;
@@ -639,7 +667,7 @@ fn nav_item(ui: &mut Ui, p: &Palette, label: &str, selected: bool) -> bool {
     ui.painter().text(
         rect.left_center() + vec2(14.0, 0.0),
         Align2::LEFT_CENTER,
-        label,
+        crate::i18n::tr(label),
         FontId::proportional(14.5),
         if selected { p.on_accent } else { p.text },
     );
@@ -666,7 +694,7 @@ fn theme_card(ui: &mut Ui, current: &Palette, dark: bool, name: &str, selected: 
     painter.text(
         egui::pos2(rect.left() + 12.0, rect.bottom() - 16.0),
         Align2::LEFT_CENTER,
-        name,
+        crate::i18n::tr(name),
         FontId::new(14.0, bold()),
         t.text,
     );
@@ -680,7 +708,7 @@ fn theme_card(ui: &mut Ui, current: &Palette, dark: bool, name: &str, selected: 
     painter.rect_stroke(rect, 12, stroke, egui::StrokeKind::Inside);
     if selected {
         painter.circle_filled(rect.right_bottom() - vec2(18.0, 16.0), 9.0, current.accent);
-        painter.text(rect.right_bottom() - vec2(18.0, 16.0), Align2::CENTER_CENTER, "✔", FontId::proportional(11.0), Color32::WHITE);
+        painter.text(rect.right_bottom() - vec2(18.0, 16.0), Align2::CENTER_CENTER, crate::i18n::tr("✔"), FontId::proportional(11.0), Color32::WHITE);
     }
     resp.on_hover_cursor(CursorIcon::PointingHand).clicked()
 }
@@ -786,3 +814,5 @@ mod tests_new;
 mod tests_new2;
 #[cfg(test)]
 mod tests_v1;
+#[cfg(test)]
+mod tests_v11;

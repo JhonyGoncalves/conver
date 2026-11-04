@@ -70,7 +70,7 @@ impl PdfPage {
             PdfTool::Merge => {
                 row(ui, p, "Nome do PDF:", |ui| {
                     ui.add(egui::TextEdit::singleline(&mut self.name).desired_width(240.0));
-                    ui.label(RichText::new(".pdf").color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr(".pdf")).color(p.muted));
                 });
                 if !self.queue.files.is_empty() {
                     hint(ui, p, &format!("O PDF final terá {total_pages} páginas. Use ↑ e ↓ para mudar a ordem."));
@@ -82,12 +82,12 @@ impl PdfPage {
                 });
                 if !self.each_page {
                     row(ui, p, "Páginas:", |ui| {
-                        ui.add(egui::TextEdit::singleline(&mut self.ranges).hint_text("1-3, 7, 10-").desired_width(200.0));
+                        ui.add(egui::TextEdit::singleline(&mut self.ranges).hint_text(crate::i18n::tr("1-3, 7, 10-")).desired_width(200.0));
                         hint(ui, p, "\"10-\" = da 10 até o fim");
                     });
                     if let Some(n) = selected_pages {
                         if let Err(e) = pdf::parse_ranges(&self.ranges, n as u32) {
-                            ui.label(RichText::new(e).color(p.accent));
+                            ui.label(RichText::new(crate::i18n::tr(e)).color(p.accent));
                         }
                     }
                 } else {
@@ -99,7 +99,7 @@ impl PdfPage {
             }
         });
         if selected.is_some() && selected_pages.is_none() {
-            ui.label(RichText::new("Não foi possível ler o PDF selecionado (pode estar danificado ou protegido).").color(p.accent));
+            ui.label(RichText::new(crate::i18n::tr("Não foi possível ler o PDF selecionado (pode estar danificado ou protegido).")).color(p.accent));
         }
         ui.add_space(4.0);
         self.out.ui(ui, p);
@@ -185,9 +185,9 @@ impl WatchPage {
             ui.add_enabled_ui(!running, |ui| {
                 row(ui, p, "Pasta:", |ui| {
                     let text = self.folder.as_ref().map(|f| f.display().to_string()).unwrap_or_else(|| "nenhuma escolhida".into());
-                    ui.label(RichText::new(text).color(if self.folder.is_some() { p.text } else { p.accent }));
+                    ui.label(RichText::new(crate::i18n::tr(text)).color(if self.folder.is_some() { p.text } else { p.accent }));
                     if widgets::secondary(ui, p, "Escolher…", true) {
-                        if let Some(d) = rfd::FileDialog::new().set_title("Pasta para vigiar").pick_folder() {
+                        if let Some(d) = rfd::FileDialog::new().set_title(crate::i18n::tr("Pasta para vigiar")).pick_folder() {
                             self.folder = Some(d);
                         }
                     }
@@ -219,7 +219,7 @@ impl WatchPage {
                         segmented(ui, p, &mut o.aud_fmt, &opts);
                     }),
                 }
-                ui.checkbox(&mut self.existing, "Processar também os arquivos que já estão na pasta");
+                ui.checkbox(&mut self.existing, crate::i18n::tr("Processar também os arquivos que já estão na pasta"));
             });
             hint(
                 ui,

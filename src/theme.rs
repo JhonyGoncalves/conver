@@ -77,6 +77,16 @@ pub fn install_fonts(ctx: &egui::Context) {
     if !bold.first().is_some_and(|f| f == "segoe-sb") && proportional.first().is_some_and(|f| f == "segoe") {
         bold.insert(0, "segoe".into());
     }
+    // escritas de outros idiomas: chinês e japonês (YaHei), coreano (Malgun) e formas árabes (Arial)
+    for (name, file) in [("yahei", "msyh.ttc"), ("yugothic", "YuGothM.ttc"), ("malgun", "malgun.ttf"), ("arial", "arial.ttf")] {
+        if let Ok(bytes) = std::fs::read(format!("{windir}\\Fonts\\{file}")) {
+            fonts.font_data.insert(name.into(), std::sync::Arc::new(egui::FontData::from_owned(bytes)));
+            let at = proportional.len().min(2);
+            proportional.insert(at, name.into());
+            let at = bold.len().min(2);
+            bold.insert(at, name.into());
+        }
+    }
     fonts.families.insert(FontFamily::Proportional, proportional);
     fonts.families.insert(FontFamily::Name("bold".into()), bold);
     ctx.set_fonts(fonts);

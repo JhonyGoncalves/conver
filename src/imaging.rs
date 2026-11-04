@@ -156,8 +156,17 @@ pub enum ImageOp {
     /// Giro em graus (0, 90, 180, 270), espelhamentos e recorte centralizado.
     Transform { rotate: u16, flip_h: bool, flip_v: bool, aspect: Aspect },
     StripMeta,
+    /// Remove o fundo com IA; `hard` deixa a borda mais definida.
+    RemoveBg { bg: Background, hard: bool },
     /// Brilho, contraste e saturação de -100 a 100, mais um filtro pronto.
     Adjust { brightness: i16, contrast: i16, saturation: i16, filter: Filter },
+}
+
+/// O que fica no lugar do fundo removido.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub enum Background {
+    Transparente,
+    Cor(u8, u8, u8),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -507,6 +516,41 @@ pub fn process(path: &Path, op: &ImageOp) -> Result<Output, String> {
                 "nenhum metadado encontrado".to_string()
             };
             Ok(Output { bytes, fmt: src_fmt, suffix: "_limpa".into(), info, dims: (w, h) })
+        }
+        ImageOp::RemoveBg { bg, hard } => {
+            let mut mask = crate::bgremove::mask(&img)?;
+            if *hard {
+                crate::bgremove::harden(&mut mask);
+            }
+            let mut rgba = img.to_rgba8();
+            for (p, a) in rgba.pixels_mut().zip(mask.pixels()) {
+                p[3] = (p[3] as u16 * a[0] as u16 / 255) as u8;
+            }
+            let kept = mask.pixels().filter(|a| a[0] > 127).count() as f64 / mask.len().max(1) as f64 * 100.0;
+            let (out, fmt) = match bg {
+                // transparência só existe em PNG e WEBP
+                Background::Transparente => {
+                    (DynamicImage::ImageRgba8(rgba), if src_fmt == Fmt::Webp { Fmt::Webp } else { Fmt::Png })
+                }
+                Background::Cor(r, g, b) => {
+                    let mut flat = RgbImage::new(w, h);
+                    for (o, p) in flat.pixels_mut().zip(rgba.pixels()) {
+                        let a = p[3] as u32;
+                        for (c, bgc) in [*r, *g, *b].into_iter().enumerate() {
+                            o[c] = ((p[c] as u32 * a + bgc as u32 * (255 - a)) / 255) as u8;
+                        }
+                    }
+                    let fmt = if matches!(src_fmt, Fmt::Ico | Fmt::Gif) { Fmt::Png } else { src_fmt };
+                    (DynamicImage::ImageRgb8(flat), fmt)
+                }
+            };
+            Ok(Output {
+                bytes: encode(&out, fmt, Some(95))?,
+                fmt,
+                suffix: "_sem_fundo".into(),
+                info: format!("fundo removido • {kept:.0}% da imagem mantida"),
+                dims: (w, h),
+            })
         }
         ImageOp::Adjust { brightness, contrast, saturation, filter } => {
             let has_a = img.color().has_alpha();

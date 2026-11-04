@@ -8,7 +8,7 @@ use eframe::egui::{self, Align, ColorImage, Layout, RichText, TextureHandle, Tex
 
 use crate::download::{self, Kind};
 use crate::history;
-use crate::imaging::{self, Aspect, Filter, Fmt, ImageOp, Level, PageSize, ResizeMode};
+use crate::imaging::{self, Aspect, Background, Filter, Fmt, ImageOp, Level, PageSize, ResizeMode};
 use crate::job::{Ctl, Job, LogKind};
 use crate::theme::{Palette, bold};
 use crate::tools;
@@ -71,7 +71,7 @@ pub fn run_single(ctl: &Ctl, tool: &str, input: &str, work: impl FnOnce() -> Res
 }
 
 fn alert(text: impl Into<String>) {
-    rfd::MessageDialog::new().set_title("Conver").set_description(text.into()).show();
+    rfd::MessageDialog::new().set_title(crate::i18n::tr("Conver")).set_description(crate::i18n::tr(text.into())).show();
 }
 
 // ================================================================ imagem
@@ -86,6 +86,7 @@ pub enum ImgTool {
     Strip,
     Pdf,
     Adjust,
+    RemoveBg,
 }
 
 #[derive(Clone)]
@@ -183,6 +184,9 @@ pub struct ImagePage {
     contrast: i16,
     saturation: i16,
     filter: Filter,
+    bg: Background,
+    bg_color: [u8; 3],
+    hard: bool,
 }
 
 impl ImagePage {
@@ -213,6 +217,9 @@ impl ImagePage {
             contrast: 0,
             saturation: 0,
             filter: Filter::Nenhum,
+            bg: Background::Transparente,
+            bg_color: [0xF1, 0x30, 0x30],
+            hard: true,
         }
     }
 
@@ -243,6 +250,11 @@ impl ImagePage {
                 "Remover metadados",
                 "Apaga informações escondidas da foto (EXIF, localização GPS, câmera, data) sem perder qualidade.",
                 "Remover",
+            ),
+            ImgTool::RemoveBg => (
+                "Remover fundo",
+                "Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.",
+                "Remover fundo",
             ),
             ImgTool::Adjust => (
                 "Ajustes de cor",
@@ -287,6 +299,7 @@ impl ImagePage {
                 ImageOp::Transform { rotate: self.rotate, flip_h: self.flip_h, flip_v: self.flip_v, aspect: self.aspect }
             }
             ImgTool::Strip => ImageOp::StripMeta,
+            ImgTool::RemoveBg => ImageOp::RemoveBg { bg: self.bg, hard: self.hard },
             ImgTool::Adjust => ImageOp::Adjust {
                 brightness: self.brightness,
                 contrast: self.contrast,
@@ -305,13 +318,13 @@ impl ImagePage {
                 });
                 if self.px_mode {
                     row(ui, p, "Tamanho:", |ui| {
-                        ui.label("Largura");
-                        ui.add(egui::TextEdit::singleline(&mut self.w).hint_text("px").desired_width(70.0));
+                        ui.label(crate::i18n::tr("Largura"));
+                        ui.add(egui::TextEdit::singleline(&mut self.w).hint_text(crate::i18n::tr("px")).desired_width(70.0));
                         ui.add_space(8.0);
-                        ui.label("Altura");
-                        ui.add(egui::TextEdit::singleline(&mut self.h).hint_text("px").desired_width(70.0));
+                        ui.label(crate::i18n::tr("Altura"));
+                        ui.add(egui::TextEdit::singleline(&mut self.h).hint_text(crate::i18n::tr("px")).desired_width(70.0));
                         ui.add_space(8.0);
-                        ui.checkbox(&mut self.keep, "Manter proporção");
+                        ui.checkbox(&mut self.keep, crate::i18n::tr("Manter proporção"));
                     });
                     hint(ui, p, "Com a proporção mantida, a imagem cabe dentro da largura/altura informada.");
                 } else {
@@ -346,9 +359,9 @@ impl ImagePage {
                     segmented(ui, p, &mut self.rotate, &[(0, "Não girar"), (90, "90° ↻"), (180, "180°"), (270, "90° ↺")]);
                 });
                 row(ui, p, "Espelhar:", |ui| {
-                    ui.checkbox(&mut self.flip_h, "Na horizontal ↔");
+                    ui.checkbox(&mut self.flip_h, crate::i18n::tr("Na horizontal ↔"));
                     ui.add_space(8.0);
-                    ui.checkbox(&mut self.flip_v, "Na vertical ↕");
+                    ui.checkbox(&mut self.flip_v, crate::i18n::tr("Na vertical ↕"));
                 });
                 row(ui, p, "Recortar:", |ui| {
                     let opts: Vec<(Aspect, &str)> = Aspect::ALL.iter().map(|a| (*a, a.label())).collect();
@@ -358,6 +371,36 @@ impl ImagePage {
             ImgTool::Strip => {
                 hint(ui, p, "JPG, PNG e WEBP: só os metadados são apagados, a imagem não é recomprimida.");
                 hint(ui, p, "Se a foto tiver rotação da câmera, ela é aplicada antes, para a imagem não ficar de lado.");
+            }
+            ImgTool::RemoveBg => {
+                row(ui, p, "Fundo novo:", |ui| {
+                    let [r, g, b] = self.bg_color;
+                    let mut kind = match self.bg {
+                        Background::Transparente => 0,
+                        Background::Cor(255, 255, 255) => 1,
+                        Background::Cor(0, 0, 0) => 2,
+                        Background::Cor(..) => 3,
+                    };
+                    if segmented(ui, p, &mut kind, &[(0, "Transparente"), (1, "Branco"), (2, "Preto"), (3, "Cor")]) {
+                        self.bg = match kind {
+                            0 => Background::Transparente,
+                            1 => Background::Cor(255, 255, 255),
+                            2 => Background::Cor(0, 0, 0),
+                            _ => Background::Cor(r, g, b),
+                        };
+                    }
+                    if kind == 3 && ui.color_edit_button_srgb(&mut self.bg_color).changed() {
+                        let [r, g, b] = self.bg_color;
+                        self.bg = Background::Cor(r, g, b);
+                    }
+                });
+                row(ui, p, "Borda:", |ui| {
+                    segmented(ui, p, &mut self.hard, &[(true, "Definida"), (false, "Suave (cabelo, pelos)")]);
+                });
+                hint(ui, p, "Transparente salva em PNG. A primeira imagem demora alguns segundos enquanto o modelo carrega.");
+                if crate::bgremove::model_path().is_none() {
+                    ui.label(RichText::new(crate::i18n::tr("⚠ Modelo de IA não encontrado: coloque o silueta.onnx na pasta modelos.")).color(p.accent));
+                }
             }
             ImgTool::Adjust => {
                 for (label, v) in [("Brilho:", &mut self.brightness), ("Contraste:", &mut self.contrast), ("Saturação:", &mut self.saturation)] {
@@ -380,7 +423,7 @@ impl ImagePage {
                 });
                 row(ui, p, "Nome do PDF:", |ui| {
                     ui.add(egui::TextEdit::singleline(&mut self.pdf_name).desired_width(240.0));
-                    ui.label(RichText::new(".pdf").color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr(".pdf")).color(p.muted));
                 });
                 hint(ui, p, "Use ↑ e ↓ na lista para mudar a ordem das páginas.");
             }
@@ -390,7 +433,7 @@ impl ImagePage {
     fn preview_ui(&mut self, ui: &mut Ui, p: &Palette, thumbs: &Thumbs, height: f32) {
         card(ui, p, |ui| {
             ui.horizontal(|ui| {
-                ui.label(RichText::new("Prévia").family(bold()).color(p.text));
+                ui.label(RichText::new(crate::i18n::tr("Prévia")).family(bold()).color(p.text));
                 if self.tool != ImgTool::Pdf {
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         segmented(ui, p, &mut self.show_result, &[(false, "Original"), (true, "Resultado")]);
@@ -401,7 +444,7 @@ impl ImagePage {
             let Some(path) = self.queue.selected_path().cloned() else {
                 ui.allocate_ui(vec2(ui.available_width(), height), |ui| {
                     ui.centered_and_justified(|ui| {
-                        ui.label(RichText::new("Adicione uma imagem para ver a prévia").color(p.muted));
+                        ui.label(RichText::new(crate::i18n::tr("Adicione uma imagem para ver a prévia")).color(p.muted));
                     });
                 });
                 return;
@@ -411,9 +454,13 @@ impl ImagePage {
             let area = vec2(ui.available_width(), height - 44.0);
             let (rect, _) = ui.allocate_exact_size(area, egui::Sense::hover());
             ui.painter().rect_filled(rect, 8, p.input);
+            let checker = self.tool == ImgTool::RemoveBg;
             let draw = |ui: &mut Ui, tex: &TextureHandle| {
                 let s = tex.size_vec2();
                 let size = widgets::fit((s.x, s.y), area - vec2(16.0, 16.0));
+                if checker {
+                    widgets::checkerboard(ui.painter(), egui::Rect::from_center_size(rect.center(), size));
+                }
                 ui.painter().image(
                     tex.id(),
                     egui::Rect::from_center_size(rect.center(), size),
@@ -422,7 +469,7 @@ impl ImagePage {
                 );
             };
             let center_text = |ui: &mut Ui, t: &str, c| {
-                ui.painter().text(rect.center(), egui::Align2::CENTER_CENTER, t, egui::FontId::proportional(14.0), c);
+                ui.painter().text(rect.center(), egui::Align2::CENTER_CENTER, crate::i18n::tr(t), egui::FontId::proportional(14.0), c);
             };
             let orig_size = tools::human_size(tools::file_size(&path));
             let caption = if self.show_result {
@@ -466,7 +513,7 @@ impl ImagePage {
                 }
             };
             ui.add_space(2.0);
-            ui.add(egui::Label::new(RichText::new(caption).size(13.0).color(p.muted)).truncate());
+            ui.add(egui::Label::new(RichText::new(crate::i18n::tr(caption)).size(13.0).color(p.muted)).truncate());
         });
     }
 
@@ -580,15 +627,15 @@ impl DownloadPage {
         card(ui, p, |ui| {
             let n = download::parse_links(&self.url).len();
             ui.horizontal(|ui| {
-                ui.label(RichText::new("Links").family(bold()).color(p.text));
+                ui.label(RichText::new(crate::i18n::tr("Links")).family(bold()).color(p.text));
                 if n > 1 {
-                    ui.label(RichText::new(format!("{n} links — serão baixados em fila")).size(12.5).color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr(format!("{n} links — serão baixados em fila"))).size(12.5).color(p.muted));
                 }
             });
             ui.horizontal_top(|ui| {
                 ui.add(
                     egui::TextEdit::multiline(&mut self.url)
-                        .hint_text("Cole aqui o link do vídeo, música ou playlist (um ou vários, um por linha)")
+                        .hint_text(crate::i18n::tr("Cole aqui o link do vídeo, música ou playlist (um ou vários, um por linha)"))
                         .desired_width(ui.available_width() - 90.0)
                         .desired_rows(3)
                         .font(egui::FontId::proportional(14.5))
@@ -618,22 +665,22 @@ impl DownloadPage {
                 segmented(ui, p, &mut self.quality, &opts);
             });
             row(ui, p, "Login do navegador:", |ui| {
-                egui::ComboBox::from_id_salt("cookies").selected_text(BROWSERS[self.browser].0).width(140.0).show_ui(
+                egui::ComboBox::from_id_salt("cookies").selected_text(crate::i18n::tr(BROWSERS[self.browser].0)).width(140.0).show_ui(
                     ui,
                     |ui| {
                         for (i, (name, _)) in BROWSERS.iter().enumerate() {
-                            ui.selectable_value(&mut self.browser, i, *name);
+                            ui.selectable_value(&mut self.browser, i, crate::i18n::tr(*name));
                         }
                     },
                 );
                 hint(ui, p, "para sites que pedem conta (Instagram, Facebook). Feche o navegador antes de baixar.");
             });
             row(ui, p, "Baixar junto:", |ui| {
-                ui.checkbox(&mut self.subtitles, "Legendas (.srt, português e inglês)");
+                ui.checkbox(&mut self.subtitles, crate::i18n::tr("Legendas (.srt, português e inglês)"));
                 ui.add_space(8.0);
-                ui.checkbox(&mut self.cover, "Imagem de capa (.jpg)");
+                ui.checkbox(&mut self.cover, crate::i18n::tr("Imagem de capa (.jpg)"));
             });
-            ui.checkbox(&mut self.playlist, "Baixar a playlist inteira (se o link for de uma playlist)");
+            ui.checkbox(&mut self.playlist, crate::i18n::tr("Baixar a playlist inteira (se o link for de uma playlist)"));
         });
         ui.add_space(4.0);
         self.out.ui(ui, p);
