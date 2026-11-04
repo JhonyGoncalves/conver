@@ -55,6 +55,14 @@ Name: "{autodesktop}\Conver"; Filename: "{app}\Conver.exe"; Tasks: desktopicon
 [Run]
 Filename: "{app}\Conver.exe"; Parameters: "--registrar-menu"; Flags: runhidden; Tasks: contextmenu
 Filename: "{app}\Conver.exe"; Description: "Abrir o Conver agora"; Flags: nowait postinstall skipifsilent
+; atualização feita de dentro do Conver (instalador silencioso com /RELANCAR=1): reabre o app no fim
+Filename: "{app}\Conver.exe"; Flags: nowait; Check: Relancar
+
+[Code]
+function Relancar: Boolean;
+begin
+  Result := ExpandConstant('{param:RELANCAR|0}') = '1';
+end;
 
 [UninstallRun]
 Filename: "{app}\Conver.exe"; Parameters: "--remover-menu"; Flags: runhidden; RunOnceId: "RemoverMenu"

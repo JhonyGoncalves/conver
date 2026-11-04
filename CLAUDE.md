@@ -44,6 +44,11 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
 - `cli.rs`: modo `--cli` do Conver.exe — linha de comando e servidor MCP (`mcp`: JSON-RPC por stdio, uma thread por
   chamada, progresso e cancelamento). `src/bin/conver-cli.rs` é um executável de console mínimo que repassa os
   argumentos e o terminal para `Conver.exe --cli` (o Conver.exe é de janela e o Windows não esperaria por ele).
+- `updater.rs`: atualização de dentro do app. Instalado (tem `unins000.exe`): baixa o instalador, confere com o
+  `-SHA256.txt` da release e roda `/VERYSILENT ... /RELANCAR=1` (o `[Code]` do `conver.iss` reabre o app). Portátil:
+  baixa o zip, extrai com o `tar.exe` do Windows e roda o Conver.exe novo com `--aplicar-atualizacao`, que espera o
+  antigo fechar e copia por cima sem tocar em `dados\`. Os nomes dos arquivos da release (`-instalador.exe`,
+  `-portatil.zip`, `-SHA256.txt`) fazem parte do contrato: não mude no `build.ps1`.
 - `presets.rs`: predefinições (ferramenta + argumentos) em `predefinicoes.json`. Telas novas em `extras4.rs`.
 - IA: `ai.rs` (ambiente ONNX compartilhado e download de modelos com SHA-256), `upscale.rs` (Real-ESRGAN em blocos),
   `separate.rs` (UVR MDX-Net com STFT própria via realfft), `transcribe.rs` (whisper-cli em `bin\whisper`).
@@ -82,6 +87,9 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
 ## Release
 
 1. Subir `version` no `Cargo.toml` (o `build.ps1` e o instalador leem dali) e atualizar `CHANGELOG.md` e `README.md`.
+   Numeração: atualização pequena (uma configuração, um bug corrigido, um recurso modesto, sem muitas ferramentas
+   novas nem mudanças de interface) sobe só o último número (1.2.0 → 1.2.1 → 1.2.2); levas maiores sobem o do
+   meio (1.2 → 1.3).
 2. Rodar os testes e o `build.ps1` (Inno Setup 6 em `installer\conver.iss`); conferir o conteúdo do zip.
 3. Commit (mensagem por arquivo, `git commit -F`) e push em `main`.
 4. `gh release create vX.Y.Z dist\Conver-X.Y.Z-instalador.exe dist\Conver-X.Y.Z-portatil.zip dist\Conver-X.Y.Z-SHA256.txt --title "Conver X.Y.Z" --notes-file <notas>`

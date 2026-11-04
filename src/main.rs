@@ -33,6 +33,7 @@ mod separate;
 mod theme;
 mod tools;
 mod transcribe;
+mod updater;
 mod upscale;
 mod video;
 mod watch;
@@ -268,6 +269,8 @@ struct ConverApp {
     inbox: Arc<Mutex<Vec<PathBuf>>>,
     update: Arc<Mutex<UpdateState>>,
     update_dismissed: bool,
+    update_job: Job,
+    update_ready: Arc<Mutex<Option<updater::Prepared>>>,
     menu_on: bool,
     ytdlp_job: Job,
 }
@@ -326,12 +329,15 @@ impl ConverApp {
             inbox,
             update: Arc::new(Mutex::new(UpdateState::Idle)),
             update_dismissed: false,
+            update_job: Job::default(),
+            update_ready: Arc::default(),
             menu_on: integration::menu_registered(),
             ytdlp_job: Job::default(),
         };
         if app.cfg.check_updates {
             app.check_updates(ctx);
         }
+        std::thread::spawn(updater::cleanup_old);
         // arquivos arrastados para o ícone do Conver.exe / "Abrir com"
         app.add_paths(std::env::args_os().skip(1).map(PathBuf::from).collect());
         app
@@ -640,22 +646,26 @@ impl ConverApp {
                     UpdateState::Available(r) => (format!("versão {} disponível", r.version), p.accent),
                     UpdateState::Failed(e) => (format!("✖ {e}"), p.accent),
                 };
-                let url = match &*state {
-                    UpdateState::Available(r) => Some(r.url.clone()),
+                let rel = match &*state {
+                    UpdateState::Available(r) => Some(r.clone()),
                     _ => None,
                 };
                 drop(state);
-                if widgets::secondary(ui, &p, "Verificar agora", !checking) {
+                if widgets::secondary(ui, &p, "Verificar agora", !checking && !self.update_job.state().running) {
                     self.update_dismissed = false;
                     self.check_updates(ui.ctx());
                 }
-                if let Some(url) = url {
-                    if widgets::primary(ui, &p, "Baixar", true) {
-                        let _ = std::process::Command::new("explorer").arg(url).spawn();
-                    }
-                }
                 ui.label(RichText::new(crate::i18n::tr(text)).color(color));
+                if let Some(rel) = rel {
+                    self.update_controls(ui, &rel);
+                }
             });
+            let how = match updater::mode() {
+                updater::Mode::Instalado => "\"Atualizar agora\" baixa o instalador novo, confere a assinatura e instala sem perguntas: o Conver fecha e abre de novo sozinho, com as mesmas configurações.",
+                updater::Mode::Portatil => "\"Atualizar agora\" baixa a versão portátil nova, confere a assinatura e troca os arquivos desta pasta (a pasta dados é mantida): o Conver fecha e abre de novo sozinho.",
+                updater::Mode::Manual => "Esta cópia não foi instalada pelo instalador nem é a versão portátil: baixe a versão nova pelo site.",
+            };
+            widgets::hint(ui, &p, how);
             ui.add_space(8.0);
             ui.label(RichText::new(crate::i18n::tr("yt-dlp (motor dos downloads)")).family(bold()).color(p.text));
             widgets::hint(ui, &p, "Os sites mudam com frequência. Se os downloads pararem de funcionar, atualize o yt-dlp (baixa a versão oficial do GitHub e confere a assinatura).");
@@ -693,10 +703,69 @@ impl ConverApp {
 }
 
 impl ConverApp {
+    /// Baixa e confere a atualização em segundo plano; quando estiver pronta, `poll_update` instala.
+    fn start_update(&mut self, ctx: &egui::Context, rel: integration::Release) {
+        let ready = self.update_ready.clone();
+        let mode = updater::mode();
+        self.update_job.start(ctx, move |ctl| {
+            ctl.status(format!("Baixando o Conver {}…", rel.version));
+            match updater::prepare(&rel, mode, &|f| ctl.progress(f), &|| ctl.cancelled()) {
+                Ok(prep) => {
+                    ctl.status("Instalando… o Conver vai fechar e abrir de novo sozinho.");
+                    *ready.lock().unwrap() = Some(prep);
+                }
+                Err(e) => {
+                    ctl.log(job::LogKind::Err, format!("✖ {e}"));
+                    ctl.status(e);
+                }
+            }
+        });
+    }
+
+    /// Atualização pronta: inicia a instalação e fecha o app (ele é reaberto no fim).
+    fn poll_update(&mut self, ctx: &egui::Context) {
+        let Some(prep) = self.update_ready.lock().unwrap().take() else { return };
+        match updater::apply(&prep) {
+            Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
+            Err(e) => {
+                rfd::MessageDialog::new().set_title(crate::i18n::tr("Conver")).set_description(crate::i18n::tr(e)).show();
+            }
+        }
+    }
+
+    /// "Atualizar agora" (ou "Baixar", quando esta cópia não se atualiza sozinha) e o andamento.
+    fn update_controls(&mut self, ui: &mut Ui, rel: &integration::Release) {
+        let p = self.pal;
+        let (running, progress, status) = {
+            let st = self.update_job.state();
+            let err = st.log.iter().any(|(k, _)| *k == job::LogKind::Err);
+            (st.running, st.progress, (!st.running && err).then(|| st.status.clone()).or(st.running.then(|| st.status.clone())))
+        };
+        if running {
+            if widgets::secondary(ui, &p, "Cancelar", true) {
+                self.update_job.cancel();
+            }
+            ui.add(egui::ProgressBar::new(progress).desired_width(160.0).show_percentage());
+        } else if updater::mode() == updater::Mode::Manual {
+            if widgets::primary(ui, &p, "Baixar", true) {
+                let _ = std::process::Command::new("explorer").arg(&rel.url).spawn();
+            }
+        } else if widgets::primary(ui, &p, "Atualizar agora", true) {
+            self.start_update(ui.ctx(), rel.clone());
+        }
+        if let Some(text) = status {
+            ui.label(RichText::new(crate::i18n::tr(text)).size(12.5).color(if running { p.muted } else { p.accent }));
+        }
+        if running {
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(200));
+        }
+    }
+
     fn update_banner(&mut self, ui: &mut Ui) {
         let p = self.pal;
+        self.poll_update(ui.ctx());
         let rel = match &*self.update.lock().unwrap() {
-            UpdateState::Available(r) if !self.update_dismissed => (r.version.clone(), r.url.clone()),
+            UpdateState::Available(r) if !self.update_dismissed || self.update_job.state().running => r.clone(),
             _ => return,
         };
         Frame::default()
@@ -707,14 +776,13 @@ impl ConverApp {
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new(crate::i18n::tr(format!("Nova versão do Conver disponível: {}", rel.0))).family(bold()).color(p.text));
+                    ui.label(RichText::new(crate::i18n::tr(format!("Nova versão do Conver disponível: {}", rel.version))).family(bold()).color(p.text));
+                    ui.hyperlink_to(crate::i18n::tr("O que mudou"), &rel.url);
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        if widgets::secondary(ui, &p, "Agora não", true) {
+                        if !self.update_job.state().running && widgets::secondary(ui, &p, "Agora não", true) {
                             self.update_dismissed = true;
                         }
-                        if widgets::primary(ui, &p, "Baixar", true) {
-                            let _ = std::process::Command::new("explorer").arg(&rel.1).spawn();
-                        }
+                        self.update_controls(ui, &rel);
                     });
                 });
             });
@@ -859,6 +927,11 @@ fn main() -> eframe::Result {
         let rest: Vec<String> = args[1..].iter().map(|a| a.to_string_lossy().into_owned()).collect();
         std::process::exit(cli::main(rest));
     }
+    // atualização da versão portátil: este é o Conver.exe novo, rodando da pasta temporária
+    if args.first().and_then(|a| a.to_str()) == Some("--aplicar-atualizacao") {
+        let rest: Vec<String> = args[1..].iter().map(|a| a.to_string_lossy().into_owned()).collect();
+        std::process::exit(updater::run_apply(&rest));
+    }
     // usados pelo instalador
     match args.first().and_then(|a| a.to_str()) {
         Some("--registrar-menu") => {
@@ -900,3 +973,5 @@ mod tests_v1;
 mod tests_v11;
 #[cfg(test)]
 mod tests_v12;
+#[cfg(test)]
+mod tests_v13;

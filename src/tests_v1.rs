@@ -84,7 +84,11 @@ fn recorder_devices() {
         let dst = d.join(format!("gravacao_{i}.mp3"));
         let mut rec = recorder::Recording::start(dev, crate::media::AFmt::Mp3, &dst, || {}).unwrap();
         std::thread::sleep(std::time::Duration::from_millis(3500));
-        assert!(rec.check().is_ok());
+        // entrada em uso por outro programa ou desconectada: o ffmpeg para sozinho e o erro é informado
+        if let Err(e) = rec.check() {
+            println!("{dev}: parou sozinha ({e})");
+            continue;
+        }
         let silent = rec.silent();
         let r = rec.stop();
         println!("{dev}: silenciosa={silent} -> {r:?}");

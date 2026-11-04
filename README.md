@@ -80,7 +80,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - "Abrir com Conver" no menu do botão direito
 - **20 idiomas** (Configurações → Idioma): português, inglês, chinês, espanhol, árabe, francês, russo, indonésio, urdu, alemão, japonês, vietnamita, turco, hauçá, coreano, italiano, persa, suaíli, polonês e ucraniano
 - Tema claro e escuro, aviso com som e notificação ao terminar tarefas longas
-- Avisa quando sai uma versão nova
+- Avisa quando sai uma versão nova e **se atualiza sozinho** com um clique (baixa, confere a assinatura, instala e reabre)
 
 ![Configurações do Conver](docs/configuracoes.png)
 

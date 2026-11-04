@@ -130,9 +130,45 @@ pub fn is_newer(latest: &str, current: &str) -> bool {
     parse_version(latest) > parse_version(current)
 }
 
+#[derive(Clone, Debug)]
+pub struct Asset {
+    pub name: String,
+    pub url: String,
+    pub size: u64,
+}
+
+#[derive(Clone, Debug)]
 pub struct Release {
     pub version: String,
     pub url: String,
+    pub assets: Vec<Asset>,
+}
+
+impl Release {
+    /// Arquivo da release cujo nome termina com `suffix` ("-instalador.exe", "-portatil.zip", "-SHA256.txt").
+    pub fn asset(&self, suffix: &str) -> Option<&Asset> {
+        self.assets.iter().find(|a| a.name.to_lowercase().ends_with(&suffix.to_lowercase()))
+    }
+}
+
+fn parse_release(json: &serde_json::Value) -> Release {
+    let tag = json["tag_name"].as_str().unwrap_or_default();
+    let url = json["html_url"].as_str().map(str::to_string).unwrap_or_else(|| format!("{}/releases/latest", repo_url()));
+    let assets = json["assets"]
+        .as_array()
+        .map(|a| {
+            a.iter()
+                .filter_map(|x| {
+                    Some(Asset {
+                        name: x["name"].as_str()?.to_string(),
+                        url: x["browser_download_url"].as_str()?.to_string(),
+                        size: x["size"].as_u64().unwrap_or(0),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    Release { version: tag.trim_start_matches('v').to_string(), url, assets }
 }
 
 /// Última versão publicada no GitHub, se for mais nova que esta.
@@ -146,9 +182,23 @@ pub fn check_update() -> Result<Option<Release>, String> {
         .into_string()
         .map_err(|e| e.to_string())?;
     let json: serde_json::Value = serde_json::from_str(&body).map_err(|e| e.to_string())?;
-    let tag = json["tag_name"].as_str().unwrap_or_default().to_string();
-    let url = json["html_url"].as_str().map(str::to_string).unwrap_or_else(|| format!("{}/releases/latest", repo_url()));
-    Ok(is_newer(&tag, env!("CARGO_PKG_VERSION")).then(|| Release { version: tag.trim_start_matches('v').to_string(), url }))
+    let rel = parse_release(&json);
+    Ok(is_newer(&rel.version, env!("CARGO_PKG_VERSION")).then_some(rel))
+}
+
+/// Uma release específica (usada nos testes da atualização).
+#[cfg(test)]
+pub fn release_by_tag(tag: &str) -> Result<Release, String> {
+    let api = format!("https://api.github.com/repos/{REPO}/releases/tags/{tag}");
+    let body = agent()
+        .get(&api)
+        .set("Accept", "application/vnd.github+json")
+        .call()
+        .map_err(|e| format!("não foi possível consultar o GitHub: {e}"))?
+        .into_string()
+        .map_err(|e| e.to_string())?;
+    let json: serde_json::Value = serde_json::from_str(&body).map_err(|e| e.to_string())?;
+    Ok(parse_release(&json))
 }
 
 /// SHA-256 (sem dependência extra).

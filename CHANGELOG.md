@@ -1,5 +1,13 @@
 # Lista de mudanças
 
+## 1.2.1
+
+### Novidades
+- **Atualizar sem sair do app**: quando sai uma versão nova, o botão **Atualizar agora** (no aviso do topo ou em Configurações → Atualizações) baixa a atualização, confere o SHA-256 publicado na release, fecha o Conver, instala e abre de novo sozinho. Não é preciso baixar nada pelo navegador.
+  - Instalado: o instalador novo roda em modo silencioso, na mesma pasta e com as mesmas opções.
+  - Portátil: os arquivos da pasta são trocados e a pasta `dados` (configurações e histórico) é mantida.
+  - Dá para cancelar durante o download; se a assinatura não conferir, nada é alterado.
+
 ## 1.2.0
 
 ### Novidades

@@ -61,7 +61,7 @@ SECTIONS = {"IMAGEM", "VÍDEO", "ÁUDIO", "DOWNLOAD", "FERRAMENTAS"}
 def is_ui(s):
     if s in SECTIONS:
         return True
-    if len(s) < 2 or "://" in s or ".exe" in s or "::" in s or s.startswith("-"):
+    if len(s) < 2 or "://" in s or ".exe" in s or "::" in s or s.startswith("-") or s.startswith("/"):
         return False
     if s in INTERNAL or CODE.search(s) or re.fullmatch(r"[A-Z_]{4,}", s):
         return False

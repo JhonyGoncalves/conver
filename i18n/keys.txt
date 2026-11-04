@@ -1,7 +1,7 @@
-não foi possível baixar o modelo {} ({e}).
+não foi possível baixar {label} ({e}).
 Cancelado.
-o download do modelo parou ({e}).
-o modelo {} baixado não confere com a assinatura esperada; tente de novo.
+o download parou ({e}).
+{label} baixado não confere com a assinatura publicada; nada foi alterado. Tente de novo.
 onnxruntime.dll não encontrado (pasta bin).
 não foi possível carregar o modelo: {e}
 o modelo de remoção de fundo não foi encontrado (pasta modelos).
@@ -403,7 +403,9 @@ Verificar se há uma versão nova do Conver ao abrir (consulta o GitHub)
 ✔ você está na versão mais nova ({})
 versão {} disponível
 Verificar agora
-Baixar
+"Atualizar agora" baixa o instalador novo, confere a assinatura e instala sem perguntas: o Conver fecha e abre de novo sozinho, com as mesmas configurações.
+"Atualizar agora" baixa a versão portátil nova, confere a assinatura e troca os arquivos desta pasta (a pasta dados é mantida): o Conver fecha e abre de novo sozinho.
+Esta cópia não foi instalada pelo instalador nem é a versão portátil: baixe a versão nova pelo site.
 yt-dlp (motor dos downloads)
 Os sites mudam com frequência. Se os downloads pararem de funcionar, atualize o yt-dlp (baixa a versão oficial do GitHub e confere a assinatura).
 Atualizar yt-dlp
@@ -412,7 +414,12 @@ Você já tinha a versão mais nova ({after}).
 Atualizado: {before} → {after}.
 ✔ {text}
 Erro ao atualizar.
+Baixando o Conver {}…
+Instalando… o Conver vai fechar e abrir de novo sozinho.
+Baixar
+Atualizar agora
 Nova versão do Conver disponível: {}
+O que mudou
 Agora não
 o início ({}) passa do fim do arquivo ({}).
 o fim precisa ser depois do início.
@@ -736,6 +743,16 @@ não foi possível iniciar o Whisper: {e}
 falha no Whisper: {}
 o Whisper não gerou nenhum arquivo.
 {words} palavras • {}
+esta cópia do Conver não foi instalada pelo instalador nem é a portátil; baixe pelo site.
+a versão nova não tem o arquivo para esta cópia do Conver; baixe pelo site.
+a versão nova não publicou as somas de verificação; baixe pelo site.
+o arquivo da atualização não está na lista de verificação; baixe pelo site.
+não foi possível extrair a atualização: {e}
+não foi possível extrair a atualização.
+não foi possível iniciar o instalador: {e}
+não foi possível iniciar a atualização: {e}
+atualização automática indisponível nesta cópia.
+Não foi possível terminar a atualização: {e}
 o modelo de ampliação não foi encontrado (pasta modelos).
 a imagem ficaria com mais de {MAX_SIDE} pixels de lado; diminua-a antes ou use 2×.
 MP3 (só áudio)

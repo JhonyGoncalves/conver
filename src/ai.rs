@@ -46,12 +46,28 @@ pub fn ensure_model(spec: &ModelSpec, on_progress: &dyn Fn(f32), cancelled: &dyn
     let dir = tools::app_dir().join("modelos");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let dst = dir.join(spec.file);
-    let part = dir.join(format!("{}.baixando", spec.file));
+    download_verified(spec.url, &dst, spec.sha256, spec.size, spec.label, on_progress, cancelled)?;
+    Ok(dst)
+}
+
+/// Baixa `url` para `dst` conferindo o SHA-256 durante o download. Se algo der errado (ou não conferir),
+/// nada fica em `dst`. `label` aparece nas mensagens de erro.
+pub fn download_verified(
+    url: &str,
+    dst: &std::path::Path,
+    sha256: &str,
+    size_hint: u64,
+    label: &str,
+    on_progress: &dyn Fn(f32),
+    cancelled: &dyn Fn() -> bool,
+) -> Result<(), String> {
+    let part = dst.with_file_name(format!("{}.baixando", dst.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()));
     let resp = crate::integration::agent()
-        .get(spec.url)
+        .get(url)
+        .timeout(std::time::Duration::from_secs(60 * 30))
         .call()
-        .map_err(|e| format!("não foi possível baixar o modelo {} ({e}).", spec.label))?;
-    let total: u64 = resp.header("Content-Length").and_then(|v| v.parse().ok()).unwrap_or(spec.size).max(1);
+        .map_err(|e| format!("não foi possível baixar {label} ({e})."))?;
+    let total: u64 = resp.header("Content-Length").and_then(|v| v.parse().ok()).unwrap_or(size_hint).max(1);
     let mut reader = resp.into_reader();
     let mut file = std::fs::File::create(&part).map_err(|e| e.to_string())?;
     let mut hasher = Sha256::new();
@@ -62,7 +78,7 @@ pub fn ensure_model(spec: &ModelSpec, on_progress: &dyn Fn(f32), cancelled: &dyn
             if cancelled() {
                 return Err("Cancelado.".into());
             }
-            let n = reader.read(&mut buf).map_err(|e| format!("o download do modelo parou ({e})."))?;
+            let n = reader.read(&mut buf).map_err(|e| format!("o download parou ({e})."))?;
             if n == 0 {
                 break;
             }
@@ -73,16 +89,16 @@ pub fn ensure_model(spec: &ModelSpec, on_progress: &dyn Fn(f32), cancelled: &dyn
         }
         file.flush().map_err(|e| e.to_string())?;
         let got: String = hasher.finalize().iter().map(|b| format!("{b:02x}")).collect();
-        if got != spec.sha256 {
-            return Err(format!("o modelo {} baixado não confere com a assinatura esperada; tente de novo.", spec.label));
+        if !got.eq_ignore_ascii_case(sha256.trim()) {
+            return Err(format!("{label} baixado não confere com a assinatura publicada; nada foi alterado. Tente de novo."));
         }
         Ok(())
     })();
     drop(file);
     match result {
         Ok(()) => {
-            std::fs::rename(&part, &dst).map_err(|e| e.to_string())?;
-            Ok(dst)
+            let _ = std::fs::remove_file(dst);
+            std::fs::rename(&part, dst).map_err(|e| e.to_string())
         }
         Err(e) => {
             let _ = std::fs::remove_file(&part);
