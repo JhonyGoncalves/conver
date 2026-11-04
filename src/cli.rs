@@ -421,8 +421,10 @@ fn handle(m: Value, out: &Arc<Out>, running: &Arc<Mutex<HashMap<String, Arc<Atom
                         return;
                     }
                     let mut l = last.lock().unwrap();
-                    // no máximo ~4 avisos por segundo
-                    if p >= 1.0 || (p - l.1 >= 0.01 && l.0.elapsed().as_millis() >= 250) {
+                    // no máximo ~4 avisos por segundo, o 100% só uma vez e nunca voltando para trás
+                    let p = p.clamp(0.0, 1.0);
+                    let done = p >= 1.0 && l.1 < 1.0;
+                    if done || (p - l.1 >= 0.01 && l.0.elapsed().as_millis() >= 250) {
                         *l = (std::time::Instant::now(), p);
                         out.send(&json!({ "jsonrpc": "2.0", "method": "notifications/progress",
                             "params": { "progressToken": token, "progress": (p * 100.0).round(), "total": 100 } }));

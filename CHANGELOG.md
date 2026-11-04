@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 1.2.2
+
+### Correções
+- MCP: o aviso de progresso de 100% era repetido várias vezes durante a etapa final de tarefas longas (por exemplo, quando o download junta áudio e vídeo). Agora ele chega uma vez só e o progresso nunca volta para trás.
+
 ## 1.2.1
 
 ### Novidades
