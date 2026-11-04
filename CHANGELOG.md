@@ -1,6 +1,6 @@
 # Lista de mudanças
 
-## Próxima versão
+## 1.3.0
 
 ### Novidades
 - **Gravar a tela:** prévia ao vivo do que vai ser gravado (tela inteira, a janela escolhida, mesmo coberta por outras, ou a área), com o tamanho real em pixels e a marca REC durante a gravação.

@@ -48,10 +48,10 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
 - Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
 - Remover o áudio ou extrair frames
-- **Gravar a tela** (inteira, uma janela ou uma área) em MP4, com ou sem microfone
+- **Gravar a tela** (inteira, uma janela ou uma área) em MP4, com ou sem microfone, com prévia ao vivo do que vai ser gravado
 
 **Áudio**
-- Gravador de áudio (microfone) em MP3, WAV ou M4A
+- Gravador de áudio (microfone) em MP3, WAV ou M4A, com faixa de áudio e medidor de nível ao vivo (mostra quando o som estoura) e teste do microfone antes de gravar
 - **Transcrever / legendar** com o Whisper, sem internet: fala → texto (.txt) e legendas (.srt/.vtt), em dezenas de idiomas
 - **Separar voz e instrumental** com IA (karaokê ou só a voz)
 - Converter (MP3, WAV, FLAC, OGG, M4A, OPUS), cortar, juntar, normalizar volume e comprimir
