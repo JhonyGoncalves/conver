@@ -67,7 +67,7 @@ SECTIONS = {"IMAGEM", "VÍDEO", "ÁUDIO", "DOWNLOAD", "FERRAMENTAS", "AUTOMAÇÃ
 
 
 # palavras de tela curtas, minúsculas e sem acento (pareceriam chaves de código)
-WORDS = {"sim", "incerto"}
+WORDS = {"sim", "incerto", "procurar", "substituir", "por", "separador", "https://… ou qualquer texto"}
 
 
 def is_ui(s):

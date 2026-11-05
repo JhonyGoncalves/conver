@@ -74,8 +74,10 @@ impl Welcome {
         for pair in Purpose::ALL.chunks(2) {
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = gap;
+                // os dois cartões da linha com a mesma altura
+                let h = pair.iter().map(|k| tile_height(ui, p, w, &tr(k.examples()))).fold(74.0, f32::max);
                 for purpose in pair {
-                    if tile(ui, p, w, tr(purpose.title()), tr(purpose.examples()), self.purposes.contains(purpose)) {
+                    if tile(ui, p, w, h, tr(purpose.title()), tr(purpose.examples()), self.purposes.contains(purpose)) {
                         self.toggle(*purpose);
                     }
                 }
@@ -83,7 +85,10 @@ impl Welcome {
             ui.add_space(gap - ui.spacing().item_spacing.y);
         }
         ui.add_space(10.0);
-        let any = !self.purposes.is_empty();
+        if self.purposes.is_empty() {
+            widgets::hint(ui, p, "Sem nada marcado, o Conver mostra todos os modelos.");
+            ui.add_space(2.0);
+        }
         ui.horizontal(|ui| {
             if widgets::secondary(ui, p, "Pular", true) {
                 *out = Outcome::Done(Vec::new());
@@ -91,9 +96,6 @@ impl Welcome {
             ui.with_layout(widgets::back(egui::Align::Center), |ui| {
                 if widgets::primary(ui, p, "Continuar", true) {
                     self.step = 1;
-                }
-                if !any {
-                    ui.label(RichText::new(tr("Sem nada marcado, o Conver mostra todos os modelos.")).size(12.5).color(p.muted));
                 }
             });
         });
@@ -128,6 +130,11 @@ impl Welcome {
         ui.add_space(10.0);
         let chosen: Vec<Pack> = order.iter().copied().filter(|k| self.packs.contains(k) && !k.installed()).collect();
         let total: u64 = chosen.iter().map(|k| k.size()).sum();
+        // a dica fica numa linha própria: na linha dos botões ela passava por baixo do "Voltar"
+        if !chosen.is_empty() {
+            widgets::hint(ui, p, "O download continua em segundo plano enquanto você usa o Conver.");
+            ui.add_space(2.0);
+        }
         ui.horizontal(|ui| {
             if widgets::secondary(ui, p, "Voltar", true) {
                 self.step = 0;
@@ -145,7 +152,6 @@ impl Welcome {
                     if widgets::secondary(ui, p, "Começar sem baixar", true) {
                         *out = Outcome::Done(Vec::new());
                     }
-                    ui.label(RichText::new(tr("O download continua em segundo plano enquanto você usa o Conver.")).size(12.5).color(p.muted));
                 }
             });
         });
@@ -187,9 +193,21 @@ pub fn pack_row(ui: &mut Ui, p: &Palette, pack: Pack, chosen: &mut HashSet<Pack>
     });
 }
 
+/// Exemplos de um cartão, quebrando linha na largura do texto (alinhados pelo começo da leitura).
+fn sub_galley(ui: &Ui, p: &Palette, w: f32, sub: &str) -> std::sync::Arc<egui::Galley> {
+    let mut job = egui::text::LayoutJob::simple(sub.to_string(), FontId::proportional(12.5), p.muted, (w - 60.0).max(80.0));
+    job.halign = if widgets::rtl() { egui::Align::RIGHT } else { egui::Align::LEFT };
+    ui.fonts(|f| f.layout_job(job))
+}
+
+/// Altura de um cartão: 74px, ou mais quando os exemplos ocupam várias linhas (idiomas de textos longos).
+fn tile_height(ui: &Ui, p: &Palette, w: f32, sub: &str) -> f32 {
+    (52.0 + sub_galley(ui, p, w, sub).size().y + 14.0).max(74.0)
+}
+
 /// Cartão de finalidade que liga e desliga.
-fn tile(ui: &mut Ui, p: &Palette, w: f32, title: String, sub: String, on: bool) -> bool {
-    let (rect, resp) = ui.allocate_exact_size(vec2(w, 74.0), Sense::click());
+fn tile(ui: &mut Ui, p: &Palette, w: f32, h: f32, title: String, sub: String, on: bool) -> bool {
+    let (rect, resp) = ui.allocate_exact_size(vec2(w, h), Sense::click());
     let painter = ui.painter();
     let hovered = resp.hovered();
     painter.rect_filled(rect, 12, if on { p.accent_soft } else { p.card });
@@ -207,8 +225,8 @@ fn tile(ui: &mut Ui, p: &Palette, w: f32, title: String, sub: String, on: bool) 
     }
     let (x, anchor) = if rtl { (rect.right() - 16.0, Align2::RIGHT_CENTER) } else { (rect.left() + 16.0, Align2::LEFT_CENTER) };
     let clip = Rect::from_min_max(rect.min + vec2(if rtl { 44.0 } else { 0.0 }, 0.0), rect.max - vec2(if rtl { 0.0 } else { 44.0 }, 0.0));
-    let painter = painter.with_clip_rect(clip);
-    painter.text(egui::pos2(x, rect.top() + 25.0), anchor, title, FontId::new(15.0, bold()), p.text);
-    painter.text(egui::pos2(x, rect.top() + 50.0), anchor, sub, FontId::proportional(12.5), p.muted);
+    painter.with_clip_rect(clip).text(egui::pos2(x, rect.top() + 25.0), anchor, title, FontId::new(15.0, bold()), p.text);
+    let g = sub_galley(ui, p, w, &sub);
+    ui.painter().galley(egui::pos2(x, rect.top() + 42.0), g, p.muted);
     resp.on_hover_cursor(CursorIcon::PointingHand).clicked()
 }

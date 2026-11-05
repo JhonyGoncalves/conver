@@ -140,6 +140,9 @@ Adicione arquivos para ver os novos nomes.
 Nome base:
 vazio = manter o nome atual
 Trocar texto:
+procurar
+por
+substituir
 Adicionar:
 antes (prefixo)
 depois (sufixo)
@@ -147,6 +150,7 @@ Numeração:
 Numerar
 começando em
 dígitos
+separador
 Letras:
 Manter
 minúsculas
@@ -161,6 +165,7 @@ Preto
 Gerador de QR Code
 Crie um QR Code de um link, texto, Wi-Fi ou contato e salve como imagem PNG.
 Conteúdo
+https://… ou qualquer texto
 Colar
 Modelo de Wi-Fi
 No modelo de Wi-Fi, troque NomeDaRede e SenhaDaRede pelos dados da sua rede.
@@ -656,13 +661,50 @@ Voltar ao padrão
 (padrão)
 (automático)
 um por linha
+Animada (palavra por palavra)
+Cor da caixa
+Opacidade da caixa (%)
+Quantas
+Tirar o ruído também
+Dublar
+Efeito
+Fonte
+Tamanho do texto
+Cor do destaque
+Guardar o .ass
+Volume final
+Margem (%)
+Máscara
+Evitar
+Opacidade (%)
+Ordem das páginas
+Som original (%)
+Cor do contorno
+Estilo pronto
+Áreas
+Semente
+Sensibilidade
+Sombra
+Formato
+Separar em pastas
+Velocidade
+Força
+Esconder com
+Arquivo de legenda
+Cor do texto
+Traduzir para
+Traduzir o pedido para o inglês
+Vídeo
+Voz
+Palavras por linha
+Posição horizontal (%)
+Posição vertical (%)
 Opções (uma por linha)
 Padrão do nome
 Dígitos do número
 Contar separado por opção
 Confiança mínima (%)
 O que olhar
-Formato
 Qualidade
 Nível
 Idioma
@@ -684,7 +726,6 @@ Volume
 Links
 Tamanho final (MB)
 Baixar legendas
-Arquivo de legenda
 Pular páginas que já têm texto
 Segundos
 Escala
@@ -757,6 +798,51 @@ Textos
 Som
 A4 em pé
 A4 deitado
+Em cima, à esquerda
+Em cima, à direita
+Embaixo, à esquerda
+Embaixo, à direita
+No centro
+À esquerda
+À direita
+Podcast (−16 LUFS)
+Reels e YouTube (−14 LUFS)
+Começo do fluxo: os arquivos que vão passar pelos nodes.
+Um texto escrito por você, que segue para os próximos nodes.
+Salva numa pasta tudo o que chega (arquivos e textos).
+Pede à IA configurada em Configurações para fazer algo com o que chega: descrever, resumir, traduzir, escrever legendas… A resposta segue como texto.
+A IA configurada confere cada item pelo critério que você escrever e manda para a saída "sim" ou "não".
+Deixa passar só os arquivos do tipo, extensão ou tamanho escolhidos.
+Copia cada arquivo com um nome novo, montado com a opção escolhida pela IA, a data, um contador ou o nome original.
+Uma IA no próprio PC olha cada imagem, ouve cada som ou lê cada texto e manda para a saída da opção que combina mais.
+Converta entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
+Altere as dimensões de uma ou várias imagens, por porcentagem ou em pixels.
+Reduza o tamanho do arquivo mantendo o formato (JPG, PNG, WEBP…).
+Escolha de 1 a 100. JPG e WEBP mantêm o formato; os demais viram JPG (ou WEBP, se tiverem transparência).
+Gire, espelhe ou recorte as imagens numa proporção pronta (o recorte é centralizado).
+Mude brilho, contraste e saturação ou aplique um filtro pronto. Confira na prévia antes de salvar.
+Apaga informações escondidas da foto (EXIF, localização GPS, câmera, data) sem perder qualidade.
+Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.
+Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os detalhes. Roda no seu PC, sem internet.
+Junte várias imagens num único PDF, uma por página, na ordem da lista.
+Converta entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ou extraia o áudio em MP3.
+Deixe vídeos menores escolhendo um nível de compressão ou o tamanho final em MB.
+Escolha o início e o fim e salve só aquele pedaço do vídeo.
+Una vários vídeos num só, na ordem da lista.
+Acelere ou deixe em câmera lenta (0,25× a 4×). O áudio acompanha sem ficar com voz fina ou grossa.
+Deixe o vídeo mudo ou salve imagens do vídeo a cada intervalo de tempo.
+Transforme só um trecho do vídeo num GIF animado.
+Gire vídeos gravados de lado ou recorte para 9:16 (Reels/TikTok), 1:1, 4:5 ou 16:9.
+Grave uma legenda (.srt, .ass ou .vtt) dentro do vídeo, para aparecer em qualquer player ou rede social.
+Coloque uma música no vídeo, misturada com o som original ou no lugar dele.
+Converta entre MP3, WAV, FLAC, OGG, M4A e OPUS. Também tira o áudio de vídeos.
+Una várias músicas ou gravações num arquivo só, na ordem da lista.
+Deixe o volume de vários áudios (ou vídeos) no mesmo nível, sem estourar.
+Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.
+Deixe a voz com som de podcast num clique: menos ruído, mais clara e presente, sem picos e no volume certo.
+Reduza o tamanho de arquivos de áudio escolhendo a taxa de bits.
+Baixe vídeos e músicas de centenas de sites pelo link.
+Usa uma predefinição salva: a ferramenta com os ajustes que você guardou.
 descreva a imagem.
 não foi possível criar a pasta: {e}
 não foi possível iniciar o gerador: {e}
@@ -802,7 +888,6 @@ Foto (EXIF)
 Duração
 Taxa de bits total
 Capa
-Vídeo
 Áudio
 Legenda
 Mídia
@@ -900,8 +985,8 @@ Gravar a tela  ●
 Ditado ao vivo  ●
 Nenhuma ferramenta encontrada.
 ⚙  Configurações
-Baixando modelos de IA… {:.0}%
 🕘  Histórico
+Baixando modelos de IA… {:.0}%
 Configurações
 Personalize o Conver.
 ({here})  {native}
@@ -989,33 +1074,17 @@ no lugar do som original
 adicione pelo menos 2 arquivos.
 {} arquivos • {} • {}
 Converter formato de vídeo
-Converta entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ou extraia o áudio em MP3.
 Comprimir vídeo
-Deixe vídeos menores escolhendo um nível de compressão ou o tamanho final em MB.
 Cortar trecho de vídeo
-Escolha o início e o fim e salve só aquele pedaço do vídeo.
 Cortar
-Una vários vídeos num só, na ordem da lista.
-Acelere ou deixe em câmera lenta (0,25× a 4×). O áudio acompanha sem ficar com voz fina ou grossa.
 Remover áudio / extrair frames
-Deixe o vídeo mudo ou salve imagens do vídeo a cada intervalo de tempo.
 Converter formato de áudio
-Converta entre MP3, WAV, FLAC, OGG, M4A e OPUS. Também tira o áudio de vídeos.
 Salve só um trecho de uma música ou gravação.
-Deixe o volume de vários áudios (ou vídeos) no mesmo nível, sem estourar.
 Normalizar
 Comprimir áudio
-Reduza o tamanho de arquivos de áudio escolhendo a taxa de bits.
 Vídeo para GIF
-Transforme só um trecho do vídeo num GIF animado.
 Criar GIF
 Girar e recortar vídeo
-Gire vídeos gravados de lado ou recorte para 9:16 (Reels/TikTok), 1:1, 4:5 ou 16:9.
-Grave uma legenda (.srt, .ass ou .vtt) dentro do vídeo, para aparecer em qualquer player ou rede social.
-Coloque uma música no vídeo, misturada com o som original ou no lugar dele.
-Una várias músicas ou gravações num arquivo só, na ordem da lista.
-Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.
-Deixe a voz com som de podcast num clique: menos ruído, mais clara e presente, sem picos e no volume certo.
 Melhorar
 Início inválido. Use o formato 00:01:30 (ou só segundos).
 Fim inválido. Use o formato 00:02:45 (ou só segundos).
@@ -1064,8 +1133,6 @@ Leve (só chiado)
 Média (IA)
 A opção com IA (RNNoise) foi treinada para voz: limpa bem falas, podcasts e aulas, mas pode abafar música.
 Volume final:
-Podcast (−16 LUFS)
-Reels e YouTube (−14 LUFS)
 Ruído:
 Tirar o ruído de fundo também (IA)
 Corta graves que embolam a voz, realça a fala, suaviza os "s", segura os picos e acerta o volume. Em vídeos, a imagem é copiada sem perda.
@@ -1157,7 +1224,6 @@ Girar e recortar
 Ajustar cores
 Imagens para PDF
 Converter vídeo
-Velocidade
 Legendas no vídeo
 Converter áudio
 Traduzir legendas e dublar
@@ -1180,19 +1246,9 @@ Processando…
 ✔ {}   {info}
 Concluído.
 Redimensionar imagem
-Altere as dimensões de uma ou várias imagens, por porcentagem ou em pixels.
-Reduza o tamanho do arquivo mantendo o formato (JPG, PNG, WEBP…).
-Escolha de 1 a 100. JPG e WEBP mantêm o formato; os demais viram JPG (ou WEBP, se tiverem transparência).
 Converter formato de imagem
-Converta entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
 Girar, espelhar e recortar
-Gire, espelhe ou recorte as imagens numa proporção pronta (o recorte é centralizado).
-Apaga informações escondidas da foto (EXIF, localização GPS, câmera, data) sem perder qualidade.
-Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.
-Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os detalhes. Roda no seu PC, sem internet.
 Ampliar
-Mude brilho, contraste e saturação ou aplique um filtro pronto. Confira na prévia antes de salvar.
-Junte várias imagens num único PDF, uma por página, na ordem da lista.
 Criar PDF
 Largura e altura devem ser números inteiros positivos.
 Informe a largura e/ou a altura em pixels.
@@ -1397,14 +1453,14 @@ marca d'água
 {label} • {}
 Boas-vindas ao Conver
 Para que você vai usar o Conver? Marque quantas quiser: com isso o Conver sugere os modelos de IA que valem a pena baixar. Nada muda nas ferramentas, todas continuam no menu.
-Continuar
 Sem nada marcado, o Conver mostra todos os modelos.
+Continuar
 Algumas ferramentas usam modelos que não vêm no download do Conver. Baixe agora o que vai usar, ou deixe para a primeira vez que abrir a ferramenta: ela avisa o tamanho antes.
+O download continua em segundo plano enquanto você usa o Conver.
 Voltar
 Começar
 Baixar {} e começar
 Começar sem baixar
-O download continua em segundo plano enquanto você usa o Conver.
 Selecione os arquivos
 Nenhum arquivo
 1 arquivo

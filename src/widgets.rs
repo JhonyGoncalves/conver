@@ -179,7 +179,9 @@ pub fn row<R>(ui: &mut Ui, p: &Palette, label: &str, add: impl FnOnce(&mut Ui) -
     ui.horizontal(|ui| {
         ui.allocate_ui_with_layout(vec2(150.0, 30.0), fwd(Align::Center), |ui| {
             ui.set_min_size(vec2(150.0, 30.0));
-            ui.label(RichText::new(crate::i18n::tr(label)).color(p.text));
+            ui.set_max_width(150.0);
+            // rótulos longos em outros idiomas quebram linha dentro da coluna, em vez de invadir o controle
+            ui.add(egui::Label::new(RichText::new(crate::i18n::tr(label)).color(p.text)).wrap());
         });
         add(ui)
     })

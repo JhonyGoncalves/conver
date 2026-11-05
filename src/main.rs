@@ -508,6 +508,9 @@ impl ConverApp {
             if self.page == Page::Flows {
                 self.flows.demo();
             }
+            if std::env::var_os("CONVER_DEMO_DOWNLOAD").is_some() {
+                self.downloads.demo();
+            }
             // os arquivos de exemplo entram na tela da cena (se ela aceitar)
             let files = captura::arquivos();
             if self.queue_of(self.page).is_some_and(|q| files.iter().any(|f| q.accepts(f) && !q.files.contains(f))) {
@@ -792,7 +795,8 @@ impl ConverApp {
         let query = search::normalize(self.nav_query.trim());
         let searching = !query.trim().is_empty();
         let enter = resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-        let bottom = 86.0;
+        // rodapé fixo (Histórico e Configurações) e, durante downloads de modelos, a linha com o andamento
+        let bottom = 86.0 + if self.downloads.busy() { 34.0 } else { 0.0 };
         egui::ScrollArea::vertical()
             .id_salt("nav")
             .max_height(ui.available_height() - bottom)
@@ -858,17 +862,19 @@ impl ConverApp {
             if nav_item(ui, &p, "⚙  Configurações", self.page == Page::Settings) {
                 self.page = Page::Settings;
             }
+            if nav_item(ui, &p, "🕘  Histórico", self.page == Page::History) {
+                self.page = Page::History;
+            }
             if self.downloads.busy() {
-                // download de modelos em segundo plano: um clique leva às Configurações
+                // download de modelos em segundo plano, acima de Histórico (de baixo para cima: barra, texto);
+                // um clique leva às Configurações
+                ui.add_space(4.0);
+                ui.add(ProgressBar::new(self.downloads.progress()).desired_height(4.0).fill(p.accent));
                 let text = crate::i18n::tr(format!("Baixando modelos de IA… {:.0}%", self.downloads.progress() * 100.0));
-                let r = ui.add(egui::Label::new(RichText::new(text).size(12.0).color(p.muted)).sense(Sense::click()));
+                let r = ui.add(egui::Label::new(RichText::new(text).size(12.0).color(p.muted)).sense(Sense::click()).truncate());
                 if r.on_hover_cursor(CursorIcon::PointingHand).clicked() {
                     self.page = Page::Settings;
                 }
-                ui.add(ProgressBar::new(self.downloads.progress()).desired_height(4.0).fill(p.accent));
-            }
-            if nav_item(ui, &p, "🕘  Histórico", self.page == Page::History) {
-                self.page = Page::History;
             }
             ui.separator();
         });
@@ -1290,14 +1296,23 @@ fn nav_item_resp(ui: &mut Ui, p: &Palette, label: &str, selected: bool) -> egui:
         Color32::TRANSPARENT
     };
     ui.painter().rect_filled(rect, 8, fill);
-    ui.painter().text(
-        if widgets::rtl() { rect.right_center() - vec2(14.0, 0.0) } else { rect.left_center() + vec2(14.0, 0.0) },
-        if widgets::rtl() { Align2::RIGHT_CENTER } else { Align2::LEFT_CENTER },
-        crate::i18n::tr(label),
-        FontId::proportional(14.5),
-        if selected { p.on_accent } else { p.text },
-    );
-    resp.on_hover_cursor(CursorIcon::PointingHand)
+    // nomes longos (inglês, alemão…) não passam da borda do menu: uma linha só, cortada com "…", e o nome
+    // inteiro aparece ao passar o mouse
+    let text = crate::i18n::tr(label);
+    let color = if selected { p.on_accent } else { p.text };
+    let mut job = egui::text::LayoutJob::simple_singleline(text.clone(), FontId::proportional(14.5), color);
+    job.wrap = egui::text::TextWrapping { max_width: rect.width() - 24.0, max_rows: 1, break_anywhere: true, overflow_character: Some('…') };
+    if widgets::rtl() {
+        // em árabe, urdu e persa o texto já vem em ordem visual: cortar o fim apagaria o começo da leitura
+        job.wrap.overflow_character = None;
+    }
+    let galley = ui.fonts(|f| f.layout_job(job));
+    let elided = galley.elided;
+    let y = rect.center().y - galley.size().y / 2.0;
+    let x = if widgets::rtl() { rect.right() - 14.0 - galley.size().x } else { rect.left() + 14.0 };
+    ui.painter().with_clip_rect(rect.shrink2(vec2(6.0, 0.0))).galley(egui::pos2(x, y), galley, color);
+    let resp = resp.on_hover_cursor(CursorIcon::PointingHand);
+    if elided { resp.on_hover_text(text) } else { resp }
 }
 
 /// Cartão com uma miniatura do tema.

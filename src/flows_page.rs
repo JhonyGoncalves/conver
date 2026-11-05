@@ -410,7 +410,7 @@ impl FlowsPage {
                         }
                         let galley = fit_text(ui.painter(), &format!("+  {}", crate::i18n::tr(&k.title)), FontId::proportional(13.5), p.text, rect.width() - 12.0);
                         ui.painter().galley(pos2(rect.left() + 6.0, rect.center().y - galley.size().y / 2.0), galley, p.text);
-                        let resp = resp.on_hover_cursor(CursorIcon::PointingHand).on_hover_text(&k.description);
+                        let resp = resp.on_hover_cursor(CursorIcon::PointingHand).on_hover_text(crate::i18n::tr(node_help(&k.kind)));
                         if resp.clicked() {
                             add = Some(k.kind.clone());
                         }
@@ -462,7 +462,7 @@ impl FlowsPage {
             }
             "output" => vec![s("folder").map(|f| tools::file_name(std::path::Path::new(&f))).unwrap_or_else(|| crate::i18n::tr("Documentos\\Conver"))],
             "filter" => {
-                let t: Vec<String> = a.get("types").and_then(Value::as_array).map(|x| x.iter().filter_map(|v| v.as_str()).map(|v| crate::i18n::tr(enum_label(v))).collect()).unwrap_or_default();
+                let t: Vec<String> = a.get("types").and_then(Value::as_array).map(|x| x.iter().filter_map(|v| v.as_str()).map(|v| enum_text(v)).collect()).unwrap_or_default();
                 let mut v = Vec::new();
                 if !t.is_empty() {
                     v.push(t.join(", "));
@@ -1267,7 +1267,7 @@ fn fit_text(painter: &egui::Painter, text: &str, font: FontId, color: Color32, w
 
 fn value_text(v: &Value) -> String {
     match v {
-        Value::String(s) => crate::i18n::tr(enum_label(s)),
+        Value::String(s) => enum_text(s),
         Value::Bool(b) => crate::i18n::tr(if *b { "sim" } else { "não" }),
         Value::Array(a) => a.iter().map(value_text).collect::<Vec<_>>().join(", "),
         other => other.to_string(),
@@ -1277,29 +1277,28 @@ fn value_text(v: &Value) -> String {
 /// Editor de um argumento a partir do esquema (lista, sim/não, número, texto, lista de textos, JSON).
 fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<String, Value>) {
     let label = crate::i18n::tr(arg_label(key));
-    let desc = prop["description"].as_str().unwrap_or_default();
     let ty = prop["type"].as_str().unwrap_or("string");
     let current = args.get(key).cloned().filter(|v| !v.is_null());
     let default = prop.get("default").cloned();
     ui.add_space(4.0);
     if ty == "boolean" {
         let mut b = current.as_ref().and_then(Value::as_bool).or(default.as_ref().and_then(Value::as_bool)).unwrap_or(false);
-        if crate::widgets::check(ui, &mut b, label).on_hover_text(desc).changed() {
+        if crate::widgets::check(ui, &mut b, label).changed() {
             args.insert(key.into(), json!(b));
         }
         return;
     }
     ui.horizontal(|ui| {
-        ui.label(RichText::new(&label).color(p.text)).on_hover_text(desc);
+        ui.label(RichText::new(&label).color(p.text));
         if current.is_some() && ui.small_button("↺").on_hover_text(crate::i18n::tr("Voltar ao padrão")).clicked() {
             args.remove(key);
         }
     });
     if let Some(values) = prop["enum"].as_array() {
         let cur = current.as_ref().and_then(Value::as_str).or(default.as_ref().and_then(Value::as_str)).unwrap_or_default().to_string();
-        egui::ComboBox::from_id_salt(("arg", key)).selected_text(crate::i18n::tr(enum_label(&cur))).width(ui.available_width() - 8.0).show_ui(ui, |ui| {
+        egui::ComboBox::from_id_salt(("arg", key)).selected_text(enum_text(&cur)).width(ui.available_width() - 8.0).show_ui(ui, |ui| {
             for v in values.iter().filter_map(Value::as_str) {
-                if ui.selectable_label(v == cur, crate::i18n::tr(enum_label(v))).clicked() {
+                if ui.selectable_label(v == cur, enum_text(v)).clicked() {
                     args.insert(key.into(), json!(v));
                 }
             }
@@ -1330,7 +1329,7 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
                 ui.horizontal_wrapped(|ui| {
                     for v in items.iter().filter_map(Value::as_str) {
                         let mut on = chosen.iter().any(|c| c == v);
-                        if crate::widgets::check(ui, &mut on, crate::i18n::tr(enum_label(v))).changed() {
+                        if crate::widgets::check(ui, &mut on, enum_text(v)).changed() {
                             if on {
                                 chosen.push(v.to_string());
                             } else {
@@ -1366,7 +1365,7 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
             } else {
                 egui::TextEdit::singleline(&mut s).margin(widgets::FIELD_MARGIN)
             };
-            if ui.add(edit.desired_width(f32::INFINITY)).on_hover_text(desc).changed() {
+            if ui.add(edit.desired_width(f32::INFINITY)).changed() {
                 if s.is_empty() {
                     args.remove(key);
                 } else {
@@ -1378,8 +1377,56 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
 }
 
 /// Nomes em português dos argumentos das ferramentas (no esquema eles estão em inglês, para os agentes).
-fn arg_label(key: &str) -> &str {
+pub(crate) fn arg_label(key: &str) -> &str {
     match key {
+        "animated" => "Animada (palavra por palavra)",
+        "background_color" => "Cor da caixa",
+        "background_opacity" => "Opacidade da caixa (%)",
+        "bold" => "Negrito",
+        "count" => "Quantas",
+        "denoise" => "Tirar o ruído também",
+        "dub" => "Dublar",
+        "effect" => "Efeito",
+        "files" => "Arquivos",
+        "folder" => "Pasta",
+        "font" => "Fonte",
+        "font_size" => "Tamanho do texto",
+        "highlight_color" => "Cor do destaque",
+        "italic" => "Itálico",
+        "keep_ass" => "Guardar o .ass",
+        "logo" => "Logo (imagem)",
+        "loudness" => "Volume final",
+        "margin" => "Margem (%)",
+        "mask" => "Máscara",
+        "monitor" => "Monitor",
+        "negative" => "Evitar",
+        "only_tables" => "Só as tabelas",
+        "opacity" => "Opacidade (%)",
+        "order" => "Ordem das páginas",
+        "original_volume" => "Som original (%)",
+        "outline" => "Contorno",
+        "outline_color" => "Cor do contorno",
+        "pop" => "Pulinho",
+        "preset" => "Estilo pronto",
+        "regions" => "Áreas",
+        "seed" => "Semente",
+        "sensitivity" => "Sensibilidade",
+        "shadow" => "Sombra",
+        "shape" => "Formato",
+        "sort_into_folders" => "Separar em pastas",
+        "speed" => "Velocidade",
+        "strength" => "Força",
+        "style" => "Esconder com",
+        "subtitle_file" => "Arquivo de legenda",
+        "text_color" => "Cor do texto",
+        "to" => "Traduzir para",
+        "translate" => "Traduzir o pedido para o inglês",
+        "uppercase" => "Em maiúsculas",
+        "video" => "Vídeo",
+        "voice" => "Voz",
+        "words_per_line" => "Palavras por linha",
+        "x" => "Posição horizontal (%)",
+        "y" => "Posição vertical (%)",
         "options" => "Opções (uma por linha)",
         "pattern" => "Padrão do nome",
         "digits" => "Dígitos do número",
@@ -1471,7 +1518,22 @@ fn arg_label(key: &str) -> &str {
 }
 
 /// Nomes em português dos valores mais comuns das listas.
-fn enum_label(v: &str) -> &str {
+/// Texto de um valor de lista na tela: idiomas e vozes pelo nome, formatos em maiúsculas, o resto pela tabela.
+pub(crate) fn enum_text(v: &str) -> String {
+    if let Some((_, _, name)) = crate::translate::LANGS.iter().find(|(code, _, _)| *code == v) {
+        return crate::i18n::tr(*name);
+    }
+    if let Some(voice) = crate::tts::voice(v) {
+        return crate::i18n::tr(voice.label);
+    }
+    let label = enum_label(v);
+    if label == v && v.len() <= 5 && v.starts_with(|c: char| c.is_ascii_lowercase()) && v.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()) {
+        return v.to_uppercase();
+    }
+    crate::i18n::tr(label)
+}
+
+pub(crate) fn enum_label(v: &str) -> &str {
     match v {
         "light" => "Leve",
         "medium" => "Média",
@@ -1507,6 +1569,97 @@ fn enum_label(v: &str) -> &str {
         "auto" => "Automático",
         "a4_portrait" => "A4 em pé",
         "a4_landscape" => "A4 deitado",
+        "better" => "Melhor (mais lenta)",
+        "blur" => "Desfoque",
+        "pixelate" => "Pixelado",
+        "bar" => "Tarja preta",
+        "top_left" => "Em cima, à esquerda",
+        "top_right" => "Em cima, à direita",
+        "bottom_left" => "Embaixo, à esquerda",
+        "bottom_right" => "Embaixo, à direita",
+        "center" => "No centro",
+        "diagonal" => "Diagonal, no meio",
+        "left" => "À esquerda",
+        "right" => "À direita",
+        "middle" => "No meio",
+        "square" => "Quadrada",
+        "portrait" => "Retrato",
+        "landscape" => "Paisagem",
+        "podcast" => "Podcast (−16 LUFS)",
+        "streaming" => "Reels e YouTube (−14 LUFS)",
+        "reels" => "Reels",
+        "box" => "Caixa colorida",
+        "word" => "Uma palavra por vez",
+        "reveal" => "Aparecendo",
+        "classic" => "Clássica",
+        "band" => "Faixa escura",
+        "color" => "Cor",
         other => other,
+    }
+}
+
+/// Explicação de cada tipo de node para a tela (as descrições de `flow::kinds` são em inglês, para agentes).
+/// As das ferramentas são os subtítulos das telas, que já têm tradução.
+pub(crate) fn node_help(kind: &str) -> &'static str {
+    match kind.strip_prefix("tool:").unwrap_or(kind) {
+        "input" => "Começo do fluxo: os arquivos que vão passar pelos nodes.",
+        "text" => "Um texto escrito por você, que segue para os próximos nodes.",
+        "output" => "Salva numa pasta tudo o que chega (arquivos e textos).",
+        "ai_prompt" => "Pede à IA configurada em Configurações para fazer algo com o que chega: descrever, resumir, traduzir, escrever legendas… A resposta segue como texto.",
+        "ai_gate" => "A IA configurada confere cada item pelo critério que você escrever e manda para a saída \"sim\" ou \"não\".",
+        "filter" => "Deixa passar só os arquivos do tipo, extensão ou tamanho escolhidos.",
+        "rename" => "Copia cada arquivo com um nome novo, montado com a opção escolhida pela IA, a data, um contador ou o nome original.",
+        "classify" => "Uma IA no próprio PC olha cada imagem, ouve cada som ou lê cada texto e manda para a saída da opção que combina mais.",
+        "image_convert" => "Converta entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.",
+        "image_resize" => "Altere as dimensões de uma ou várias imagens, por porcentagem ou em pixels.",
+        "image_compress" => "Reduza o tamanho do arquivo mantendo o formato (JPG, PNG, WEBP…).",
+        "image_quality" => "Escolha de 1 a 100. JPG e WEBP mantêm o formato; os demais viram JPG (ou WEBP, se tiverem transparência).",
+        "image_transform" => "Gire, espelhe ou recorte as imagens numa proporção pronta (o recorte é centralizado).",
+        "image_adjust" => "Mude brilho, contraste e saturação ou aplique um filtro pronto. Confira na prévia antes de salvar.",
+        "image_strip_metadata" => "Apaga informações escondidas da foto (EXIF, localização GPS, câmera, data) sem perder qualidade.",
+        "image_remove_background" => "Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.",
+        "image_upscale" => "Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os detalhes. Roda no seu PC, sem internet.",
+        "images_to_pdf" => "Junte várias imagens num único PDF, uma por página, na ordem da lista.",
+        "image_ocr" => "Leia o texto de prints, fotos de documentos e placas usando o reconhecimento do próprio Windows, sem internet.",
+        "qr_code" => "Crie um QR Code de um link, texto, Wi-Fi ou contato e salve como imagem PNG.",
+        "video_convert" => "Converta entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ou extraia o áudio em MP3.",
+        "video_compress" => "Deixe vídeos menores escolhendo um nível de compressão ou o tamanho final em MB.",
+        "media_trim" => "Escolha o início e o fim e salve só aquele pedaço do vídeo.",
+        "video_merge" => "Una vários vídeos num só, na ordem da lista.",
+        "video_speed" => "Acelere ou deixe em câmera lenta (0,25× a 4×). O áudio acompanha sem ficar com voz fina ou grossa.",
+        "video_remove_audio" | "video_extract_frames" => "Deixe o vídeo mudo ou salve imagens do vídeo a cada intervalo de tempo.",
+        "video_to_gif" => "Transforme só um trecho do vídeo num GIF animado.",
+        "video_transform" => "Gire vídeos gravados de lado ou recorte para 9:16 (Reels/TikTok), 1:1, 4:5 ou 16:9.",
+        "video_burn_subtitles" => "Grave uma legenda (.srt, .ass ou .vtt) dentro do vídeo, para aparecer em qualquer player ou rede social.",
+        "video_add_music" => "Coloque uma música no vídeo, misturada com o som original ou no lugar dele.",
+        "video_captions" => "Legende vídeos com o Whisper, no seu PC e sem internet: grave direto ou revise o texto antes, com legendas paradas ou animadas palavra por palavra.",
+        "audio_convert" => "Converta entre MP3, WAV, FLAC, OGG, M4A e OPUS. Também tira o áudio de vídeos.",
+        "audio_merge" => "Una várias músicas ou gravações num arquivo só, na ordem da lista.",
+        "audio_normalize" => "Deixe o volume de vários áudios (ou vídeos) no mesmo nível, sem estourar.",
+        "audio_denoise" => "Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.",
+        "audio_enhance_voice" => "Deixe a voz com som de podcast num clique: menos ruído, mais clara e presente, sem picos e no volume certo.",
+        "audio_compress" => "Reduza o tamanho de arquivos de áudio escolhendo a taxa de bits.",
+        "audio_separate" => "Tire a voz de uma música (karaokê) ou isole a voz com inteligência artificial, no seu PC.",
+        "transcribe" => "Transforme a fala de áudios e vídeos em texto e legendas (SRT/VTT) com o Whisper, no seu PC e sem internet.",
+        "text_to_speech" => "Transforme textos e legendas em narração com uma voz natural, no seu PC e sem internet.",
+        "subtitle_translate" => "Traduza legendas para outra língua e, se quiser, duble o vídeo com uma voz natural, tudo no seu PC e sem internet.",
+        "watermark" => "Coloque seu logo ou um texto em várias imagens, vídeos e PDFs de uma vez, com posição e transparência.",
+        "image_hide_faces" => "Ache e esconda os rostos de fotos e vídeos para preservar a privacidade, no seu PC e sem internet.",
+        "image_generate" => "Descreva uma imagem e a IA cria no seu PC, usando a placa de vídeo. Sem internet e sem limite.",
+        "image_erase" => "Pinte por cima de um objeto, pessoa, texto ou marca d'água e a IA preenche o fundo. No seu PC, sem internet.",
+        "pdf_merge" => "Una vários PDFs num só, na ordem da lista.",
+        "pdf_split" => "Extraia páginas específicas (ex.: 1-3, 7) ou separe cada página num PDF próprio.",
+        "pdf_compress" => "Deixe PDFs menores recomprimindo as imagens de dentro deles (fotos, páginas escaneadas).",
+        "pdf_to_images" => "Salve as páginas do PDF como imagens PNG ou JPG.",
+        "pdf_protect" => "Coloque uma senha para abrir o PDF e escolha se ele pode ser impresso ou copiado.",
+        "pdf_unlock" => "Remova a senha de um PDF seu (é preciso saber a senha atual).",
+        "pdf_ocr" => "Reconhece o texto de PDFs escaneados com o OCR do Windows: depois dá para pesquisar, selecionar e copiar.",
+        "pdf_organize" => "Mude a ordem, gire e apague páginas de um PDF vendo as miniaturas.",
+        "pdf_tables" => "Tire as tabelas de PDFs (inclusive escaneados) para uma planilha do Excel ou um CSV, com os números prontos para somar.",
+        "download" => "Baixe vídeos e músicas de centenas de sites pelo link.",
+        "file_info" => "Veja os detalhes de imagens, vídeos, áudios e PDFs: resolução, duração, codecs, câmera, localização da foto e mais.",
+        "screen_record" => "Grave a tela inteira, um monitor, uma janela ou uma área em MP4, com ou sem o microfone.",
+        "preset_run" => "Usa uma predefinição salva: a ferramenta com os ajustes que você guardou.",
+        _ => "",
     }
 }

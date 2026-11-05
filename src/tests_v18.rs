@@ -582,3 +582,28 @@ fn rtl_layout_helpers() {
     assert!(!crate::widgets::rtl());
     assert_eq!(crate::widgets::mirror(r, outer), r);
 }
+
+#[test]
+fn flow_nodes_in_portuguese() {
+    // todo ajuste de node tem nome em português, todo valor de lista aparece traduzido e todo tipo tem explicação
+    let mut missing = std::collections::BTreeSet::new();
+    for k in crate::flow::kinds() {
+        if crate::flows_page::node_help(&k.kind).is_empty() {
+            missing.insert(format!("ajuda: {}", k.kind));
+        }
+        for (key, prop) in k.schema["properties"].as_object().into_iter().flatten() {
+            if crate::flows_page::arg_label(key) == key {
+                missing.insert(format!("rótulo: {key} ({})", k.kind));
+            }
+            for v in prop["enum"].as_array().into_iter().flatten().filter_map(|v| v.as_str()) {
+                let shown = crate::flows_page::enum_text(v);
+                if shown == v && v.chars().any(|c| c.is_ascii_lowercase()) && !v.ends_with('p') {
+                    missing.insert(format!("valor: {v} ({key})"));
+                }
+            }
+        }
+    }
+    assert!(missing.is_empty(), "sem texto em português: {missing:?}");
+    assert_eq!(crate::flows_page::enum_text("1080p"), "1080p");
+    assert_eq!(crate::flows_page::enum_text("mp4"), "MP4");
+}

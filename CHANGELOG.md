@@ -1,5 +1,14 @@
 # Lista de mudanças
 
+## 1.7.1
+
+### Correções
+- **Textos longos em outros idiomas** (inglês, alemão…) não passam mais das bordas: nomes compridos no menu lateral são cortados com "…" (o nome inteiro aparece ao passar o mouse), rótulos das opções quebram linha dentro da coluna e os exemplos dos cartões das boas-vindas quebram linha, com o cartão crescendo junto.
+- **Boas-vindas:** a frase sobre o download em segundo plano ficava por baixo do botão "Voltar"; agora tem linha própria.
+- **Downloads de modelos:** o aviso de andamento no menu lateral cobria os últimos itens do menu; agora o espaço é reservado e o aviso fica acima de Histórico.
+- **Fluxos de automação em português:** a dica de cada node (ao passar o mouse na lista "+ Adicionar node") aparecia em inglês; agora explica a ferramenta no idioma do Conver. Os ajustes dos nodes que apareciam com o nome técnico ("speed", "voice", "style"…) ganharam nome, e as opções das listas aparecem traduzidas: posições, formatos, idiomas e vozes pelo nome.
+- **Renomear em lote e QR Code:** as dicas "procurar", "substituir", "por", "separador" e "https://… ou qualquer texto" agora são traduzidas.
+
 ## 1.7.0
 
 ### Novidades

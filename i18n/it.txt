@@ -140,1290 +140,1346 @@
 140|Nome base:
 141|vuoto = mantieni il nome attuale
 142|Sostituisci testo:
-143|Aggiungi:
-144|prima (prefisso)
-145|dopo (suffisso)
-146|Numerazione:
-147|Numera
-148|a partire da
-149|cifre
-150|Maiuscole/minuscole:
-151|Mantieni
-152|minuscole
-153|MAIUSCOLE
-154|L'estensione (.jpg, .mp4…) viene sempre mantenuta. I file vengono rinominati nella stessa cartella.
-155|Verranno rinominati {changed} file.
-156|Rinomina
-157|✔ {} file rinominati.
-158|Annulla
-159|Nomi originali ripristinati.
-160|Nero
-161|Generatore di codici QR
-162|Crea un codice QR da un link, testo, Wi-Fi o contatto e salvalo come immagine PNG.
-163|Contenuto
-164|Incolla
-165|Modello Wi-Fi
-166|Nel modello Wi-Fi, sostituisci NomeDaRede e SenhaDaRede con i dati della tua rete.
-167| px
-168|Colore:
-169|Correzione degli errori:
-170|Bassa
-171|Media
-172|Alta
-173|Una correzione alta rende il codice più denso, ma resta leggibile anche se sporco o stropicciato.
-174|Anteprima
-175|Scrivi qualcosa per generarlo
-176|Salva PNG…
-177|Codice QR
-178|✔ Salvato in {}
-179|Copia immagine
-180|✔ Copiato; incolla con Ctrl+V.
-181|Cronologia
-182|Le ultime conversioni e download fatti in Conver.
-183|Sì, cancella
-184|Annulla
-185|Cancella cronologia
-186|Non c'è ancora niente qui
-187|I file che converti o scarichi compaiono in questo elenco.
-188|{} → {out}
-189|il file non esiste più
-190|Mostra nella cartella
-191|Apri
-192|Aggiungi un PDF per vedere le pagine.
-193|Trascina le pagine per cambiare l'ordine. ⟲ ⟳ ruotano e × elimina.
-194|Annulla tutto
-195|Ruota tutte ⟳
-196|{}  •  pag. {page}
-197|Ruota a sinistra
-198|Ruota a destra
-199|Elimina la pagina
-200|{} pagina/e nel nuovo PDF{}. L'originale non viene modificato.
-201|, {removed} eliminata/e
-202|Unisci PDF
-203|Unisci più PDF in uno solo, nell'ordine dell'elenco.
-204|Unisci
-205|Dividi PDF
-206|Estrai pagine specifiche (es.: 1-3, 7) o salva ogni pagina in un PDF a parte.
-207|Dividi
-208|Comprimi PDF
-209|Rendi i PDF più leggeri ricomprimendo le immagini al loro interno (foto, pagine scansionate).
-210|Comprimi
-211|PDF in immagini
-212|Salva le pagine del PDF come immagini PNG o JPG.
-213|Converti
-214|Proteggi PDF con password
-215|Imposta una password per aprire il PDF e scegli se può essere stampato o copiato.
-216|Proteggi
-217|Rimuovi password dal PDF
-218|Rimuovi la password da un tuo PDF (serve conoscere la password attuale).
-219|Rimuovi password
-220|PDF ricercabile (OCR)
-221|Riconosce il testo dei PDF scansionati con l'OCR di Windows: poi puoi cercarlo, selezionarlo e copiarlo.
-222|Riconosci testo
-223|Organizza pagine
-224|Cambia l'ordine, ruota ed elimina le pagine di un PDF vedendo le miniature.
-225|Salva PDF
-226|Tabelle da PDF a Excel
-227|Porta le tabelle dei PDF (anche scansionati) in un foglio Excel o in un CSV, con i numeri pronti da sommare.
-228|Estrai tabelle
-229|Nome del PDF:
-230|Il PDF finale avrà {total_pages} pagine. Usa ↑ e ↓ per cambiare l'ordine.
-231|Estrai pagine
-232|Una pagina per file
-233|Pagine:
-234|"10-" = dalla 10 fino alla fine
-235|Le pagine vengono salvate in una cartella <nome del PDF>_paginas.
-236|Il PDF selezionato ha {n} pagine.
-237|Livello:
-238|Leggera
-239|Forte
-240|Leggera = quasi senza perdita  •  Forte = immagini fino a 1200 px, molto più piccole. Il testo non perde qualità.
-241|Formato:
-242|Risoluzione:
-243|96 dpi (schermo)
-244|150 dpi
-245|300 dpi (stampa)
-246|vuoto = tutte  •  es.: 1-3, 7
-247|Password:
-248|solo se il PDF ne ha una
-249|Le immagini vengono salvate in una cartella <nome del PDF>_imagens.
-250|Ripeti la password:
-251|le password non coincidono
-252|Consenti:
-253|Stampa
-254|Copia del testo
-255|Password del proprietario:
-256|sblocca tutto per chi la conosce
-257|Conserva la password: senza di essa non c'è modo di aprire il PDF.
-258|Password attuale:
-259|Usa solo su PDF tuoi o che sei autorizzato a modificare.
-260|Salva come:
-261|Excel (.xlsx)
-262|Cosa estrarre:
-263|Solo le tabelle
-264|L'intera pagina, in colonne
-265|Ogni pagina viene letta dall'OCR di Windows, quindi funziona anche con PDF scansionati. In Excel ogni pagina diventa un foglio e i numeri (1.234,56 o 1,234.56) diventano numeri veri.
-266|Le tabelle con celle unite o testo su più righe possono richiedere un ritocco nel foglio.
-267|Lingua del testo:
-268|Automatica (lingue di Windows)
-269|Pagine con testo:
-270|Salta
-271|Riconosci di nuovo
-272|L'aspetto del PDF non cambia: il testo riconosciuto va in un livello invisibile sopra le pagine.
-273|Impossibile leggere il PDF selezionato (potrebbe essere danneggiato o protetto).
-274|{} PDF
-275|{n} pagine • {}
-276|Cartella monitorata
-277|Scegli una cartella: tutto ciò che vi arriva viene convertito automaticamente finché Conver è aperto.
-278|Cartella:
-279|nessuna scelta
-280|Scegli…
-281|Cartella da monitorare
-282|Cosa fare:
-283|Converti in:
-284|Elabora anche i file già presenti nella cartella
-285|I risultati vanno nella sottocartella "{}". Gli originali non vengono modificati.
-286|Monitoraggio…
-287|Avvia monitoraggio
-288|Fai clic su "Annulla" per interrompere il monitoraggio.
-289|Registratore audio
-290|✔ Registrazione salvata: {}  ({info})
-291|Registra il microfono (o un altro ingresso audio del PC) direttamente in MP3, WAV o M4A.
-292|✖ La registrazione si è interrotta: {e}
-293|Microfono:
-294|ricerca dei microfoni…
-295|nessun ingresso audio trovato
-296|Aggiorna elenco
-297|WAV (senza perdita)
-298|Salva in:
-299|Cartella delle registrazioni
-300|●  Registrazione
-301|Test del microfono (non viene registrato nulla)
-302|Pronto per registrare
-303|Traccia dell'ultima registrazione.
-304|Usa "Prova microfono" per vedere il livello prima di registrare.
-305|⚠ Da questo ingresso non arriva alcun suono. Ferma e scegli un altro microfono dall'elenco.
-306|■  Ferma
-307|●  Registra
-308|Ferma la prova
-309|Prova microfono
-310|Ascolta
-311|Suggerimento: se l'elenco è vuoto, controlla in Impostazioni di Windows › Privacy › Microfono che le app possano usare il microfono.
-312|Immagini
-313|gli appunti non contengono un'immagine.
-314|immagine non valida.
-315|Testo da immagine (OCR)
-316|Leggi il testo di screenshot, foto di documenti e cartelli con il riconoscimento integrato di Windows, senza internet.
-317|Testo trovato
-318|Salva .txt
-319|Copia
-320|✔ Testo copiato.
-321|Fai clic su "Leggi testo" per riconoscere il testo di questa immagine.
-322|Nessun testo trovato in questa immagine.
-323|Il testo appare qui. Puoi correggerlo prima di copiarlo.
-324|Lingua:
-325|Screenshot:
-326|Incolla immagine (Ctrl+V)
-327|fai uno screenshot con Win+Maiusc+S e incollalo qui
-328|Nessuna lingua OCR installata in Windows. Installala in Impostazioni › Data/ora e lingua › Lingua.
-329|Altre lingue: Impostazioni di Windows › Data/ora e lingua › Lingua › aggiungi la lingua con "Riconoscimento ottico dei caratteri".
-330|Leggi testo
-331|[{}/{n}] Lettura di {name}…
-332|✔ {name}   {lines} riga/righe
-333|✖ {name}: {e}
-334|Fatto: {ok} di {n} immagine/i.
-335|Informazioni sul file
-336|Vedi i dettagli di immagini, video, audio e PDF: risoluzione, durata, codec, fotocamera, posizione della foto e altro.
-337|Aggiungi o trascina un file per vederne le informazioni.
-338|Copia tutto
-339|✔ Informazioni copiate.
-340|Vedi sulla mappa
-341|⚠ Questa foto contiene il luogo in cui è stata scattata. Usa "Rimuovi metadati" prima di condividerla.
-342|Audio e video
-343|Trascrivi / sottotitola
-344|Trasforma il parlato di audio e video in testo e sottotitoli (SRT/VTT) con Whisper, sul tuo PC e offline.
-345|Traduci in inglese
-346|Testo (.txt)
-347|Sottotitolo (.srt)
-348|Sottotitolo web (.vtt)
-349|Il sottotitolo .srt prende lo stesso nome del video: Imprimi sottotitoli e i lettori lo trovano da soli.
-350|Trascrivi
-351|Brani
-352|Separa voce e base
-353|Togli la voce da una canzone (karaoke) o isola la voce con l'intelligenza artificiale, sul tuo PC.
-354|Salva:
-355|MP3 320 kbps
-356|Richiede circa 15-30 secondi per minuto di musica, a seconda del computer.
-357|Separa
-358|Scegli una finestra
-359|❚❚  IN PAUSA
-360|●  REC
-361|La finestra è ridotta a icona o è stata chiusa.
-362|Caricamento anteprima…
-363|Registra lo schermo
-364|Registra lo schermo intero, un monitor, una finestra o un'area in MP4, con o senza microfono.
-365|Registra:
-366|Schermo intero
-367|Un monitor
-368|Una finestra
-369|Un'area
-370|Con più monitor, "Schermo intero" li registra tutti insieme. Per registrarne solo uno, scegli "Un monitor".
-371|Monitor:
-372|nessun monitor trovato
-373|Monitor
-374|Finestra:
-375|nessuna finestra trovata
-376|Area (px):
-377|Larghezza
-378|Altezza
-379|Qualità:
-380|Leggera (file più piccolo)
-381|Risoluzione massima:
-382|Originale
-383|Fotogrammi al secondo:
-384|Senza audio (ricerca dei microfoni…)
-385|Senza audio
-386|Opzioni:
-387|Mostra il cursore
-388|Riduci Conver a icona all'avvio
-389|❚❚  In pausa
-390|▶  Riprendi
-391|❚❚  Pausa
-392|Guarda
-393|Per mettere in pausa o fermare, torna a Conver (resta nella barra delle applicazioni). Le parti in pausa vengono unite in un solo MP4.
-394|Preimpostazioni
-395|Le tue impostazioni preferite, pronte con un clic, dalla riga di comando o da un agente IA (MCP).
-396|Ancora nessuna preimpostazione. Crea la prima qui sotto.
-397|Elimina
-398|Chiudi modulo
-399|+ Nuova preimpostazione
-400|Ripristina quelle incluse
-401|Nome:
-402|Descrizione:
-403|Strumento:
-404|Salva preimpostazione
-405|✔ Preimpostazione salvata: {}
-406|Riga di comando: conver-cli preset "{}" file…
-407|Usa preimpostazione
-408|In uso: {}
-409|Completato: {} ok, {} con errori.
-410|Salvato in: {}
-411|Cancella oggetto
-412|Dipingi sopra un oggetto, una persona, un testo o una filigrana e l'IA riempie lo sfondo. Sul tuo PC, offline.
-413|✖ impossibile aprire l'immagine: {e}
-414|✔ Fatto. Dipingi ancora per continuare a cancellare o salva l'immagine.
-415|Pennello:
-416|Svuota
-417|Vedi l'originale
-418|Aggiungi un'immagine per iniziare.
-419|L'IA sta riempiendo…
-420|Salva immagine
-421|Torna all'originale
-422|Cancellazione…
-423|Pronto.
-424|Sintesi vocale
-425|Trasforma testi e sottotitoli in narrazione con una voce naturale, sul tuo PC e offline.
-426|Apri file…
-427|Testi e sottotitoli
-428|{n} caratteri  •  ~{} di parlato
-429|Scrivi o incolla qui il testo (o trascina un .txt o un sottotitolo .srt nella finestra).
-430|Voce:
-431|Velocità:
-432|Lenta
-433|Normale
-434|Veloce
-435|Molto veloce
-436|✔ Voce pronta su questo computer.
-437|La voce (circa 63 MB) viene scaricata una volta, al primo utilizzo (la firma viene verificata).
-438|Crea narrazione
-439|Genera immagine
-440|Descrivi un'immagine e l'IA la crea sul tuo PC, con la scheda grafica. Offline e senza limiti.
-441|Cosa mostra l'immagine
-442|es.: una baita di legno in un bosco innevato al tramonto, luce calda alle finestre
-443|Evitare:
-444|facoltativo: cosa non deve apparire
-445|Quadrata
-446|Verticale
-447|Orizzontale
-448|Migliore (più lenta)
-449|Quante:
-450|Traduci la richiesta in inglese con l'IA configurata
-451|Il modello capisce meglio le richieste in inglese. Con un'IA configurata in Impostazioni, Conver traduce da solo.
-452|Usa la scheda grafica (Vulkan). Su una scheda comune, ogni immagine richiede circa 10-20 secondi, più qualche secondo per caricare il modello.
-453|Clicca per aprire
-454|Genera
-455|Traduzione della richiesta…
-456|Richiesta in inglese: {t}
-457|Senza traduzione ({e}); si usa il testo così com'è.
-458|Generazione…
-459|✔ {} immagine/i in {}
-460|Dettatura dal vivo
-461|Parla e il testo compare sullo schermo mentre parli, con Whisper sul tuo PC. Per dettare, sottotitolare dal vivo o prendere appunti.
-462|Veloce (82 MB)
-463|Bilanciato (264 MB, più lento)
-464|Il testo compare con 1-2 secondi di ritardo; a una pausa, la frase viene confermata. Nulla lascia il tuo computer.
-465|●  In ascolto
-466|Fermato
-467|●  Inizia a dettare
-468|Il testo dettato compare qui. Puoi modificarlo liberamente.
-469|… {partial}
-470|✔ Copiato.
-471|impossibile leggere la prima pagina.
-472|Immagini, video e PDF
-473|Filigrana
-474|Metti il tuo logo o un testo su tante immagini, video e PDF insieme, con posizione e trasparenza.
-475|Marchio:
-476|Logo (immagine)
-477|Logo:
-478|Scegli immagine…
-479|PNG, JPG, WEBP
-480|Un PNG con sfondo trasparente rende meglio.
-481|Testo:
-482|es.: © Il tuo nome 2026
-483|In diagonale, al centro
-484|Opacità:
-485|Margine:
-486|Aggiungi file per vedere l'anteprima.
-487|Immagini e PDF mantengono la qualità; i video vengono ricodificati con il marchio (l'audio è copiato).
-488|Applica
-489|Foto e video
-490|Sfoca i volti
-491|Trova e nascondi i volti di foto e video per proteggere la privacy, sul tuo PC e offline.
-492|Nascondi con:
-493|Sfocatura
-494|Pixelato
-495|Barra nera
-496|Sensibilità:
-497|Più sensibile trova volti piccoli, di lato o al buio, ma può segnare ciò che non è un volto.
-498|{n} volto/i nell'anteprima
-499|I video sono analizzati fotogramma per fotogramma (il suono è copiato); un video di 1 minuto in 1080p richiede circa 1-2 minuti.
-500|Aggiungi foto o video per vedere l'anteprima.
-501|Nascondi i volti
-502|Sottotitoli, video e audio
-503|Traduci e doppia
-504|Traduci i sottotitoli in un'altra lingua e, se vuoi, doppia il video con una voce naturale, tutto sul tuo PC e offline.
-505|Traduci in:
-506|Non tradurre (solo doppiare)
-507|Doppiare:
-508|Genera il parlato con una voce naturale
-509|Non c'è ancora una voce per doppiare in questa lingua; il sottotitolo tradotto viene salvato normalmente.
-510|Audio originale:
-511|Ogni frase entra al momento del sottotitolo; se non ci sta, viene accelerata (al massimo 1,5×). Il video con lo stesso nome del sottotitolo riceve il doppiaggio; senza video, esce un MP3.
-512|Video e audio senza sottotitoli vengono prima trascritti (Whisper). La traduzione è fatta da una piccola IA locale: controlla nomi e termini tecnici.
-513|Traduci
-514|impossibile salvare: {e}
-515|{} volto/i
-516|impossibile avviare ffmpeg: {e}
-517|fotogramma non valido
-518|ffmpeg ha smesso di ricevere i fotogrammi.
-519|ffmpeg non riuscito: {}
-520|nessun fotogramma
-521|{n} fotogrammi • fino a {most} volto/i per fotogramma
-522|il flusso ha un ciclo (un nodo torna a uno precedente).
-523|il flusso ha bisogno di un nome.
-524|ci sono due nodi con l'id {}.
-525|nodo {}: tipo sconosciuto "{}" (vedi flow_node_types).
-526|collegamento {} → {}: il nodo {} non ha l'uscita "{}" (ha: {}).
-527|collegamento {} → {}: il nodo {} non riceve ingressi.
-528|collegamento {} → {}: nodo inesistente.
-529|IMMAGINE
-530|VIDEO
-531|AUDIO
-532|DOWNLOAD
-533|STRUMENTI
-534|File di ingresso
-535|Salva in cartella
-536|IA: istruzione
-537|IA: valuta
-538|Filtra file
-539|IA locale: classifica
-540|Rinomina con modello
-541|impossibile salvare il flusso: {e}
-542|flusso non trovato: {name}
-543|impossibile creare la cartella di lavoro: {e}
-544|il flusso è vuoto.
-545|non è arrivato nulla
-546|▶ {title}
-547|{n} elemento/i
-548|✔ {title}: {note}
-549|✖ {title}: {e}
-550|nessun file di ingresso (aggiungi file al nodo o passa "files").
-551|{n} file
-552|il testo è vuoto.
-553|{} sì, {} no
-554|scrivi almeno due opzioni.
-555|impossibile creare {}: {e}
-556|{n} salvato/i in {}
-557|scrivi l'istruzione per l'IA.
-558|   IA: {label}
-559|{label}: {e}
-560|{n} risposta/e
-561|scrivi il criterio di valutazione.
-562|   {} {}: {reason}
-563|tipo sconosciuto: {other}
-564|strumento sconosciuto: {name}
-565|nessun file è arrivato a questo nodo.
-566|{} elemento/i, {failed} non riusciti
-567|{} elemento/i
-568|INGRESSO E USCITA
-569|Aggiungi un nodo "File di ingresso" per ricevere i file.
-570|Il flusso è stato modificato dall'esterno (MCP o un altro programma) ed è stato ricaricato.
-571|Nuovo flusso
-572|Automazione
-573|Esiste già un flusso con questo nome.
-574|+ Nuovo
-575|Duplica
-576|copia
-577|Fai clic di nuovo per eliminare
-578|Elimina
-579|🔍  Cerca nodo…
-580|trascina qui i file
-581|{k} file o cartella/e
-582|(vuoto)
-583|scrivi l'istruzione
-584|scrivi il criterio
-585|scrivi le opzioni
-586|{n} opzioni
-587|confidenza minima {min:.0}%
-588|Documenti\Conver
-589|passa tutto
-590|impostazioni predefinite
-591|Crea un flusso con "+ Nuovo".
-592|in esecuzione…
-593|Rimuovi
-594|Questo nodo non riceve ingressi.
-595|Questo collegamento creerebbe un ciclo.
-596|+  Aggiungi nodo
-597|Adatta
-598|Mostra tutto il flusso
-599|Aggiungi nodi con il pulsante "+ Aggiungi nodo".
-600|Trascina dal punto a destra di un nodo fino a un altro nodo per collegarli.
-601|Collegamento
-602|no
-603|incerto
-604|Rimuovi collegamento
-605|Suggerimento: anche il tasto Canc rimuove.
-606|Flusso
-607|Descrizione
-608|Esegui da solo
-609|Quando arriva un nuovo file in una cartella
-610|Cambia
-611|Funziona con Conver aperto (può essere ridotto a icona). Ciò che era già nella cartella non conta.
-612|A un orario
-613|HH:MM, per esempio 08:30
-614|Dom
-615|Lun
-616|Mar
-617|Mer
-618|Gio
-619|Ven
-620|Sab
-621|Usa l'Utilità di pianificazione di Windows: funziona anche con Conver chiuso. Senza giorni selezionati, va tutti i giorni.
-622|Avvisa alla fine (notifica di Windows)
-623|Come funziona
-624|1. Aggiungi nodi con il pulsante "+ Aggiungi nodo" (strumenti, IA, filtri).
-625|2. Trascina dal punto a destra di un nodo fino a un altro per collegarli: il risultato di uno passa al successivo.
-626|3. Fai clic su un nodo per regolarlo; trascina file nella finestra per metterli nell'ingresso.
-627|4. Fai clic su Esegui flusso.
-628|I nodi di IA usano l'API impostata in Impostazioni. Anche gli agenti di IA creano ed eseguono flussi tramite MCP (flow_save, flow_run).
-629|⚠ IA: {e}
-630|Configura l'IA
-631|Tipo sconosciuto: {}
-632|Nome sulla lavagna
-633|Cartella di destinazione
-634|Documenti\Conver\<flusso>
-635|Nei testi, {text} diventa il testo in arrivo e {file} il nome del file.
-636|Rimuovi nodo
-637|File e cartelle
-638|Ancora nessuno: trascina file nella finestra o usa i pulsanti qui sotto.
-639|Rimuovi dall'elenco
-640|+ File…
-641|+ Cartella…
-642|Da riga di comando o MCP, i file passati a flow_run sostituiscono questi.
-643|▶  Esegui flusso
-644|Esecuzione di “{}”…
-645|Completato con {failed} nodo/i con errore.
-646|Completato: {n} risultato/i.
-647|Ultime esecuzioni
-648|Il flusso non è ancora stato eseguito.
-649|{when}  •  {secs:.0} s
-650|{outs} risultato/i
-651|{outs} risultato/i, {bad_nodes} nodo/i con errori
-652|{outs} risultato/i, {} file con errori
-653|Cartella
-654|Ripeti gli errori
-655|Ripristina predefinito
-656|(predefinito)
-657|(automatico)
-658|uno per riga
-659|Opzioni (una per riga)
-660|Modello del nome
-661|Cifre del numero
-662|Conta separatamente per opzione
-663|Confidenza minima (%)
-664|Cosa guardare
-665|Formato
-666|Qualità
-667|Livello
-668|Lingua
-669|Percentuale
-670|Mantieni le proporzioni
-671|Inizio
-672|Fine
-673|Durata (s)
-674|Dimensione
-675|Ruota (gradi)
-676|Taglio preciso
-677|Pagine
-678|Fotogrammi al secondo
-679|Specchia in orizzontale
-680|Specchia in verticale
-681|Codifica
-682|Finestra
-683|Volume
-684|Link
-685|Dimensione finale (MB)
-686|Scarica i sottotitoli
-687|File dei sottotitoli
-688|Salta le pagine che hanno già testo
-689|Secondi
-690|Scala
-691|Saturazione
-692|Risoluzione
-693|Sostituisci l'audio
-694|Area
-695|Posizione
-696|Playlist intera
-697|Formato pagina
-698|Password del proprietario
-699|Password
-700|Musica
-701|Mono
-702|Modello
-703|Microfono
-704|Volume di destinazione (LUFS)
-705|Ripeti
-706|Tipo
-707|Mantieni l'audio
-708|Kbps
-709|Salva come
-710|Filtro
-711|Fattore
-712|Ogni (s)
-713|Bordo
-714|Risoluzione (DPI)
-715|Ritaglia
-716|Scarica la copertina
-717|Contrasto
-718|Accesso del browser
-719|Luminosità
-720|Sfondo
-721|Audio (kbps)
-722|Proporzioni
-723|Consenti la stampa
-724|Consenti la copia
-725|File di uscita
-726|Nome
-727|Istruzione per l'IA
-728|Una risposta per file
-729|Passa i file avanti
-730|Salva la risposta come
-731|Criterio
-732|Tipi accettati
-733|Estensioni accettate
-734|Dimensione minima (MB)
-735|Dimensione massima (MB)
-736|Sposta invece di copiare
-737|Salva i testi come .txt
-738|Veloce
-739|Bilanciato
-740|Preciso
-741|Voce e base
-742|Solo la voce
-743|Solo la base strumentale
-744|Nessuno
-745|Trasparente
-746|Bianco
-747|Bianco e nero
-748|Seppia
-749|Inverti
-750|Piccolo
-751|Grande
-752|Morbido
-753|Netto
-754|Audio
-755|PDF
-756|Testi
-757|Suono
-758|A4 verticale
-759|A4 orizzontale
-760|descrivi l'immagine.
-761|impossibile creare la cartella: {e}
-762|impossibile avviare il generatore: {e}
-763|il generatore si è fermato senza salvare l'immagine.
-764|memoria insufficiente nella scheda grafica; prova il formato quadrato. ({why})
-765|Nessun ritaglio
-766|Inverti colori
-767|Indica la larghezza e/o l'altezza.
-768|Senza mantenere le proporzioni, indica larghezza E altezza.
-769|{w}x{h} → {nw}x{nh}
-770| • salvato come PNG
-771|qualità {q} • {}
-772|ruotata di {rotate}°
-773|specchiata ↔
-774|specchiata ↕
-775|ritaglio {}
-776|nessuna modifica
-777|{what} • {}×{}
-778|metadati rimossi (rotazione della fotocamera applicata all'immagine)
-779|metadati rimossi ({})
-780|nessun metadato trovato
-781|sfondo rimosso • mantenuto il {kept:.0}% dell'immagine
-782|saturazione
-783|{name} {v:+}
-784|{w}x{h} → {}x{} (IA {scale}×)
-785|Dimensione dell'immagine
-786|A4 verticale
-787|A4 orizzontale
-788|{d} giorni fa
-789|{} mesi fa
-790|{} anni fa
-791|Data della foto
-792|Esposizione
-793|Apertura
-794|Lunghezza focale
-795|Software
-796|Autore
-797|Copyright
-798|Posizione (GPS)
-799|{lat:.6}, {lon:.6}
-800|Campi EXIF totali
-801|Foto (EXIF)
-802|Durata
-803|Bitrate totale
-804|Copertina
-805|Video
-806|Audio
-807|Sottotitolo
-808|Media
-809|Tracce
-810|Tag
-811|{} ({} byte)
-812|Modificato
-813|Creato
-814|File
-815|Dimensioni
-816|{w} × {h} px ({mp:.1} megapixel)
-817|Colori
-818| (con trasparenza)
-819|Immagine
-820|impossibile leggere (danneggiato o protetto)
-821|la maschera deve avere la dimensione dell'immagine.
-822|dipingi ciò che va cancellato.
-823|impossibile consultare GitHub: {e}
-824|impossibile raggiungere GitHub: {e}
-825|download non riuscito: {e}
-826|il file scaricato non corrisponde alla firma pubblicata; non è stato modificato nulla.
-827|impossibile sostituire yt-dlp (è in uso?): {e}
-828|la versione scaricata non ha funzionato; è stata mantenuta la precedente.
-829|Annullamento…
-830|Avvio…
-831|Errore imprevisto.
-832|Qwen 3.5 2B (1,3 GB)
-833|impossibile estrarre llama.cpp.
-834|il processo si è chiuso
-835|l'IA locale ha impiegato troppo ad avviarsi.
-836|impossibile avviare l'IA locale: {last}
-837|l'IA locale non ha risposto: {e}
-838|l'IA locale non ha restituito testo.
-839|l'IA locale non ha scelto un'opzione.
-840|l'IA locale non ha restituito la traduzione nel formato previsto.
-841|la traduzione è tornata con un numero diverso di frasi.
-842|Download
-843|AUTOMAZIONE
-844|Flussi di automazione
-845|Ridimensiona
-846|Riduci qualità
-847|Converti formato
-848|Rimuovi sfondo
-849|Ingrandisci con IA
-850|Ruota / ritaglia
-851|Regolazioni colore
-852|Rimuovi metadati
-853|Immagini → PDF
-854|Taglia spezzone
-855|Unisci video
-856|Cambia velocità
-857|Video → GIF
-858|Imprimi sottotitoli
-859|Musica di sottofondo
-860|Rimuovi audio / fotogrammi
-861|Taglia audio
-862|Unisci audio
-863|Normalizza volume
-864|Rimuovi rumore
-865|Migliora voce
-866|PDF → immagini
-867|Tabelle in Excel
-868|Proteggi con password
-869|Video e musica
-870|Intelligenza artificiale (flussi di automazione)
-871|Usata dai nodi "IA: istruzione" e "IA: valuta". I file che passano per questi nodi vengono inviati al servizio scelto; il resto di Conver resta offline.
-872|Servizio:
-873|Anthropic (Claude)
-874|Compatibile con OpenAI
-875|es.: gpt-4o-mini, llama3.1 (Ollama)
-876|Indirizzo dell'API:
-877|Chiave API:
-878|salvata (protetta da Windows)
-879|incolla qui la chiave
-880|Salva chiave
-881|Prova la connessione
-882|Prova in corso…
-883|✔ L'IA ha risposto.
-884|Modelli di IA
-885|Ogni strumento scarica il modello mancante la prima volta che lo usi. Qui puoi scaricarlo in anticipo o eliminarlo per liberare spazio.
-886|Eliminare {}?
-887|✔ Scaricato • {}
-888|Download… {:.0}%
-889|In coda
-890|Scarica
-891|Spazio usato: {}
-892|Apri cartella
-893|Annulla download
-894|convertitore universale
-895|🔍  Cerca strumento…
-896|Ctrl+F
-897|Cartella monitorata  ●
-898|Registratore audio  ●
-899|Registra lo schermo  ●
-900|Dettatura dal vivo  ●
-901|Nessuno strumento trovato.
-902|⚙  Impostazioni
-903|Download dei modelli di IA… {:.0}%
-904|🕘  Cronologia
-905|Impostazioni
-906|Personalizza Conver.
-907|({here})  {native}
-908|{native}  ({here})
-909|Le 20 lingue più parlate al mondo. I nomi dei file e i messaggi di FFmpeg e yt-dlp non vengono tradotti.
-910|Aspetto
-911|Chiaro
-912|Scuro
-913|Avvisi
-914|Notifica di Windows quando un'attività lunga termina (con Conver in secondo piano)
-915|Riproduci un suono alla fine
-916|Prova avviso
-917|Ecco come apparirà l'avviso quando un'attività termina.
-918|la notifica compare con il nome "Windows PowerShell"; è il modo di Windows per le app senza programma di installazione.
-919|Cartella predefinita:
-920|Cambia…
-921|Cartella predefinita dei download
-922|Informazioni
-923|Versione:
-924|non trovato
-925|verifica in corso…
-926|Progetto:
-927|Automazione (agenti IA e riga di comando)
-928|Gli agenti IA (Claude, Cursor, VS Code…) possono usare tutti gli strumenti di Conver tramite MCP. Incolla la configurazione qui sotto nel file MCP del tuo agente.
-929|Programma:
-930|Copia configurazione MCP
-931|Copia esempio da riga di comando
-932|"{}" image_convert foto.png --format webp
-933|Da riga di comando: conver-cli help  •  conver-cli <strumento> file… --opzione valore
-934|Integrazione con Windows
-935|Mostra "Apri con Conver" nel menu del tasto destro (immagini, video, audio e PDF)
-936|Impossibile modificare il menu: {e}
-937|In Windows 11 l'opzione si trova in "Mostra altre opzioni". Se sposti la cartella di Conver, deseleziona e riseleziona questa casella.
-938|Aggiornamenti
-939|Controlla all'avvio se c'è una nuova versione di Conver (consulta GitHub)
-940|✔ hai la versione più recente ({})
-941|versione {} disponibile
-942|Controlla ora
-943|"Aggiorna ora" scarica il nuovo programma di installazione, verifica la firma e installa senza domande: Conver si chiude e si riapre da solo, con le stesse impostazioni.
-944|"Aggiorna ora" scarica la nuova versione portatile, verifica la firma e sostituisce i file di questa cartella (la cartella dados viene mantenuta): Conver si chiude e si riapre da solo.
-945|Questa copia non è stata installata con il programma di installazione e non è la versione portatile: scarica la nuova versione dal sito.
-946|yt-dlp (motore dei download)
-947|I siti cambiano spesso. Se i download smettono di funzionare, aggiorna yt-dlp (scarica la versione ufficiale da GitHub e verifica la firma).
-948|Aggiorna yt-dlp
-949|Download dell'ultima versione di yt-dlp…
-950|Avevi già la versione più recente ({after}).
-951|Aggiornato: {before} → {after}.
-952|✔ {text}
-953|Aggiornamento non riuscito.
-954|Download di Conver {}…
-955|Installazione… Conver si chiuderà e si riaprirà da solo.
-956|Aggiorna ora
-957|Nuova versione di Conver disponibile: {}
-958|Novità
-959|Non ora
-960|l'inizio ({}) supera la fine del file ({}).
-961|la fine deve essere dopo l'inizio.
-962|{range} • {}
-963|aggiungi almeno 2 video.
-964|{} non ha video.
-965|{} video • {}{extra} • {}
-966|{e} — se i video sono diversi tra loro, usa "Ricodifica"
-967|{label}×{d}
-968|audio rimosso • {}
-969|{n} immagini nella cartella {}
-970|volume regolato a {lufs} LUFS
-971|rumore rimosso (IA)
-972|rumore rimosso (forte)
-973|fruscio rimosso
-974|voce migliorata • {lufs} LUFS
-975|l'inizio supera la fine del video.
-976|{} → {} • {} fps • {}
-977|9:16 (Reels/TikTok)
-978|1:1 (feed)
-979|4:5 (Instagram)
-980|16:9 (YouTube)
-981|scegli una rotazione, specchiatura o ritaglio.
-982|impossibile leggere i sottotitoli: {e}
-983|sottotitoli: {}
-984|{} non ha audio.
-985|impossibile leggere la durata del video.
-986|mixata con l'audio originale
-987|al posto dell'audio originale
-988|{} {how} • volume {volume}%
-989|aggiungi almeno 2 file.
-990|{} file • {} • {}
-991|Converti formato video
-992|Converti tra MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF o estrai l'audio in MP3.
-993|Comprimi video
-994|Rendi i video più leggeri scegliendo un livello di compressione o la dimensione finale in MB.
-995|Taglia spezzone video
-996|Scegli inizio e fine e salva solo quella parte del video.
-997|Taglia
-998|Unisci più video in uno solo, nell'ordine dell'elenco.
-999|Accelera o rallenta (da 0,25× a 4×). L'audio segue senza diventare acuto o grave.
-1000|Rimuovi audio / estrai fotogrammi
-1001|Rendi muto il video o salvane immagini a intervalli regolari.
-1002|Converti formato audio
-1003|Converti tra MP3, WAV, FLAC, OGG, M4A e OPUS. Estrae anche l'audio dai video.
-1004|Salva solo una parte di una canzone o registrazione.
-1005|Porta il volume di più audio (o video) allo stesso livello, senza distorsioni.
-1006|Normalizza
-1007|Comprimi audio
-1008|Riduci le dimensioni dei file audio scegliendo il bitrate.
-1009|Video in GIF
-1010|Trasforma solo una parte del video in una GIF animata.
-1011|Crea GIF
-1012|Ruota e ritaglia video
-1013|Ruota i video girati di lato o ritagliali in 9:16 (Reels/TikTok), 1:1, 4:5 o 16:9.
-1014|Imprimi i sottotitoli (.srt, .ass o .vtt) nel video, così compaiono in qualsiasi lettore o social network.
-1015|Aggiungi musica al video, mixata con l'audio originale o al suo posto.
-1016|Unisci più canzoni o registrazioni in un unico file, nell'ordine dell'elenco.
-1017|Elimina fruscio, ventola, rumore di strada e di fondo dalle registrazioni vocali, in audio e video.
-1018|Dai alla voce un suono da podcast con un clic: meno rumore, più chiara e presente, senza picchi e al volume giusto.
-1019|Migliora
-1020|Inizio non valido. Usa il formato 00:01:30 (o solo i secondi).
-1021|Fine non valida. Usa il formato 00:02:45 (o solo i secondi).
-1022|La fine deve essere dopo l'inizio.
-1023|Formato di uscita:
-1024|Comprimi per:
-1025|Dimensione finale
-1026|Dimensione desiderata:
-1027|ogni video avrà circa questa dimensione (2 passaggi, più lento)
-1028|Codifica:
-1029|H.264 (compatibile)
-1030|H.265 (più piccolo, più lento)
-1031|Audio:
-1032|64 kbps
-1033|96 kbps
-1034|Il risultato viene salvato in MP4 con il suffisso _comprimido.
-1035|Inizio:
-1036|durata del file selezionato: {}
-1037|Fine:
-1038|fino alla fine
-1039|Veloce (senza perdita)
-1040|Preciso (ricodifica)
-1041|Taglia esattamente ai tempi indicati; richiede più tempo perché ricodifica il file.
-1042|Istantaneo e senza perdita; nei video il taglio può cadere qualche secondo prima dell'inizio.
-1043|Ricodifica (consigliato)
-1044|Veloce (solo unione)
-1045|Funziona con video diversi: tutti prendono la risoluzione del primo, con bordi se necessario. Salva in MP4.
-1046|Istantaneo, ma funziona solo se tutti i video hanno lo stesso formato, risoluzione e codifica.
-1047|Usa ↑ e ↓ nell'elenco per cambiare l'ordine.
-1048|Personalizzata:
-1049|Mantieni l'audio (accelerato/rallentato insieme)
-1050|Rimuovi audio
-1051|Estrai fotogrammi
-1052|Un'immagine ogni:
-1053|PNG (senza perdita)
-1054|Le immagini vengono salvate in una cartella <nome del video>_frames.
-1055|Il video viene copiato senza ricodifica: veloce e senza perdita di qualità.
-1056|WAV e FLAC sono senza perdita: non c'è qualità da scegliere.
-1057|Volume obiettivo:
-1058|Alto (−14, streaming)
-1059|Standard (−16)
-1060|Morbido (−23, TV)
-1061|Nei video l'immagine viene copiata senza perdita; viene ricodificato solo l'audio.
-1062|Intensità:
-1063|Leggera (solo fruscio)
-1064|Media (IA)
-1065|L'opzione con IA (RNNoise) è stata addestrata per la voce: pulisce bene parlato, podcast e lezioni, ma può attutire la musica.
-1066|Volume finale:
-1067|Podcast (−16 LUFS)
-1068|Reels e YouTube (−14 LUFS)
-1069|Rumore:
-1070|Togli anche il rumore di fondo (IA)
-1071|Taglia i bassi che impastano la voce, fa risaltare il parlato, ammorbidisce le "s", contiene i picchi e regola il volume. Nei video l'immagine è copiata senza perdita.
-1072|MP3 (compatibile)
-1073|OPUS (più piccolo)
-1074|Bitrate:
-1075|160 kbps
-1076|Canali:
-1077|Converti in mono (metà della dimensione; adatto alla voce)
-1078|64–96 kbps è ottimo per voce e podcast; 128–160 kbps per la musica.
-1079|video selezionato: {}
-1080|Durata:
-1081|Larghezza:
-1082|320 px
-1083|480 px
-1084|640 px
-1085|800 px
-1086|Le GIF diventano pesanti in fretta: spezzoni brevi, 480 px e 12 fps di solito restano sotto i 5 MB.
-1087|Ruota:
-1088|Non ruotare
-1089|Specchia:
-1090|In orizzontale ↔
-1091|Ritaglia:
-1092|Il ritaglio è centrato. L'audio viene copiato senza perdita.
-1093|Sottotitoli:
-1094|automatici (stesso nome del video)
-1095|Scegli i sottotitoli
-1096|Automatici
-1097|Trovati per il video selezionato: {}
-1098|Nessun sottotitolo con lo stesso nome del video selezionato. Scegli il file.
-1099|Ogni video usa i sottotitoli con il suo stesso nome (video.srt), oppure scegline uno per tutti.
-1100|Dimensione del testo:
-1101|Medio
-1102|Musica:
-1103|Tutti i file
-1104|Scegli la musica
-1105|Mixa con la musica
-1106|Sostituisci con la musica
-1107|Volume della musica:
-1108|Ripeti:
-1109|Ripeti la musica se è più corta del video
-1110|Per una musica di sottofondo sotto una voce, di solito va bene il 20–40%. L'immagine viene copiata senza perdita.
-1111|Usa ↑ e ↓ nell'elenco per cambiare l'ordine. Accetta anche video (usa il loro audio).
-1112|{} file
-1113|{} video
-1114|nessun sottotitolo con lo stesso nome del video; scegli il file dei sottotitoli.
-1115|scegli la musica.
-1116|Trascrizione (Whisper)
-1117|Separare voce e base (UVR)
-1118|Cancellare oggetto (LaMa)
-1119|Generare immagine (DreamShaper 8)
-1120|Classificare immagini (SigLIP 2)
-1121|Classificare suoni (CLAP)
-1122|IA del linguaggio (Qwen 3.5 2B)
-1123|Voce naturale (Piper)
-1124|Sottotitoli, Trascrivi, Dettatura dal vivo e Traduci e doppia
-1125|Generare immagine (serve una scheda grafica discreta)
-1126|Nodo "IA locale: classifica" dei flussi, con immagini e video
-1127|Nodo "IA locale: classifica" dei flussi, con audio
-1128|Tradurre sottotitoli e classificare testi nei flussi
-1129|Sintesi vocale e doppiaggio, con la voce della lingua di Conver
-1130|impossibile eliminare {} (è in uso?).
-1131|Convertire e comprimere
-1132|Video per i social
-1133|Podcast e audio
-1134|Documenti e PDF
-1135|Automazione con flussi
-1136|Creare con l'IA
-1137|Immagini, video e audio in un altro formato o più leggeri
-1138|Sottotitoli, tagli, video verticale, traduzione
-1139|Migliorare la voce, trascrivere, separare voce e musica
-1140|Unire e dividere PDF, OCR, tabelle in Excel
-1141|Smistare foto, suoni e testi per argomento da solo
-1142|Generare immagini, cancellare oggetti, leggere un testo
-1143|Già inclusi in Conver, senza scaricare nulla: rimuovere lo sfondo, ingrandire con l'IA, rimuovere il rumore, sfocare i volti e OCR.
-1144|{} {name}…
-1145|Download di
-1146|✔ {name}
-1147|✖ {name}: {}
-1148|{ok} pacchetto/i scaricato/i.
-1149|✔ {} pronto su questo computer.
-1150|{} ({}) viene scaricato una volta, al primo utilizzo, oppure ora in Impostazioni → Modelli di IA.
-1151|Conver — fatto
-1152|Conver — errore
-1153|la lingua {lang} non è installata per l'OCR in Windows.
-1154|Converti immagine
-1155|Comprimi immagine
-1156|Ruota e ritaglia
-1157|Regola i colori
-1158|Immagini in PDF
-1159|Converti video
-1160|Velocità
-1161|Sottotitoli nel video
-1162|Converti audio
-1163|Traduci sottotitoli e doppia
-1164|Classifica con IA locale
-1165|Download
-1166|Microfoni e finestre
-1167|Elenca preimpostazioni
-1168|Elenca flussi
-1169|Vedi flusso
-1170|Tipi di nodo
-1171|Salva flusso
-1172|Elimina flusso
-1173|Cronologia del flusso
-1174|Esegui flusso
-1175|Annullato dall'utente.
-1176|[{}/{n}] {name}
-1177|✔ {name}   {info}
-1178|Fatto: {ok} di {n} file.
-1179|Elaborazione…
-1180|✔ {}   {info}
-1181|Fatto.
-1182|Ridimensiona immagine
-1183|Cambia le dimensioni di una o più immagini, in percentuale o in pixel.
-1184|Riduci la dimensione del file mantenendo il formato (JPG, PNG, WEBP…).
-1185|Scegli da 1 a 100. JPG e WEBP mantengono il formato; gli altri diventano JPG (o WEBP se hanno trasparenza).
-1186|Converti formato immagine
-1187|Converti tra PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
-1188|Ruota, specchia e ritaglia
-1189|Ruota, specchia o ritaglia le immagini con una proporzione predefinita (il ritaglio è centrato).
-1190|Cancella le informazioni nascoste della foto (EXIF, posizione GPS, fotocamera, data) senza perdere qualità.
-1191|Rimuovi lo sfondo dalle foto di persone, prodotti e animali con l'intelligenza artificiale, sul tuo PC e senza internet.
-1192|Ingrandisci le immagini 2× o 4× senza sfocarle: l'intelligenza artificiale ricrea i dettagli. Funziona sul tuo PC, offline.
-1193|Ingrandisci
-1194|Cambia luminosità, contrasto e saturazione o applica un filtro. Controlla l'anteprima prima di salvare.
-1195|Unisci più immagini in un unico PDF, una per pagina, nell'ordine dell'elenco.
-1196|Crea PDF
-1197|Larghezza e altezza devono essere numeri interi positivi.
-1198|Indica la larghezza e/o l'altezza in pixel.
-1199|nessuna anteprima
-1200|Pixel
-1201|Mantieni proporzioni
-1202|Con le proporzioni mantenute, l'immagine sta dentro la larghezza/altezza indicata.
-1203|Leggera = quasi nessuna perdita visibile  •  Forte = file molto più piccolo
-1204|Le icone sono al massimo 256×256; le immagini più grandi vengono ridotte.
-1205|In verticale ↕
-1206|JPG, PNG e WEBP: vengono cancellati solo i metadati, l'immagine non viene ricompressa.
-1207|Se la foto ha la rotazione della fotocamera, viene applicata prima, così l'immagine non resta di lato.
-1208|Nuovo sfondo:
-1209|Bordo:
-1210|Morbido (capelli, pelo)
-1211|Trasparente salva in PNG. La prima immagine richiede qualche secondo mentre il modello si carica.
-1212|⚠ Modello di IA non trovato: metti silueta.onnx nella cartella modelos.
-1213|Ingrandisci:
-1214|Ottimo per foto piccole, screenshot e immagini vecchie. Le immagini grandi richiedono più tempo (anche l'anteprima).
-1215|⚠ Modello IA non trovato: metti realesr-general-x4v3.onnx nella cartella modelos.
-1216|Luminosità:
-1217|Contrasto:
-1218|Saturazione:
-1219|Azzera
-1220|Filtro:
-1221|Formato pagina:
-1222|Usa ↑ e ↓ nell'elenco per cambiare l'ordine delle pagine.
-1223|Risultato
-1224|Aggiungi un'immagine per vedere l'anteprima
-1225|Risultato: {}×{}  •  {}   ({})
-1226|Generazione anteprima…
-1227|Pagina {}  •
-1228|{page}Originale: {}×{}  •  {orig_size}
-1229|Caricamento…
-1230|Impossibile aprire questa immagine.
-1231|{} immagini
-1232|{pages} pagina/e • {}
-1233|Non usare
-1234|Scarica video e musica
-1235|{n} link — verranno scaricati in coda
-1236|Incolla qui il link del video, della canzone o della playlist (uno o più, uno per riga)
-1237|MP4 (video)
-1238|MP3 (audio)
-1239|Accesso del browser:
-1240|per i siti che richiedono un account (Instagram, Facebook). Chiudi il browser prima di scaricare.
-1241|Scarica anche:
-1242|Sottotitoli (.srt, portoghese e inglese)
-1243|Immagine di copertina (.jpg)
-1244|Scarica l'intera playlist (se il link è di una playlist)
-1245|Scarica solo contenuti che hai il diritto di scaricare.
-1246|Scegli una cartella di uscita valida.
-1247|[link {}/{n}]
-1248|{prefix}Recupero informazioni…
-1249| ({failed} link con errori)
-1250|Fatto: {total} file scaricati{errors}.
-1251|{}: impossibile aprire il PDF ({e})
-1252|{} è protetto da password.
-1253|aggiungi almeno 2 PDF.
-1254|intervallo non valido: "{part}". Usa ad esempio 1-3, 7, 10-
-1255|la pagina {a} non esiste (il PDF ne ha {total}).
-1256|indica le pagine, ad esempio 1-3, 7
-1257|pagina non valida: "{part}" (il PDF ne ha {total}).
-1258|indica almeno una pagina.
-1259|il PDF deve mantenere almeno una pagina.
-1260|il PDF non ha l'albero delle pagine.
-1261|il PDF non ha la pagina {n} (ne ha {total}).
-1262|impossibile leggere la pagina {n}.
-1263|{n} pagine ({removed} rimossa/e)
-1264|{n} pagine
-1265|{} di {total} pagine
-1266|{total} PDF nella cartella {}
-1267|{} è protetto da password; rimuovi prima la password.
-1268|il PDF era già ottimizzato (nessuna riduzione)
-1269|{changed} immagine/i ricompressa/e • {}
-1270|inserisci la password.
-1271|{} è già protetto da password.
-1272|impossibile proteggere: {e}
-1273|protetto con password (AES-128)
-1274|password errata.
-1275|password rimossa
-1276|PDF protetto: inserisci la password.
-1277|impossibile aprire il PDF ({})
-1278|{} immagine/i nella cartella {}
-1279|{done} pagina/e con testo riconosciuto • {words_total} parole
-1280| • {skipped} avevano già testo
-1281|nessuna tabella trovata nel PDF.
-1282|nessun testo trovato nel PDF.
-1283|{rows} riga/e su {} pagina/e
-1284|testo troppo lungo per un codice QR.
-1285|la registrazione si è interrotta.
-1286|da questo microfono non è arrivato alcun suono. Scegli un altro ingresso dall'elenco (es.: "Microfono (…)").
-1287|il microfono ha smesso di rispondere.
-1288|nome ripetuto
-1289|esiste già un file con questo nome
-1290|non è stato registrato nulla.
-1291|impossibile creare la cartella temporanea: {e}
-1292|impossibile unire le parti della registrazione: {e}
-1293|UVR MDX-Net (67 MB)
-1294|Solo la base (karaoke)
-1295|salvataggio non riuscito: {}
-1296|l'audio è troppo corto (meno di mezzo secondo).
-1297|{} • {dur}
-1298|{} → {} ({sign}{:.0}%)
-1299|Bilanciato (264 MB)
-1300|Preciso (574 MB)
-1301|Whisper base (82 MB)
-1302|Whisper small (264 MB)
-1303|Whisper large-v3 turbo (574 MB)
-1304|Rileva automaticamente
-1305|Portoghese
-1306|Inglese
-1307|Spagnolo
-1308|Francese
-1309|Tedesco
-1310|Italiano
-1311|Russo
-1312|Cinese
-1313|Giapponese
-1314|Coreano
-1315|Arabo
-1316|Hindi
-1317|Turco
-1318|Polacco
-1319|Ucraino
-1320|Olandese
-1321|Indonesiano
-1322|Vietnamita
-1323|Persiano
-1324|impossibile avviare Whisper: {e}
-1325|errore di Whisper: {}
-1326|Whisper non ha creato alcun file.
-1327|{words} parole • {}
-1328|Whisper non ha prodotto il risultato.
-1329|WAV non valido
-1330|WAV senza dati
-1331|Piper non trovato (cartella bin\piper).
-1332|Piper non ha prodotto l'audio.
-1333|nessuna frase da tradurre.
-1334|lingua sconosciuta: {code}
-1335|impossibile unire il doppiaggio.
-1336| • {faster} frase/i accelerata/e per starci
-1337|{} frase/i doppiata/e{extra}
-1338|niente da fare: scegli di tradurre e/o doppiare.
-1339|{} frase/i tradotta/e
-1340|Nessuna pianificazione.
-1341|orario non valido; usa HH:MM, come 08:30.
-1342|impossibile usare l'Utilità di pianificazione: {e}
-1343|l'Utilità di pianificazione ha rifiutato: {msg}
-1344|Pianificato per le {h:02}:{m:02}.
-1345|La cartella sorvegliata non esiste.
-1346|Sorveglio la cartella.
-1347|In esecuzione con {n} nuovo/i file…
-1348|{when}: {n} file, {outs} risultato/i{}
-1349|, {fails} errore/i
-1350|{when}: errore — {e}
-1351|Conver — flusso terminato
-1352|Conver — flusso con errori
-1353|Portoghese (Brasile) — Faber, maschile
-1354|Portoghese (Brasile) — Cadu, maschile
-1355|Portoghese (Brasile) — Jeff, maschile
-1356|Inglese (USA) — Amy, femminile
-1357|Inglese (USA) — Lessac, femminile
-1358|Spagnolo (Spagna) — Davefx, maschile
-1359|Spagnolo (Messico) — Claude, maschile
-1360|Francese — Siwis, femminile
-1361|Tedesco — Thorsten, maschile
-1362|Italiano — Paola, femminile
-1363|impossibile avviare Piper: {e}
-1364|impossibile convertire in MP3.
-1365|questa copia di Conver non è stata installata con il programma di installazione e non è la portatile; scaricala dal sito.
-1366|la nuova versione non ha il file per questa copia di Conver; scaricala dal sito.
-1367|la nuova versione non ha pubblicato le somme di controllo; scaricala dal sito.
-1368|il file di aggiornamento non è nell'elenco di controllo; scaricala dal sito.
-1369|impossibile estrarre l'aggiornamento: {e}
-1370|impossibile estrarre l'aggiornamento.
-1371|impossibile avviare il programma di installazione: {e}
-1372|impossibile avviare l'aggiornamento: {e}
-1373|aggiornamento automatico non disponibile per questa copia.
-1374|Impossibile completare l'aggiornamento: {e}
-1375|il modello di ingrandimento non è stato trovato (cartella modelos).
-1376|l'immagine supererebbe {MAX_SIDE} pixel di lato; riducila prima o usa 2×.
-1377|MP3 (solo audio)
-1378|{mb} MB sono troppo pochi per {:.0} s di video (minimo ≈ {:.1} MB).
-1379|Comprimi immagini
-1380|Converti immagini
-1381|Comprimi video
-1382|Converti video
-1383|Converti audio
-1384|✖ impossibile creare la cartella {OUT_FOLDER}: {e}
-1385|Monitoraggio di {} — {}
-1386|I risultati vanno nella sottocartella "{OUT_FOLDER}".
-1387|Monitoraggio della cartella… ({count} elaborati)
-1388|Elaborazione di {name}…
-1389|{name}: {info}
-1390|{name}: {e}
-1391|Fermato. {count} file elaborati.
-1392|scrivi il testo della filigrana.
-1393|scegli l'immagine del logo.
-1394|impossibile leggere {}: {e}
-1395|filigrana sul video
-1396|filigrana
-1397|{label} • {}
-1398|Benvenuto in Conver
-1399|Per cosa userai Conver? Seleziona quante opzioni vuoi: così Conver suggerisce quali modelli di IA vale la pena scaricare. Gli strumenti non cambiano, restano tutti nel menu.
-1400|Continua
-1401|Senza nulla selezionato, Conver mostra tutti i modelli.
-1402|Alcuni strumenti usano modelli che non sono inclusi nel download di Conver. Scarica ora ciò che userai, o aspetta la prima volta che apri lo strumento: ti dice prima la dimensione.
-1403|Indietro
-1404|Inizia
-1405|Scarica {} e inizia
-1406|Inizia senza scaricare
-1407|Il download continua in background mentre usi Conver.
-1408|Seleziona i file
-1409|Nessun file
-1410|1 file
-1411|{n} file
-1412|+ Aggiungi
-1413|ordine:
-1414|Trascina qui i file
-1415|oppure fai clic per selezionare
-1416|{w}×{h}  •  {size}
-1417|{t}  •  {size}
-1418|{}º  •  {sub}
-1419|Qui appare la traccia audio
-1420|0 dB
-1421|{d:.1} dB
-1422|In attesa del suono del microfono…
-1423|⚠ Quasi nessun suono: parla più vicino o alza il volume del microfono in Windows.
-1424|Un po' basso: parla più vicino al microfono.
-1425|✔ Livello buono.
-1426|Stessa cartella del file originale
-1427|Scegli la cartella di uscita
-1428|Rilascia per aggiungere
-1429|Immagini e video vanno allo strumento giusto
+143|cerca
+144|con
+145|sostituisci
+146|Aggiungi:
+147|prima (prefisso)
+148|dopo (suffisso)
+149|Numerazione:
+150|Numera
+151|a partire da
+152|cifre
+153|separatore
+154|Maiuscole/minuscole:
+155|Mantieni
+156|minuscole
+157|MAIUSCOLE
+158|L'estensione (.jpg, .mp4…) viene sempre mantenuta. I file vengono rinominati nella stessa cartella.
+159|Verranno rinominati {changed} file.
+160|Rinomina
+161|✔ {} file rinominati.
+162|Annulla
+163|Nomi originali ripristinati.
+164|Nero
+165|Generatore di codici QR
+166|Crea un codice QR da un link, testo, Wi-Fi o contatto e salvalo come immagine PNG.
+167|Contenuto
+168|https://… o qualsiasi testo
+169|Incolla
+170|Modello Wi-Fi
+171|Nel modello Wi-Fi, sostituisci NomeDaRede e SenhaDaRede con i dati della tua rete.
+172| px
+173|Colore:
+174|Correzione degli errori:
+175|Bassa
+176|Media
+177|Alta
+178|Una correzione alta rende il codice più denso, ma resta leggibile anche se sporco o stropicciato.
+179|Anteprima
+180|Scrivi qualcosa per generarlo
+181|Salva PNG…
+182|Codice QR
+183|✔ Salvato in {}
+184|Copia immagine
+185|✔ Copiato; incolla con Ctrl+V.
+186|Cronologia
+187|Le ultime conversioni e download fatti in Conver.
+188|Sì, cancella
+189|Annulla
+190|Cancella cronologia
+191|Non c'è ancora niente qui
+192|I file che converti o scarichi compaiono in questo elenco.
+193|{} → {out}
+194|il file non esiste più
+195|Mostra nella cartella
+196|Apri
+197|Aggiungi un PDF per vedere le pagine.
+198|Trascina le pagine per cambiare l'ordine. ⟲ ⟳ ruotano e × elimina.
+199|Annulla tutto
+200|Ruota tutte ⟳
+201|{}  •  pag. {page}
+202|Ruota a sinistra
+203|Ruota a destra
+204|Elimina la pagina
+205|{} pagina/e nel nuovo PDF{}. L'originale non viene modificato.
+206|, {removed} eliminata/e
+207|Unisci PDF
+208|Unisci più PDF in uno solo, nell'ordine dell'elenco.
+209|Unisci
+210|Dividi PDF
+211|Estrai pagine specifiche (es.: 1-3, 7) o salva ogni pagina in un PDF a parte.
+212|Dividi
+213|Comprimi PDF
+214|Rendi i PDF più leggeri ricomprimendo le immagini al loro interno (foto, pagine scansionate).
+215|Comprimi
+216|PDF in immagini
+217|Salva le pagine del PDF come immagini PNG o JPG.
+218|Converti
+219|Proteggi PDF con password
+220|Imposta una password per aprire il PDF e scegli se può essere stampato o copiato.
+221|Proteggi
+222|Rimuovi password dal PDF
+223|Rimuovi la password da un tuo PDF (serve conoscere la password attuale).
+224|Rimuovi password
+225|PDF ricercabile (OCR)
+226|Riconosce il testo dei PDF scansionati con l'OCR di Windows: poi puoi cercarlo, selezionarlo e copiarlo.
+227|Riconosci testo
+228|Organizza pagine
+229|Cambia l'ordine, ruota ed elimina le pagine di un PDF vedendo le miniature.
+230|Salva PDF
+231|Tabelle da PDF a Excel
+232|Porta le tabelle dei PDF (anche scansionati) in un foglio Excel o in un CSV, con i numeri pronti da sommare.
+233|Estrai tabelle
+234|Nome del PDF:
+235|Il PDF finale avrà {total_pages} pagine. Usa ↑ e ↓ per cambiare l'ordine.
+236|Estrai pagine
+237|Una pagina per file
+238|Pagine:
+239|"10-" = dalla 10 fino alla fine
+240|Le pagine vengono salvate in una cartella <nome del PDF>_paginas.
+241|Il PDF selezionato ha {n} pagine.
+242|Livello:
+243|Leggera
+244|Forte
+245|Leggera = quasi senza perdita  •  Forte = immagini fino a 1200 px, molto più piccole. Il testo non perde qualità.
+246|Formato:
+247|Risoluzione:
+248|96 dpi (schermo)
+249|150 dpi
+250|300 dpi (stampa)
+251|vuoto = tutte  •  es.: 1-3, 7
+252|Password:
+253|solo se il PDF ne ha una
+254|Le immagini vengono salvate in una cartella <nome del PDF>_imagens.
+255|Ripeti la password:
+256|le password non coincidono
+257|Consenti:
+258|Stampa
+259|Copia del testo
+260|Password del proprietario:
+261|sblocca tutto per chi la conosce
+262|Conserva la password: senza di essa non c'è modo di aprire il PDF.
+263|Password attuale:
+264|Usa solo su PDF tuoi o che sei autorizzato a modificare.
+265|Salva come:
+266|Excel (.xlsx)
+267|Cosa estrarre:
+268|Solo le tabelle
+269|L'intera pagina, in colonne
+270|Ogni pagina viene letta dall'OCR di Windows, quindi funziona anche con PDF scansionati. In Excel ogni pagina diventa un foglio e i numeri (1.234,56 o 1,234.56) diventano numeri veri.
+271|Le tabelle con celle unite o testo su più righe possono richiedere un ritocco nel foglio.
+272|Lingua del testo:
+273|Automatica (lingue di Windows)
+274|Pagine con testo:
+275|Salta
+276|Riconosci di nuovo
+277|L'aspetto del PDF non cambia: il testo riconosciuto va in un livello invisibile sopra le pagine.
+278|Impossibile leggere il PDF selezionato (potrebbe essere danneggiato o protetto).
+279|{} PDF
+280|{n} pagine • {}
+281|Cartella monitorata
+282|Scegli una cartella: tutto ciò che vi arriva viene convertito automaticamente finché Conver è aperto.
+283|Cartella:
+284|nessuna scelta
+285|Scegli…
+286|Cartella da monitorare
+287|Cosa fare:
+288|Converti in:
+289|Elabora anche i file già presenti nella cartella
+290|I risultati vanno nella sottocartella "{}". Gli originali non vengono modificati.
+291|Monitoraggio…
+292|Avvia monitoraggio
+293|Fai clic su "Annulla" per interrompere il monitoraggio.
+294|Registratore audio
+295|✔ Registrazione salvata: {}  ({info})
+296|Registra il microfono (o un altro ingresso audio del PC) direttamente in MP3, WAV o M4A.
+297|✖ La registrazione si è interrotta: {e}
+298|Microfono:
+299|ricerca dei microfoni…
+300|nessun ingresso audio trovato
+301|Aggiorna elenco
+302|WAV (senza perdita)
+303|Salva in:
+304|Cartella delle registrazioni
+305|●  Registrazione
+306|Test del microfono (non viene registrato nulla)
+307|Pronto per registrare
+308|Traccia dell'ultima registrazione.
+309|Usa "Prova microfono" per vedere il livello prima di registrare.
+310|⚠ Da questo ingresso non arriva alcun suono. Ferma e scegli un altro microfono dall'elenco.
+311|■  Ferma
+312|●  Registra
+313|Ferma la prova
+314|Prova microfono
+315|Ascolta
+316|Suggerimento: se l'elenco è vuoto, controlla in Impostazioni di Windows › Privacy › Microfono che le app possano usare il microfono.
+317|Immagini
+318|gli appunti non contengono un'immagine.
+319|immagine non valida.
+320|Testo da immagine (OCR)
+321|Leggi il testo di screenshot, foto di documenti e cartelli con il riconoscimento integrato di Windows, senza internet.
+322|Testo trovato
+323|Salva .txt
+324|Copia
+325|✔ Testo copiato.
+326|Fai clic su "Leggi testo" per riconoscere il testo di questa immagine.
+327|Nessun testo trovato in questa immagine.
+328|Il testo appare qui. Puoi correggerlo prima di copiarlo.
+329|Lingua:
+330|Screenshot:
+331|Incolla immagine (Ctrl+V)
+332|fai uno screenshot con Win+Maiusc+S e incollalo qui
+333|Nessuna lingua OCR installata in Windows. Installala in Impostazioni › Data/ora e lingua › Lingua.
+334|Altre lingue: Impostazioni di Windows › Data/ora e lingua › Lingua › aggiungi la lingua con "Riconoscimento ottico dei caratteri".
+335|Leggi testo
+336|[{}/{n}] Lettura di {name}…
+337|✔ {name}   {lines} riga/righe
+338|✖ {name}: {e}
+339|Fatto: {ok} di {n} immagine/i.
+340|Informazioni sul file
+341|Vedi i dettagli di immagini, video, audio e PDF: risoluzione, durata, codec, fotocamera, posizione della foto e altro.
+342|Aggiungi o trascina un file per vederne le informazioni.
+343|Copia tutto
+344|✔ Informazioni copiate.
+345|Vedi sulla mappa
+346|⚠ Questa foto contiene il luogo in cui è stata scattata. Usa "Rimuovi metadati" prima di condividerla.
+347|Audio e video
+348|Trascrivi / sottotitola
+349|Trasforma il parlato di audio e video in testo e sottotitoli (SRT/VTT) con Whisper, sul tuo PC e offline.
+350|Traduci in inglese
+351|Testo (.txt)
+352|Sottotitolo (.srt)
+353|Sottotitolo web (.vtt)
+354|Il sottotitolo .srt prende lo stesso nome del video: Imprimi sottotitoli e i lettori lo trovano da soli.
+355|Trascrivi
+356|Brani
+357|Separa voce e base
+358|Togli la voce da una canzone (karaoke) o isola la voce con l'intelligenza artificiale, sul tuo PC.
+359|Salva:
+360|MP3 320 kbps
+361|Richiede circa 15-30 secondi per minuto di musica, a seconda del computer.
+362|Separa
+363|Scegli una finestra
+364|❚❚  IN PAUSA
+365|●  REC
+366|La finestra è ridotta a icona o è stata chiusa.
+367|Caricamento anteprima…
+368|Registra lo schermo
+369|Registra lo schermo intero, un monitor, una finestra o un'area in MP4, con o senza microfono.
+370|Registra:
+371|Schermo intero
+372|Un monitor
+373|Una finestra
+374|Un'area
+375|Con più monitor, "Schermo intero" li registra tutti insieme. Per registrarne solo uno, scegli "Un monitor".
+376|Monitor:
+377|nessun monitor trovato
+378|Monitor
+379|Finestra:
+380|nessuna finestra trovata
+381|Area (px):
+382|Larghezza
+383|Altezza
+384|Qualità:
+385|Leggera (file più piccolo)
+386|Risoluzione massima:
+387|Originale
+388|Fotogrammi al secondo:
+389|Senza audio (ricerca dei microfoni…)
+390|Senza audio
+391|Opzioni:
+392|Mostra il cursore
+393|Riduci Conver a icona all'avvio
+394|❚❚  In pausa
+395|▶  Riprendi
+396|❚❚  Pausa
+397|Guarda
+398|Per mettere in pausa o fermare, torna a Conver (resta nella barra delle applicazioni). Le parti in pausa vengono unite in un solo MP4.
+399|Preimpostazioni
+400|Le tue impostazioni preferite, pronte con un clic, dalla riga di comando o da un agente IA (MCP).
+401|Ancora nessuna preimpostazione. Crea la prima qui sotto.
+402|Elimina
+403|Chiudi modulo
+404|+ Nuova preimpostazione
+405|Ripristina quelle incluse
+406|Nome:
+407|Descrizione:
+408|Strumento:
+409|Salva preimpostazione
+410|✔ Preimpostazione salvata: {}
+411|Riga di comando: conver-cli preset "{}" file…
+412|Usa preimpostazione
+413|In uso: {}
+414|Completato: {} ok, {} con errori.
+415|Salvato in: {}
+416|Cancella oggetto
+417|Dipingi sopra un oggetto, una persona, un testo o una filigrana e l'IA riempie lo sfondo. Sul tuo PC, offline.
+418|✖ impossibile aprire l'immagine: {e}
+419|✔ Fatto. Dipingi ancora per continuare a cancellare o salva l'immagine.
+420|Pennello:
+421|Svuota
+422|Vedi l'originale
+423|Aggiungi un'immagine per iniziare.
+424|L'IA sta riempiendo…
+425|Salva immagine
+426|Torna all'originale
+427|Cancellazione…
+428|Pronto.
+429|Sintesi vocale
+430|Trasforma testi e sottotitoli in narrazione con una voce naturale, sul tuo PC e offline.
+431|Apri file…
+432|Testi e sottotitoli
+433|{n} caratteri  •  ~{} di parlato
+434|Scrivi o incolla qui il testo (o trascina un .txt o un sottotitolo .srt nella finestra).
+435|Voce:
+436|Velocità:
+437|Lenta
+438|Normale
+439|Veloce
+440|Molto veloce
+441|✔ Voce pronta su questo computer.
+442|La voce (circa 63 MB) viene scaricata una volta, al primo utilizzo (la firma viene verificata).
+443|Crea narrazione
+444|Genera immagine
+445|Descrivi un'immagine e l'IA la crea sul tuo PC, con la scheda grafica. Offline e senza limiti.
+446|Cosa mostra l'immagine
+447|es.: una baita di legno in un bosco innevato al tramonto, luce calda alle finestre
+448|Evitare:
+449|facoltativo: cosa non deve apparire
+450|Quadrata
+451|Verticale
+452|Orizzontale
+453|Migliore (più lenta)
+454|Quante:
+455|Traduci la richiesta in inglese con l'IA configurata
+456|Il modello capisce meglio le richieste in inglese. Con un'IA configurata in Impostazioni, Conver traduce da solo.
+457|Usa la scheda grafica (Vulkan). Su una scheda comune, ogni immagine richiede circa 10-20 secondi, più qualche secondo per caricare il modello.
+458|Clicca per aprire
+459|Genera
+460|Traduzione della richiesta…
+461|Richiesta in inglese: {t}
+462|Senza traduzione ({e}); si usa il testo così com'è.
+463|Generazione…
+464|✔ {} immagine/i in {}
+465|Dettatura dal vivo
+466|Parla e il testo compare sullo schermo mentre parli, con Whisper sul tuo PC. Per dettare, sottotitolare dal vivo o prendere appunti.
+467|Veloce (82 MB)
+468|Bilanciato (264 MB, più lento)
+469|Il testo compare con 1-2 secondi di ritardo; a una pausa, la frase viene confermata. Nulla lascia il tuo computer.
+470|●  In ascolto
+471|Fermato
+472|●  Inizia a dettare
+473|Il testo dettato compare qui. Puoi modificarlo liberamente.
+474|… {partial}
+475|✔ Copiato.
+476|impossibile leggere la prima pagina.
+477|Immagini, video e PDF
+478|Filigrana
+479|Metti il tuo logo o un testo su tante immagini, video e PDF insieme, con posizione e trasparenza.
+480|Marchio:
+481|Logo (immagine)
+482|Logo:
+483|Scegli immagine…
+484|PNG, JPG, WEBP
+485|Un PNG con sfondo trasparente rende meglio.
+486|Testo:
+487|es.: © Il tuo nome 2026
+488|In diagonale, al centro
+489|Opacità:
+490|Margine:
+491|Aggiungi file per vedere l'anteprima.
+492|Immagini e PDF mantengono la qualità; i video vengono ricodificati con il marchio (l'audio è copiato).
+493|Applica
+494|Foto e video
+495|Sfoca i volti
+496|Trova e nascondi i volti di foto e video per proteggere la privacy, sul tuo PC e offline.
+497|Nascondi con:
+498|Sfocatura
+499|Pixelato
+500|Barra nera
+501|Sensibilità:
+502|Più sensibile trova volti piccoli, di lato o al buio, ma può segnare ciò che non è un volto.
+503|{n} volto/i nell'anteprima
+504|I video sono analizzati fotogramma per fotogramma (il suono è copiato); un video di 1 minuto in 1080p richiede circa 1-2 minuti.
+505|Aggiungi foto o video per vedere l'anteprima.
+506|Nascondi i volti
+507|Sottotitoli, video e audio
+508|Traduci e doppia
+509|Traduci i sottotitoli in un'altra lingua e, se vuoi, doppia il video con una voce naturale, tutto sul tuo PC e offline.
+510|Traduci in:
+511|Non tradurre (solo doppiare)
+512|Doppiare:
+513|Genera il parlato con una voce naturale
+514|Non c'è ancora una voce per doppiare in questa lingua; il sottotitolo tradotto viene salvato normalmente.
+515|Audio originale:
+516|Ogni frase entra al momento del sottotitolo; se non ci sta, viene accelerata (al massimo 1,5×). Il video con lo stesso nome del sottotitolo riceve il doppiaggio; senza video, esce un MP3.
+517|Video e audio senza sottotitoli vengono prima trascritti (Whisper). La traduzione è fatta da una piccola IA locale: controlla nomi e termini tecnici.
+518|Traduci
+519|impossibile salvare: {e}
+520|{} volto/i
+521|impossibile avviare ffmpeg: {e}
+522|fotogramma non valido
+523|ffmpeg ha smesso di ricevere i fotogrammi.
+524|ffmpeg non riuscito: {}
+525|nessun fotogramma
+526|{n} fotogrammi • fino a {most} volto/i per fotogramma
+527|il flusso ha un ciclo (un nodo torna a uno precedente).
+528|il flusso ha bisogno di un nome.
+529|ci sono due nodi con l'id {}.
+530|nodo {}: tipo sconosciuto "{}" (vedi flow_node_types).
+531|collegamento {} → {}: il nodo {} non ha l'uscita "{}" (ha: {}).
+532|collegamento {} → {}: il nodo {} non riceve ingressi.
+533|collegamento {} → {}: nodo inesistente.
+534|IMMAGINE
+535|VIDEO
+536|AUDIO
+537|DOWNLOAD
+538|STRUMENTI
+539|File di ingresso
+540|Salva in cartella
+541|IA: istruzione
+542|IA: valuta
+543|Filtra file
+544|IA locale: classifica
+545|Rinomina con modello
+546|impossibile salvare il flusso: {e}
+547|flusso non trovato: {name}
+548|impossibile creare la cartella di lavoro: {e}
+549|il flusso è vuoto.
+550|non è arrivato nulla
+551|▶ {title}
+552|{n} elemento/i
+553|✔ {title}: {note}
+554|✖ {title}: {e}
+555|nessun file di ingresso (aggiungi file al nodo o passa "files").
+556|{n} file
+557|il testo è vuoto.
+558|{} sì, {} no
+559|scrivi almeno due opzioni.
+560|impossibile creare {}: {e}
+561|{n} salvato/i in {}
+562|scrivi l'istruzione per l'IA.
+563|   IA: {label}
+564|{label}: {e}
+565|{n} risposta/e
+566|scrivi il criterio di valutazione.
+567|   {} {}: {reason}
+568|tipo sconosciuto: {other}
+569|strumento sconosciuto: {name}
+570|nessun file è arrivato a questo nodo.
+571|{} elemento/i, {failed} non riusciti
+572|{} elemento/i
+573|INGRESSO E USCITA
+574|Aggiungi un nodo "File di ingresso" per ricevere i file.
+575|Il flusso è stato modificato dall'esterno (MCP o un altro programma) ed è stato ricaricato.
+576|Nuovo flusso
+577|Automazione
+578|Esiste già un flusso con questo nome.
+579|+ Nuovo
+580|Duplica
+581|copia
+582|Fai clic di nuovo per eliminare
+583|Elimina
+584|🔍  Cerca nodo…
+585|trascina qui i file
+586|{k} file o cartella/e
+587|(vuoto)
+588|scrivi l'istruzione
+589|scrivi il criterio
+590|scrivi le opzioni
+591|{n} opzioni
+592|confidenza minima {min:.0}%
+593|Documenti\Conver
+594|passa tutto
+595|impostazioni predefinite
+596|Crea un flusso con "+ Nuovo".
+597|in esecuzione…
+598|Rimuovi
+599|Questo nodo non riceve ingressi.
+600|Questo collegamento creerebbe un ciclo.
+601|+  Aggiungi nodo
+602|Adatta
+603|Mostra tutto il flusso
+604|Aggiungi nodi con il pulsante "+ Aggiungi nodo".
+605|Trascina dal punto a destra di un nodo fino a un altro nodo per collegarli.
+606|Collegamento
+607|no
+608|incerto
+609|Rimuovi collegamento
+610|Suggerimento: anche il tasto Canc rimuove.
+611|Flusso
+612|Descrizione
+613|Esegui da solo
+614|Quando arriva un nuovo file in una cartella
+615|Cambia
+616|Funziona con Conver aperto (può essere ridotto a icona). Ciò che era già nella cartella non conta.
+617|A un orario
+618|HH:MM, per esempio 08:30
+619|Dom
+620|Lun
+621|Mar
+622|Mer
+623|Gio
+624|Ven
+625|Sab
+626|Usa l'Utilità di pianificazione di Windows: funziona anche con Conver chiuso. Senza giorni selezionati, va tutti i giorni.
+627|Avvisa alla fine (notifica di Windows)
+628|Come funziona
+629|1. Aggiungi nodi con il pulsante "+ Aggiungi nodo" (strumenti, IA, filtri).
+630|2. Trascina dal punto a destra di un nodo fino a un altro per collegarli: il risultato di uno passa al successivo.
+631|3. Fai clic su un nodo per regolarlo; trascina file nella finestra per metterli nell'ingresso.
+632|4. Fai clic su Esegui flusso.
+633|I nodi di IA usano l'API impostata in Impostazioni. Anche gli agenti di IA creano ed eseguono flussi tramite MCP (flow_save, flow_run).
+634|⚠ IA: {e}
+635|Configura l'IA
+636|Tipo sconosciuto: {}
+637|Nome sulla lavagna
+638|Cartella di destinazione
+639|Documenti\Conver\<flusso>
+640|Nei testi, {text} diventa il testo in arrivo e {file} il nome del file.
+641|Rimuovi nodo
+642|File e cartelle
+643|Ancora nessuno: trascina file nella finestra o usa i pulsanti qui sotto.
+644|Rimuovi dall'elenco
+645|+ File…
+646|+ Cartella…
+647|Da riga di comando o MCP, i file passati a flow_run sostituiscono questi.
+648|▶  Esegui flusso
+649|Esecuzione di “{}”…
+650|Completato con {failed} nodo/i con errore.
+651|Completato: {n} risultato/i.
+652|Ultime esecuzioni
+653|Il flusso non è ancora stato eseguito.
+654|{when}  •  {secs:.0} s
+655|{outs} risultato/i
+656|{outs} risultato/i, {bad_nodes} nodo/i con errori
+657|{outs} risultato/i, {} file con errori
+658|Cartella
+659|Ripeti gli errori
+660|Ripristina predefinito
+661|(predefinito)
+662|(automatico)
+663|uno per riga
+664|Animata (parola per parola)
+665|Colore del riquadro
+666|Opacità del riquadro (%)
+667|Quante
+668|Togli anche il rumore
+669|Doppia
+670|Effetto
+671|Carattere
+672|Dimensione del testo
+673|Colore dell'evidenziazione
+674|Conserva il .ass
+675|Volume finale
+676|Margine (%)
+677|Maschera
+678|Evitare
+679|Opacità (%)
+680|Ordine delle pagine
+681|Audio originale (%)
+682|Colore del contorno
+683|Stile pronto
+684|Aree
+685|Seed
+686|Sensibilità
+687|Ombra
+688|Formato
+689|Smista in cartelle
+690|Velocità
+691|Intensità
+692|Nascondi con
+693|File dei sottotitoli
+694|Colore del testo
+695|Traduci in
+696|Traduci la richiesta in inglese
+697|Video
+698|Voce
+699|Parole per riga
+700|Posizione orizzontale (%)
+701|Posizione verticale (%)
+702|Opzioni (una per riga)
+703|Modello del nome
+704|Cifre del numero
+705|Conta separatamente per opzione
+706|Confidenza minima (%)
+707|Cosa guardare
+708|Qualità
+709|Livello
+710|Lingua
+711|Percentuale
+712|Mantieni le proporzioni
+713|Inizio
+714|Fine
+715|Durata (s)
+716|Dimensione
+717|Ruota (gradi)
+718|Taglio preciso
+719|Pagine
+720|Fotogrammi al secondo
+721|Specchia in orizzontale
+722|Specchia in verticale
+723|Codifica
+724|Finestra
+725|Volume
+726|Link
+727|Dimensione finale (MB)
+728|Scarica i sottotitoli
+729|Salta le pagine che hanno già testo
+730|Secondi
+731|Scala
+732|Saturazione
+733|Risoluzione
+734|Sostituisci l'audio
+735|Area
+736|Posizione
+737|Playlist intera
+738|Formato pagina
+739|Password del proprietario
+740|Password
+741|Musica
+742|Mono
+743|Modello
+744|Microfono
+745|Volume di destinazione (LUFS)
+746|Ripeti
+747|Tipo
+748|Mantieni l'audio
+749|Kbps
+750|Salva come
+751|Filtro
+752|Fattore
+753|Ogni (s)
+754|Bordo
+755|Risoluzione (DPI)
+756|Ritaglia
+757|Scarica la copertina
+758|Contrasto
+759|Accesso del browser
+760|Luminosità
+761|Sfondo
+762|Audio (kbps)
+763|Proporzioni
+764|Consenti la stampa
+765|Consenti la copia
+766|File di uscita
+767|Nome
+768|Istruzione per l'IA
+769|Una risposta per file
+770|Passa i file avanti
+771|Salva la risposta come
+772|Criterio
+773|Tipi accettati
+774|Estensioni accettate
+775|Dimensione minima (MB)
+776|Dimensione massima (MB)
+777|Sposta invece di copiare
+778|Salva i testi come .txt
+779|Veloce
+780|Bilanciato
+781|Preciso
+782|Voce e base
+783|Solo la voce
+784|Solo la base strumentale
+785|Nessuno
+786|Trasparente
+787|Bianco
+788|Bianco e nero
+789|Seppia
+790|Inverti
+791|Piccolo
+792|Grande
+793|Morbido
+794|Netto
+795|Audio
+796|PDF
+797|Testi
+798|Suono
+799|A4 verticale
+800|A4 orizzontale
+801|In alto a sinistra
+802|In alto a destra
+803|In basso a sinistra
+804|In basso a destra
+805|Al centro
+806|A sinistra
+807|A destra
+808|Podcast (−16 LUFS)
+809|Reels e YouTube (−14 LUFS)
+810|Inizio del flusso: i file che passeranno per i nodi.
+811|Un testo scritto da te, che passa ai nodi successivi.
+812|Salva in una cartella tutto ciò che arriva (file e testi).
+813|Chiede all'IA configurata nelle Impostazioni di fare qualcosa con ciò che arriva: descrivere, riassumere, tradurre, scrivere sottotitoli… La risposta prosegue come testo.
+814|L'IA configurata controlla ogni elemento secondo il criterio che scrivi e lo manda all'uscita "sì" o "no".
+815|Lascia passare solo i file del tipo, dell'estensione o della dimensione scelti.
+816|Copia ogni file con un nuovo nome, composto dall'opzione scelta dall'IA, dalla data, da un contatore o dal nome originale.
+817|Un'IA sul tuo PC guarda ogni immagine, ascolta ogni suono o legge ogni testo e lo manda all'uscita dell'opzione più adatta.
+818|Converti tra PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
+819|Cambia le dimensioni di una o più immagini, in percentuale o in pixel.
+820|Riduci la dimensione del file mantenendo il formato (JPG, PNG, WEBP…).
+821|Scegli da 1 a 100. JPG e WEBP mantengono il formato; gli altri diventano JPG (o WEBP se hanno trasparenza).
+822|Ruota, specchia o ritaglia le immagini con una proporzione predefinita (il ritaglio è centrato).
+823|Cambia luminosità, contrasto e saturazione o applica un filtro. Controlla l'anteprima prima di salvare.
+824|Cancella le informazioni nascoste della foto (EXIF, posizione GPS, fotocamera, data) senza perdere qualità.
+825|Rimuovi lo sfondo dalle foto di persone, prodotti e animali con l'intelligenza artificiale, sul tuo PC e senza internet.
+826|Ingrandisci le immagini 2× o 4× senza sfocarle: l'intelligenza artificiale ricrea i dettagli. Funziona sul tuo PC, offline.
+827|Unisci più immagini in un unico PDF, una per pagina, nell'ordine dell'elenco.
+828|Converti tra MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF o estrai l'audio in MP3.
+829|Rendi i video più leggeri scegliendo un livello di compressione o la dimensione finale in MB.
+830|Scegli inizio e fine e salva solo quella parte del video.
+831|Unisci più video in uno solo, nell'ordine dell'elenco.
+832|Accelera o rallenta (da 0,25× a 4×). L'audio segue senza diventare acuto o grave.
+833|Rendi muto il video o salvane immagini a intervalli regolari.
+834|Trasforma solo una parte del video in una GIF animata.
+835|Ruota i video girati di lato o ritagliali in 9:16 (Reels/TikTok), 1:1, 4:5 o 16:9.
+836|Imprimi i sottotitoli (.srt, .ass o .vtt) nel video, così compaiono in qualsiasi lettore o social network.
+837|Aggiungi musica al video, mixata con l'audio originale o al suo posto.
+838|Converti tra MP3, WAV, FLAC, OGG, M4A e OPUS. Estrae anche l'audio dai video.
+839|Unisci più canzoni o registrazioni in un unico file, nell'ordine dell'elenco.
+840|Porta il volume di più audio (o video) allo stesso livello, senza distorsioni.
+841|Elimina fruscio, ventola, rumore di strada e di fondo dalle registrazioni vocali, in audio e video.
+842|Dai alla voce un suono da podcast con un clic: meno rumore, più chiara e presente, senza picchi e al volume giusto.
+843|Riduci le dimensioni dei file audio scegliendo il bitrate.
+844|Scarica video e musica da centinaia di siti tramite link.
+845|Usa una preimpostazione salvata: lo strumento con le impostazioni che hai salvato.
+846|descrivi l'immagine.
+847|impossibile creare la cartella: {e}
+848|impossibile avviare il generatore: {e}
+849|il generatore si è fermato senza salvare l'immagine.
+850|memoria insufficiente nella scheda grafica; prova il formato quadrato. ({why})
+851|Nessun ritaglio
+852|Inverti colori
+853|Indica la larghezza e/o l'altezza.
+854|Senza mantenere le proporzioni, indica larghezza E altezza.
+855|{w}x{h} → {nw}x{nh}
+856| • salvato come PNG
+857|qualità {q} • {}
+858|ruotata di {rotate}°
+859|specchiata ↔
+860|specchiata ↕
+861|ritaglio {}
+862|nessuna modifica
+863|{what} • {}×{}
+864|metadati rimossi (rotazione della fotocamera applicata all'immagine)
+865|metadati rimossi ({})
+866|nessun metadato trovato
+867|sfondo rimosso • mantenuto il {kept:.0}% dell'immagine
+868|saturazione
+869|{name} {v:+}
+870|{w}x{h} → {}x{} (IA {scale}×)
+871|Dimensione dell'immagine
+872|A4 verticale
+873|A4 orizzontale
+874|{d} giorni fa
+875|{} mesi fa
+876|{} anni fa
+877|Data della foto
+878|Esposizione
+879|Apertura
+880|Lunghezza focale
+881|Software
+882|Autore
+883|Copyright
+884|Posizione (GPS)
+885|{lat:.6}, {lon:.6}
+886|Campi EXIF totali
+887|Foto (EXIF)
+888|Durata
+889|Bitrate totale
+890|Copertina
+891|Audio
+892|Sottotitolo
+893|Media
+894|Tracce
+895|Tag
+896|{} ({} byte)
+897|Modificato
+898|Creato
+899|File
+900|Dimensioni
+901|{w} × {h} px ({mp:.1} megapixel)
+902|Colori
+903| (con trasparenza)
+904|Immagine
+905|impossibile leggere (danneggiato o protetto)
+906|la maschera deve avere la dimensione dell'immagine.
+907|dipingi ciò che va cancellato.
+908|impossibile consultare GitHub: {e}
+909|impossibile raggiungere GitHub: {e}
+910|download non riuscito: {e}
+911|il file scaricato non corrisponde alla firma pubblicata; non è stato modificato nulla.
+912|impossibile sostituire yt-dlp (è in uso?): {e}
+913|la versione scaricata non ha funzionato; è stata mantenuta la precedente.
+914|Annullamento…
+915|Avvio…
+916|Errore imprevisto.
+917|Qwen 3.5 2B (1,3 GB)
+918|impossibile estrarre llama.cpp.
+919|il processo si è chiuso
+920|l'IA locale ha impiegato troppo ad avviarsi.
+921|impossibile avviare l'IA locale: {last}
+922|l'IA locale non ha risposto: {e}
+923|l'IA locale non ha restituito testo.
+924|l'IA locale non ha scelto un'opzione.
+925|l'IA locale non ha restituito la traduzione nel formato previsto.
+926|la traduzione è tornata con un numero diverso di frasi.
+927|Download
+928|AUTOMAZIONE
+929|Flussi di automazione
+930|Ridimensiona
+931|Riduci qualità
+932|Converti formato
+933|Rimuovi sfondo
+934|Ingrandisci con IA
+935|Ruota / ritaglia
+936|Regolazioni colore
+937|Rimuovi metadati
+938|Immagini → PDF
+939|Taglia spezzone
+940|Unisci video
+941|Cambia velocità
+942|Video → GIF
+943|Imprimi sottotitoli
+944|Musica di sottofondo
+945|Rimuovi audio / fotogrammi
+946|Taglia audio
+947|Unisci audio
+948|Normalizza volume
+949|Rimuovi rumore
+950|Migliora voce
+951|PDF → immagini
+952|Tabelle in Excel
+953|Proteggi con password
+954|Video e musica
+955|Intelligenza artificiale (flussi di automazione)
+956|Usata dai nodi "IA: istruzione" e "IA: valuta". I file che passano per questi nodi vengono inviati al servizio scelto; il resto di Conver resta offline.
+957|Servizio:
+958|Anthropic (Claude)
+959|Compatibile con OpenAI
+960|es.: gpt-4o-mini, llama3.1 (Ollama)
+961|Indirizzo dell'API:
+962|Chiave API:
+963|salvata (protetta da Windows)
+964|incolla qui la chiave
+965|Salva chiave
+966|Prova la connessione
+967|Prova in corso…
+968|✔ L'IA ha risposto.
+969|Modelli di IA
+970|Ogni strumento scarica il modello mancante la prima volta che lo usi. Qui puoi scaricarlo in anticipo o eliminarlo per liberare spazio.
+971|Eliminare {}?
+972|✔ Scaricato • {}
+973|Download… {:.0}%
+974|In coda
+975|Scarica
+976|Spazio usato: {}
+977|Apri cartella
+978|Annulla download
+979|convertitore universale
+980|🔍  Cerca strumento…
+981|Ctrl+F
+982|Cartella monitorata  ●
+983|Registratore audio  ●
+984|Registra lo schermo  ●
+985|Dettatura dal vivo  ●
+986|Nessuno strumento trovato.
+987|⚙  Impostazioni
+988|🕘  Cronologia
+989|Download dei modelli di IA… {:.0}%
+990|Impostazioni
+991|Personalizza Conver.
+992|({here})  {native}
+993|{native}  ({here})
+994|Le 20 lingue più parlate al mondo. I nomi dei file e i messaggi di FFmpeg e yt-dlp non vengono tradotti.
+995|Aspetto
+996|Chiaro
+997|Scuro
+998|Avvisi
+999|Notifica di Windows quando un'attività lunga termina (con Conver in secondo piano)
+1000|Riproduci un suono alla fine
+1001|Prova avviso
+1002|Ecco come apparirà l'avviso quando un'attività termina.
+1003|la notifica compare con il nome "Windows PowerShell"; è il modo di Windows per le app senza programma di installazione.
+1004|Cartella predefinita:
+1005|Cambia…
+1006|Cartella predefinita dei download
+1007|Informazioni
+1008|Versione:
+1009|non trovato
+1010|verifica in corso…
+1011|Progetto:
+1012|Automazione (agenti IA e riga di comando)
+1013|Gli agenti IA (Claude, Cursor, VS Code…) possono usare tutti gli strumenti di Conver tramite MCP. Incolla la configurazione qui sotto nel file MCP del tuo agente.
+1014|Programma:
+1015|Copia configurazione MCP
+1016|Copia esempio da riga di comando
+1017|"{}" image_convert foto.png --format webp
+1018|Da riga di comando: conver-cli help  •  conver-cli <strumento> file… --opzione valore
+1019|Integrazione con Windows
+1020|Mostra "Apri con Conver" nel menu del tasto destro (immagini, video, audio e PDF)
+1021|Impossibile modificare il menu: {e}
+1022|In Windows 11 l'opzione si trova in "Mostra altre opzioni". Se sposti la cartella di Conver, deseleziona e riseleziona questa casella.
+1023|Aggiornamenti
+1024|Controlla all'avvio se c'è una nuova versione di Conver (consulta GitHub)
+1025|✔ hai la versione più recente ({})
+1026|versione {} disponibile
+1027|Controlla ora
+1028|"Aggiorna ora" scarica il nuovo programma di installazione, verifica la firma e installa senza domande: Conver si chiude e si riapre da solo, con le stesse impostazioni.
+1029|"Aggiorna ora" scarica la nuova versione portatile, verifica la firma e sostituisce i file di questa cartella (la cartella dados viene mantenuta): Conver si chiude e si riapre da solo.
+1030|Questa copia non è stata installata con il programma di installazione e non è la versione portatile: scarica la nuova versione dal sito.
+1031|yt-dlp (motore dei download)
+1032|I siti cambiano spesso. Se i download smettono di funzionare, aggiorna yt-dlp (scarica la versione ufficiale da GitHub e verifica la firma).
+1033|Aggiorna yt-dlp
+1034|Download dell'ultima versione di yt-dlp…
+1035|Avevi già la versione più recente ({after}).
+1036|Aggiornato: {before} → {after}.
+1037|✔ {text}
+1038|Aggiornamento non riuscito.
+1039|Download di Conver {}…
+1040|Installazione… Conver si chiuderà e si riaprirà da solo.
+1041|Aggiorna ora
+1042|Nuova versione di Conver disponibile: {}
+1043|Novità
+1044|Non ora
+1045|l'inizio ({}) supera la fine del file ({}).
+1046|la fine deve essere dopo l'inizio.
+1047|{range} • {}
+1048|aggiungi almeno 2 video.
+1049|{} non ha video.
+1050|{} video • {}{extra} • {}
+1051|{e} — se i video sono diversi tra loro, usa "Ricodifica"
+1052|{label}×{d}
+1053|audio rimosso • {}
+1054|{n} immagini nella cartella {}
+1055|volume regolato a {lufs} LUFS
+1056|rumore rimosso (IA)
+1057|rumore rimosso (forte)
+1058|fruscio rimosso
+1059|voce migliorata • {lufs} LUFS
+1060|l'inizio supera la fine del video.
+1061|{} → {} • {} fps • {}
+1062|9:16 (Reels/TikTok)
+1063|1:1 (feed)
+1064|4:5 (Instagram)
+1065|16:9 (YouTube)
+1066|scegli una rotazione, specchiatura o ritaglio.
+1067|impossibile leggere i sottotitoli: {e}
+1068|sottotitoli: {}
+1069|{} non ha audio.
+1070|impossibile leggere la durata del video.
+1071|mixata con l'audio originale
+1072|al posto dell'audio originale
+1073|{} {how} • volume {volume}%
+1074|aggiungi almeno 2 file.
+1075|{} file • {} • {}
+1076|Converti formato video
+1077|Comprimi video
+1078|Taglia spezzone video
+1079|Taglia
+1080|Rimuovi audio / estrai fotogrammi
+1081|Converti formato audio
+1082|Salva solo una parte di una canzone o registrazione.
+1083|Normalizza
+1084|Comprimi audio
+1085|Video in GIF
+1086|Crea GIF
+1087|Ruota e ritaglia video
+1088|Migliora
+1089|Inizio non valido. Usa il formato 00:01:30 (o solo i secondi).
+1090|Fine non valida. Usa il formato 00:02:45 (o solo i secondi).
+1091|La fine deve essere dopo l'inizio.
+1092|Formato di uscita:
+1093|Comprimi per:
+1094|Dimensione finale
+1095|Dimensione desiderata:
+1096|ogni video avrà circa questa dimensione (2 passaggi, più lento)
+1097|Codifica:
+1098|H.264 (compatibile)
+1099|H.265 (più piccolo, più lento)
+1100|Audio:
+1101|64 kbps
+1102|96 kbps
+1103|Il risultato viene salvato in MP4 con il suffisso _comprimido.
+1104|Inizio:
+1105|durata del file selezionato: {}
+1106|Fine:
+1107|fino alla fine
+1108|Veloce (senza perdita)
+1109|Preciso (ricodifica)
+1110|Taglia esattamente ai tempi indicati; richiede più tempo perché ricodifica il file.
+1111|Istantaneo e senza perdita; nei video il taglio può cadere qualche secondo prima dell'inizio.
+1112|Ricodifica (consigliato)
+1113|Veloce (solo unione)
+1114|Funziona con video diversi: tutti prendono la risoluzione del primo, con bordi se necessario. Salva in MP4.
+1115|Istantaneo, ma funziona solo se tutti i video hanno lo stesso formato, risoluzione e codifica.
+1116|Usa ↑ e ↓ nell'elenco per cambiare l'ordine.
+1117|Personalizzata:
+1118|Mantieni l'audio (accelerato/rallentato insieme)
+1119|Rimuovi audio
+1120|Estrai fotogrammi
+1121|Un'immagine ogni:
+1122|PNG (senza perdita)
+1123|Le immagini vengono salvate in una cartella <nome del video>_frames.
+1124|Il video viene copiato senza ricodifica: veloce e senza perdita di qualità.
+1125|WAV e FLAC sono senza perdita: non c'è qualità da scegliere.
+1126|Volume obiettivo:
+1127|Alto (−14, streaming)
+1128|Standard (−16)
+1129|Morbido (−23, TV)
+1130|Nei video l'immagine viene copiata senza perdita; viene ricodificato solo l'audio.
+1131|Intensità:
+1132|Leggera (solo fruscio)
+1133|Media (IA)
+1134|L'opzione con IA (RNNoise) è stata addestrata per la voce: pulisce bene parlato, podcast e lezioni, ma può attutire la musica.
+1135|Volume finale:
+1136|Rumore:
+1137|Togli anche il rumore di fondo (IA)
+1138|Taglia i bassi che impastano la voce, fa risaltare il parlato, ammorbidisce le "s", contiene i picchi e regola il volume. Nei video l'immagine è copiata senza perdita.
+1139|MP3 (compatibile)
+1140|OPUS (più piccolo)
+1141|Bitrate:
+1142|160 kbps
+1143|Canali:
+1144|Converti in mono (metà della dimensione; adatto alla voce)
+1145|64–96 kbps è ottimo per voce e podcast; 128–160 kbps per la musica.
+1146|video selezionato: {}
+1147|Durata:
+1148|Larghezza:
+1149|320 px
+1150|480 px
+1151|640 px
+1152|800 px
+1153|Le GIF diventano pesanti in fretta: spezzoni brevi, 480 px e 12 fps di solito restano sotto i 5 MB.
+1154|Ruota:
+1155|Non ruotare
+1156|Specchia:
+1157|In orizzontale ↔
+1158|Ritaglia:
+1159|Il ritaglio è centrato. L'audio viene copiato senza perdita.
+1160|Sottotitoli:
+1161|automatici (stesso nome del video)
+1162|Scegli i sottotitoli
+1163|Automatici
+1164|Trovati per il video selezionato: {}
+1165|Nessun sottotitolo con lo stesso nome del video selezionato. Scegli il file.
+1166|Ogni video usa i sottotitoli con il suo stesso nome (video.srt), oppure scegline uno per tutti.
+1167|Dimensione del testo:
+1168|Medio
+1169|Musica:
+1170|Tutti i file
+1171|Scegli la musica
+1172|Mixa con la musica
+1173|Sostituisci con la musica
+1174|Volume della musica:
+1175|Ripeti:
+1176|Ripeti la musica se è più corta del video
+1177|Per una musica di sottofondo sotto una voce, di solito va bene il 20–40%. L'immagine viene copiata senza perdita.
+1178|Usa ↑ e ↓ nell'elenco per cambiare l'ordine. Accetta anche video (usa il loro audio).
+1179|{} file
+1180|{} video
+1181|nessun sottotitolo con lo stesso nome del video; scegli il file dei sottotitoli.
+1182|scegli la musica.
+1183|Trascrizione (Whisper)
+1184|Separare voce e base (UVR)
+1185|Cancellare oggetto (LaMa)
+1186|Generare immagine (DreamShaper 8)
+1187|Classificare immagini (SigLIP 2)
+1188|Classificare suoni (CLAP)
+1189|IA del linguaggio (Qwen 3.5 2B)
+1190|Voce naturale (Piper)
+1191|Sottotitoli, Trascrivi, Dettatura dal vivo e Traduci e doppia
+1192|Generare immagine (serve una scheda grafica discreta)
+1193|Nodo "IA locale: classifica" dei flussi, con immagini e video
+1194|Nodo "IA locale: classifica" dei flussi, con audio
+1195|Tradurre sottotitoli e classificare testi nei flussi
+1196|Sintesi vocale e doppiaggio, con la voce della lingua di Conver
+1197|impossibile eliminare {} (è in uso?).
+1198|Convertire e comprimere
+1199|Video per i social
+1200|Podcast e audio
+1201|Documenti e PDF
+1202|Automazione con flussi
+1203|Creare con l'IA
+1204|Immagini, video e audio in un altro formato o più leggeri
+1205|Sottotitoli, tagli, video verticale, traduzione
+1206|Migliorare la voce, trascrivere, separare voce e musica
+1207|Unire e dividere PDF, OCR, tabelle in Excel
+1208|Smistare foto, suoni e testi per argomento da solo
+1209|Generare immagini, cancellare oggetti, leggere un testo
+1210|Già inclusi in Conver, senza scaricare nulla: rimuovere lo sfondo, ingrandire con l'IA, rimuovere il rumore, sfocare i volti e OCR.
+1211|{} {name}…
+1212|Download di
+1213|✔ {name}
+1214|✖ {name}: {}
+1215|{ok} pacchetto/i scaricato/i.
+1216|✔ {} pronto su questo computer.
+1217|{} ({}) viene scaricato una volta, al primo utilizzo, oppure ora in Impostazioni → Modelli di IA.
+1218|Conver — fatto
+1219|Conver — errore
+1220|la lingua {lang} non è installata per l'OCR in Windows.
+1221|Converti immagine
+1222|Comprimi immagine
+1223|Ruota e ritaglia
+1224|Regola i colori
+1225|Immagini in PDF
+1226|Converti video
+1227|Sottotitoli nel video
+1228|Converti audio
+1229|Traduci sottotitoli e doppia
+1230|Classifica con IA locale
+1231|Download
+1232|Microfoni e finestre
+1233|Elenca preimpostazioni
+1234|Elenca flussi
+1235|Vedi flusso
+1236|Tipi di nodo
+1237|Salva flusso
+1238|Elimina flusso
+1239|Cronologia del flusso
+1240|Esegui flusso
+1241|Annullato dall'utente.
+1242|[{}/{n}] {name}
+1243|✔ {name}   {info}
+1244|Fatto: {ok} di {n} file.
+1245|Elaborazione…
+1246|✔ {}   {info}
+1247|Fatto.
+1248|Ridimensiona immagine
+1249|Converti formato immagine
+1250|Ruota, specchia e ritaglia
+1251|Ingrandisci
+1252|Crea PDF
+1253|Larghezza e altezza devono essere numeri interi positivi.
+1254|Indica la larghezza e/o l'altezza in pixel.
+1255|nessuna anteprima
+1256|Pixel
+1257|Mantieni proporzioni
+1258|Con le proporzioni mantenute, l'immagine sta dentro la larghezza/altezza indicata.
+1259|Leggera = quasi nessuna perdita visibile  •  Forte = file molto più piccolo
+1260|Le icone sono al massimo 256×256; le immagini più grandi vengono ridotte.
+1261|In verticale ↕
+1262|JPG, PNG e WEBP: vengono cancellati solo i metadati, l'immagine non viene ricompressa.
+1263|Se la foto ha la rotazione della fotocamera, viene applicata prima, così l'immagine non resta di lato.
+1264|Nuovo sfondo:
+1265|Bordo:
+1266|Morbido (capelli, pelo)
+1267|Trasparente salva in PNG. La prima immagine richiede qualche secondo mentre il modello si carica.
+1268|⚠ Modello di IA non trovato: metti silueta.onnx nella cartella modelos.
+1269|Ingrandisci:
+1270|Ottimo per foto piccole, screenshot e immagini vecchie. Le immagini grandi richiedono più tempo (anche l'anteprima).
+1271|⚠ Modello IA non trovato: metti realesr-general-x4v3.onnx nella cartella modelos.
+1272|Luminosità:
+1273|Contrasto:
+1274|Saturazione:
+1275|Azzera
+1276|Filtro:
+1277|Formato pagina:
+1278|Usa ↑ e ↓ nell'elenco per cambiare l'ordine delle pagine.
+1279|Risultato
+1280|Aggiungi un'immagine per vedere l'anteprima
+1281|Risultato: {}×{}  •  {}   ({})
+1282|Generazione anteprima…
+1283|Pagina {}  •
+1284|{page}Originale: {}×{}  •  {orig_size}
+1285|Caricamento…
+1286|Impossibile aprire questa immagine.
+1287|{} immagini
+1288|{pages} pagina/e • {}
+1289|Non usare
+1290|Scarica video e musica
+1291|{n} link — verranno scaricati in coda
+1292|Incolla qui il link del video, della canzone o della playlist (uno o più, uno per riga)
+1293|MP4 (video)
+1294|MP3 (audio)
+1295|Accesso del browser:
+1296|per i siti che richiedono un account (Instagram, Facebook). Chiudi il browser prima di scaricare.
+1297|Scarica anche:
+1298|Sottotitoli (.srt, portoghese e inglese)
+1299|Immagine di copertina (.jpg)
+1300|Scarica l'intera playlist (se il link è di una playlist)
+1301|Scarica solo contenuti che hai il diritto di scaricare.
+1302|Scegli una cartella di uscita valida.
+1303|[link {}/{n}]
+1304|{prefix}Recupero informazioni…
+1305| ({failed} link con errori)
+1306|Fatto: {total} file scaricati{errors}.
+1307|{}: impossibile aprire il PDF ({e})
+1308|{} è protetto da password.
+1309|aggiungi almeno 2 PDF.
+1310|intervallo non valido: "{part}". Usa ad esempio 1-3, 7, 10-
+1311|la pagina {a} non esiste (il PDF ne ha {total}).
+1312|indica le pagine, ad esempio 1-3, 7
+1313|pagina non valida: "{part}" (il PDF ne ha {total}).
+1314|indica almeno una pagina.
+1315|il PDF deve mantenere almeno una pagina.
+1316|il PDF non ha l'albero delle pagine.
+1317|il PDF non ha la pagina {n} (ne ha {total}).
+1318|impossibile leggere la pagina {n}.
+1319|{n} pagine ({removed} rimossa/e)
+1320|{n} pagine
+1321|{} di {total} pagine
+1322|{total} PDF nella cartella {}
+1323|{} è protetto da password; rimuovi prima la password.
+1324|il PDF era già ottimizzato (nessuna riduzione)
+1325|{changed} immagine/i ricompressa/e • {}
+1326|inserisci la password.
+1327|{} è già protetto da password.
+1328|impossibile proteggere: {e}
+1329|protetto con password (AES-128)
+1330|password errata.
+1331|password rimossa
+1332|PDF protetto: inserisci la password.
+1333|impossibile aprire il PDF ({})
+1334|{} immagine/i nella cartella {}
+1335|{done} pagina/e con testo riconosciuto • {words_total} parole
+1336| • {skipped} avevano già testo
+1337|nessuna tabella trovata nel PDF.
+1338|nessun testo trovato nel PDF.
+1339|{rows} riga/e su {} pagina/e
+1340|testo troppo lungo per un codice QR.
+1341|la registrazione si è interrotta.
+1342|da questo microfono non è arrivato alcun suono. Scegli un altro ingresso dall'elenco (es.: "Microfono (…)").
+1343|il microfono ha smesso di rispondere.
+1344|nome ripetuto
+1345|esiste già un file con questo nome
+1346|non è stato registrato nulla.
+1347|impossibile creare la cartella temporanea: {e}
+1348|impossibile unire le parti della registrazione: {e}
+1349|UVR MDX-Net (67 MB)
+1350|Solo la base (karaoke)
+1351|salvataggio non riuscito: {}
+1352|l'audio è troppo corto (meno di mezzo secondo).
+1353|{} • {dur}
+1354|{} → {} ({sign}{:.0}%)
+1355|Bilanciato (264 MB)
+1356|Preciso (574 MB)
+1357|Whisper base (82 MB)
+1358|Whisper small (264 MB)
+1359|Whisper large-v3 turbo (574 MB)
+1360|Rileva automaticamente
+1361|Portoghese
+1362|Inglese
+1363|Spagnolo
+1364|Francese
+1365|Tedesco
+1366|Italiano
+1367|Russo
+1368|Cinese
+1369|Giapponese
+1370|Coreano
+1371|Arabo
+1372|Hindi
+1373|Turco
+1374|Polacco
+1375|Ucraino
+1376|Olandese
+1377|Indonesiano
+1378|Vietnamita
+1379|Persiano
+1380|impossibile avviare Whisper: {e}
+1381|errore di Whisper: {}
+1382|Whisper non ha creato alcun file.
+1383|{words} parole • {}
+1384|Whisper non ha prodotto il risultato.
+1385|WAV non valido
+1386|WAV senza dati
+1387|Piper non trovato (cartella bin\piper).
+1388|Piper non ha prodotto l'audio.
+1389|nessuna frase da tradurre.
+1390|lingua sconosciuta: {code}
+1391|impossibile unire il doppiaggio.
+1392| • {faster} frase/i accelerata/e per starci
+1393|{} frase/i doppiata/e{extra}
+1394|niente da fare: scegli di tradurre e/o doppiare.
+1395|{} frase/i tradotta/e
+1396|Nessuna pianificazione.
+1397|orario non valido; usa HH:MM, come 08:30.
+1398|impossibile usare l'Utilità di pianificazione: {e}
+1399|l'Utilità di pianificazione ha rifiutato: {msg}
+1400|Pianificato per le {h:02}:{m:02}.
+1401|La cartella sorvegliata non esiste.
+1402|Sorveglio la cartella.
+1403|In esecuzione con {n} nuovo/i file…
+1404|{when}: {n} file, {outs} risultato/i{}
+1405|, {fails} errore/i
+1406|{when}: errore — {e}
+1407|Conver — flusso terminato
+1408|Conver — flusso con errori
+1409|Portoghese (Brasile) — Faber, maschile
+1410|Portoghese (Brasile) — Cadu, maschile
+1411|Portoghese (Brasile) — Jeff, maschile
+1412|Inglese (USA) — Amy, femminile
+1413|Inglese (USA) — Lessac, femminile
+1414|Spagnolo (Spagna) — Davefx, maschile
+1415|Spagnolo (Messico) — Claude, maschile
+1416|Francese — Siwis, femminile
+1417|Tedesco — Thorsten, maschile
+1418|Italiano — Paola, femminile
+1419|impossibile avviare Piper: {e}
+1420|impossibile convertire in MP3.
+1421|questa copia di Conver non è stata installata con il programma di installazione e non è la portatile; scaricala dal sito.
+1422|la nuova versione non ha il file per questa copia di Conver; scaricala dal sito.
+1423|la nuova versione non ha pubblicato le somme di controllo; scaricala dal sito.
+1424|il file di aggiornamento non è nell'elenco di controllo; scaricala dal sito.
+1425|impossibile estrarre l'aggiornamento: {e}
+1426|impossibile estrarre l'aggiornamento.
+1427|impossibile avviare il programma di installazione: {e}
+1428|impossibile avviare l'aggiornamento: {e}
+1429|aggiornamento automatico non disponibile per questa copia.
+1430|Impossibile completare l'aggiornamento: {e}
+1431|il modello di ingrandimento non è stato trovato (cartella modelos).
+1432|l'immagine supererebbe {MAX_SIDE} pixel di lato; riducila prima o usa 2×.
+1433|MP3 (solo audio)
+1434|{mb} MB sono troppo pochi per {:.0} s di video (minimo ≈ {:.1} MB).
+1435|Comprimi immagini
+1436|Converti immagini
+1437|Comprimi video
+1438|Converti video
+1439|Converti audio
+1440|✖ impossibile creare la cartella {OUT_FOLDER}: {e}
+1441|Monitoraggio di {} — {}
+1442|I risultati vanno nella sottocartella "{OUT_FOLDER}".
+1443|Monitoraggio della cartella… ({count} elaborati)
+1444|Elaborazione di {name}…
+1445|{name}: {info}
+1446|{name}: {e}
+1447|Fermato. {count} file elaborati.
+1448|scrivi il testo della filigrana.
+1449|scegli l'immagine del logo.
+1450|impossibile leggere {}: {e}
+1451|filigrana sul video
+1452|filigrana
+1453|{label} • {}
+1454|Benvenuto in Conver
+1455|Per cosa userai Conver? Seleziona quante opzioni vuoi: così Conver suggerisce quali modelli di IA vale la pena scaricare. Gli strumenti non cambiano, restano tutti nel menu.
+1456|Senza nulla selezionato, Conver mostra tutti i modelli.
+1457|Continua
+1458|Alcuni strumenti usano modelli che non sono inclusi nel download di Conver. Scarica ora ciò che userai, o aspetta la prima volta che apri lo strumento: ti dice prima la dimensione.
+1459|Il download continua in background mentre usi Conver.
+1460|Indietro
+1461|Inizia
+1462|Scarica {} e inizia
+1463|Inizia senza scaricare
+1464|Seleziona i file
+1465|Nessun file
+1466|1 file
+1467|{n} file
+1468|+ Aggiungi
+1469|ordine:
+1470|Trascina qui i file
+1471|oppure fai clic per selezionare
+1472|{w}×{h}  •  {size}
+1473|{t}  •  {size}
+1474|{}º  •  {sub}
+1475|Qui appare la traccia audio
+1476|0 dB
+1477|{d:.1} dB
+1478|In attesa del suono del microfono…
+1479|⚠ Quasi nessun suono: parla più vicino o alza il volume del microfono in Windows.
+1480|Un po' basso: parla più vicino al microfono.
+1481|✔ Livello buono.
+1482|Stessa cartella del file originale
+1483|Scegli la cartella di uscita
+1484|Rilascia per aggiungere
+1485|Immagini e video vanno allo strumento giusto

@@ -258,6 +258,20 @@ impl Downloads {
         });
     }
 
+    // i18n: fora
+    /// Modo de captura: finge um download em andamento (sem baixar nada) para revisar a interface.
+    pub fn demo(&self) {
+        let mut q = self.queue.lock().unwrap();
+        q.working = true;
+        q.current = Some(Pack::Generate);
+        q.waiting = [Pack::ClassifyImage, Pack::ClassifySound].into_iter().collect();
+        let mut st = self.job.state();
+        st.progress = 0.6;
+        st.log = vec![(LogKind::Ok, "✔ Apagar objeto (LaMa)".into()), (LogKind::Ok, "✔ Voz natural (Piper)".into())];
+    }
+
+    // i18n: dentro
+
     pub fn current(&self) -> Option<Pack> {
         self.queue.lock().unwrap().current
     }
