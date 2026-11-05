@@ -1,5 +1,19 @@
 # Lista de mudanças
 
+## 1.9.0
+
+### Novidades
+- **Gerar imagem com modelos melhores:** além do modelo rápido (DreamShaper 8, 512 px), agora dá para escolher o **SDXL Lightning** (1024 px, bem mais detalhado; 6,9 GB) e o **Z-Image Turbo** (o melhor: entende pedidos longos, acerta mãos e rostos e escreve textos na imagem; 6,7 GB). Cada um é baixado só quando escolhido, e a tela já abre no melhor modelo que estiver no computador. Os modelos novos são mais lentos: numa placa de 8 GB, cerca de 2 minutos por imagem no SDXL e 4 a 7 minutos no Z-Image.
+- **Modelos de IA** (boas-vindas e Configurações) mostram os três modelos de imagem para baixar ou apagar; em "Criar com IA" o sugerido passa a ser o Z-Image Turbo.
+- **Editar imagem** (ferramenta nova, também pelo botão "Editar" nas imagens geradas), com IA no próprio PC:
+  - **pedir uma mudança:** escreva "deixe de noite" ou "coloque um boneco de neve" e só isso muda (FLUX.2 klein, 2,8 GB);
+  - **pintar e pedir:** pinte uma área e diga o que colocar ali; o resto fica igual;
+  - **variar a imagem:** cria uma versão parecida, escolhendo o quanto muda.
+- **Remover fundo com tela nova:** precisão em %, ajuste e suavização da borda, anticerrilhado, pincel para manter ou tirar partes do recorte, apagar objetos com a IA (com a opção de só apagar e manter o fundo), tudo com prévia ao vivo.
+- **Vozes Kokoro:** dublagem e Texto para voz ganharam vozes bem mais naturais (92 MB) em português do Brasil, inglês, espanhol, francês, italiano e hindi. Elas aparecem primeiro nas listas; as vozes do Piper continuam disponíveis.
+- **Mostrar arquivo:** depois de um trabalho, o botão abre o Explorer com o arquivo pronto já selecionado, em vez de só abrir a pasta.
+- **MCP e linha de comando:** `image_generate` ganhou `model` (`auto`, `fast`, `sdxl` ou `z_image`); `image_edit` é novo; `image_remove_background` aceita `precision`, `grow`, `feather` e `antialias`; `text_to_speech` e `subtitle_translate` aceitam as vozes Kokoro.
+
 ## 1.8.0
 
 ### Novidades

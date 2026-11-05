@@ -392,7 +392,7 @@ impl TranslatePage {
         ui.add_space(4.0);
         // vozes para a dublagem: as do idioma de destino (ou todas, sem traduzir)
         let target = self.to.map(|i| LANGS[i].0);
-        let voices: Vec<&'static crate::tts::Voice> = crate::tts::VOICES.iter().filter(|v| target.is_none_or(|t| v.lang == t)).collect();
+        let voices: Vec<crate::tts::AnyVoice> = crate::tts::all_voices().into_iter().filter(|v| target.is_none_or(|t| v.lang() == t)).collect();
         if self.voice >= voices.len() {
             self.voice = 0;
         }
@@ -414,9 +414,10 @@ impl TranslatePage {
             }
             if self.dub && !voices.is_empty() {
                 row(ui, p, "Voz:", |ui| {
-                    egui::ComboBox::from_id_salt("tr_voice").selected_text(tr(voices[self.voice].label)).width(300.0).show_ui(ui, |ui| {
+                    let name = |v: &crate::tts::AnyVoice| if v.is_kokoro() { format!("{} (Kokoro)", tr(v.label())) } else { tr(v.label()) };
+                    egui::ComboBox::from_id_salt("tr_voice").selected_text(name(&voices[self.voice])).width(340.0).show_ui(ui, |ui| {
                         for (i, v) in voices.iter().enumerate() {
-                            ui.selectable_value(&mut self.voice, i, tr(v.label));
+                            ui.selectable_value(&mut self.voice, i, name(v));
                         }
                     });
                 });

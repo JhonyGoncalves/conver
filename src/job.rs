@@ -16,6 +16,8 @@ pub struct JobState {
     pub progress: f32,
     pub status: String,
     pub log: Vec<(LogKind, String)>,
+    /// O resultado do trabalho: um arquivo (o botão "Mostrar arquivo" abre o Explorer com ele selecionado) ou uma
+    /// pasta ("Abrir pasta").
     pub done_folder: Option<PathBuf>,
 }
 

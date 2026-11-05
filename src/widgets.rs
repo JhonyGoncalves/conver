@@ -693,7 +693,7 @@ pub enum Act {
     Cancel,
 }
 
-/// Status, barra de progresso, botões Iniciar/Cancelar, "Abrir pasta" e o log.
+/// Status, barra de progresso, botões Iniciar/Cancelar, "Mostrar arquivo" (ou "Abrir pasta") e o log.
 pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: bool) -> Act {
     let mut act = Act::None;
     let st = job.state();
@@ -708,9 +708,14 @@ pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: b
         if running && secondary(ui, p, "Cancelar", true) {
             act = Act::Cancel;
         }
-        if let (false, Some(folder)) = (running, &st.done_folder) {
-            if secondary(ui, p, "Abrir pasta", true) {
-                tools::open_folder(folder);
+        if let (false, Some(done)) = (running, &st.done_folder) {
+            // um arquivo: o Explorer abre com ele selecionado; uma pasta: abre a pasta
+            if done.is_file() {
+                if secondary(ui, p, "Mostrar arquivo", true) {
+                    tools::show_in_folder(done);
+                }
+            } else if secondary(ui, p, "Abrir pasta", true) {
+                tools::open_folder(done);
             }
         }
         ui.add(

@@ -5,6 +5,7 @@ mod ai;
 mod ai_api;
 mod llm;
 mod audioclass;
+mod bgpage;
 mod bgremove;
 mod captions;
 mod captions_page;
@@ -16,6 +17,7 @@ mod cli;
 mod dictation;
 mod docscan;
 mod download;
+mod editpage;
 mod extras;
 mod extras2;
 mod extras3;
@@ -33,6 +35,7 @@ mod inpaint;
 mod info;
 mod integration;
 mod job;
+mod kokoro;
 mod media;
 mod media_extra;
 mod media_page;
@@ -164,6 +167,8 @@ enum Page {
     Faces,
     Translate,
     Scan,
+    BgRemove,
+    ImageEdit,
     Tts,
     ImageGen,
     Dictation,
@@ -211,10 +216,11 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Img(ImgTool::Compress), "Comprimir"),
             (Page::Img(ImgTool::Quality), "Diminuir qualidade"),
             (Page::Img(ImgTool::Convert), "Converter formato"),
-            (Page::Img(ImgTool::RemoveBg), "Remover fundo"),
+            (Page::BgRemove, "Remover fundo"),
             (Page::Eraser, "Apagar objeto"),
             (Page::Faces, "Desfocar rostos"),
             (Page::ImageGen, "Gerar imagem"),
+            (Page::ImageEdit, "Editar imagem"),
             (Page::Img(ImgTool::Upscale), "Ampliar com IA"),
             (Page::Img(ImgTool::Transform), "Girar / recortar"),
             (Page::Img(ImgTool::Adjust), "Ajustes de cor"),
@@ -329,6 +335,8 @@ struct ConverApp {
     faces: extras6::FacesPage,
     translate: extras6::TranslatePage,
     scan: extras6::ScanPage,
+    bgremove: bgpage::BgPage,
+    imageedit: editpage::EditPage,
     tts: extras5::TtsPage,
     imagegen: extras5::ImageGenPage,
     dictation: extras5::DictationPage,
@@ -412,6 +420,8 @@ impl ConverApp {
             faces: extras6::FacesPage::new(),
             translate: extras6::TranslatePage::new(),
             scan: extras6::ScanPage::new(),
+            bgremove: bgpage::BgPage::new(),
+            imageedit: editpage::EditPage::new(),
             tts: extras5::TtsPage::new(),
             imagegen: extras5::ImageGenPage::new(),
             dictation: extras5::DictationPage::new(),
@@ -712,6 +722,8 @@ impl ConverApp {
             Page::Faces => Some(&mut self.faces.queue),
             Page::Translate => Some(&mut self.translate.queue),
             Page::Scan => Some(&mut self.scan.queue),
+            Page::BgRemove => Some(&mut self.bgremove.queue),
+            Page::ImageEdit => Some(&mut self.imageedit.queue),
             _ => None,
         }
     }
@@ -1227,7 +1239,7 @@ fn page_id(page: Page) -> &'static str {
             ImgTool::Strip => "img_strip",
             ImgTool::Pdf => "img_pdf",
             ImgTool::Adjust => "img_adjust",
-            ImgTool::RemoveBg => "img_removebg",
+            ImgTool::RemoveBg => "img_removebg_lote",
             ImgTool::Upscale => "img_upscale",
         },
         Page::Media(t) => match t {
@@ -1278,6 +1290,8 @@ fn page_id(page: Page) -> &'static str {
         Page::Faces => "img_faces",
         Page::Translate => "v_translate",
         Page::Scan => "img_scan",
+        Page::BgRemove => "img_removebg",
+        Page::ImageEdit => "img_edit",
         Page::Tts => "tts",
         Page::ImageGen => "img_generate",
         Page::Dictation => "dictation",
@@ -1470,8 +1484,17 @@ impl eframe::App for ConverApp {
                         Page::Faces => self.faces.ui(ui, &p),
                         Page::Translate => self.translate.ui(ui, &p),
                         Page::Scan => self.scan.ui(ui, &p),
+                        Page::BgRemove => self.bgremove.ui(ui, &p),
+                        Page::ImageEdit => self.imageedit.ui(ui, &p),
                         Page::Tts => self.tts.ui(ui, &p),
-                        Page::ImageGen => self.imagegen.ui(ui, &p),
+                        Page::ImageGen => {
+                            self.imagegen.ui(ui, &p);
+                            // "Editar" num resultado: abre a imagem em "Editar imagem"
+                            if let Some(f) = self.imagegen.edit_request.take() {
+                                self.imageedit.open_file(f);
+                                self.page = Page::ImageEdit;
+                            }
+                        }
                         Page::Dictation => self.dictation.ui(ui, &p),
                         Page::Settings => self.settings_ui(ui),
                     }

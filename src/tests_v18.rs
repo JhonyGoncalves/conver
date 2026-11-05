@@ -736,3 +736,176 @@ fn tmp_demo_flow_for_capture() {
     let r = crate::tests_v12::ctx_call("flow_run", serde_json::json!({ "name": "Teste - controles" })).unwrap();
     println!("{}", r["nodes"]);
 }
+
+#[test]
+#[ignore] // gera imagens com os três modelos (baixa até 13 GB e usa a placa de vídeo)
+fn image_models_compare() {
+    use crate::imagegen::{Engine, Quality, Request, Shape};
+    let d = crate::tests_v12::tmp("modelos_imagem");
+    let prompts = [
+        ("cabana", "a cozy wooden cabin in a snowy pine forest at sunset, warm light in the windows, smoke from the chimney, photorealistic"),
+        ("retrato", "close-up portrait photo of an elderly woman laughing, holding a cup of coffee with both hands, natural window light"),
+        ("placa", "a vintage coffee shop sign that says \"CONVER CAFE\" in bold letters, street at night, neon reflections"),
+    ];
+    for e in [Engine::Rapido, Engine::Xl, Engine::ZImage] {
+        if !e.installed() {
+            // baixa pelo mesmo caminho do app (SHA-256 conferido)
+            let t = std::time::Instant::now();
+            for f in e.files() {
+                crate::ai::ensure_model(&f, &|_| {}, &|| false).unwrap();
+            }
+            println!("RESULT {e:?}: baixado em {:.0} s", t.elapsed().as_secs_f32());
+        }
+        for (name, prompt) in prompts {
+            let req = Request { prompt: prompt.into(), negative: String::new(), shape: Shape::Quadrada, quality: Quality::Rapida, count: 1, seed: Some(42), engine: e };
+            let out = d.join(format!("{e:?}_{name}"));
+            let _ = std::fs::remove_dir_all(&out);
+            let t = std::time::Instant::now();
+            match crate::imagegen::generate(&req, &out, &|_| {}, &|| false) {
+                Ok(files) => {
+                    let f = &files[0];
+                    let dims = image::image_dimensions(f).unwrap();
+                    println!("RESULT {e:?} {name}: {:.1} s {dims:?} {}", t.elapsed().as_secs_f32(), f.display());
+                    std::fs::copy(f, d.join(format!("{e:?}_{name}.png"))).unwrap();
+                }
+                Err(err) => println!("RESULT {e:?} {name}: ERRO {err} ({:.1} s)", t.elapsed().as_secs_f32()),
+            }
+        }
+    }
+}
+
+#[test]
+#[ignore] // gera uma imagem com o Z-Image pelo caminho do app (minutos na placa de vídeo)
+fn image_generate_z_image_op() {
+    assert!(crate::imagegen::Engine::ZImage.installed(), "baixe o Z-Image antes");
+    assert_eq!(crate::imagegen::Engine::best_installed(), crate::imagegen::Engine::ZImage);
+    let d = crate::tests_v12::tmp("gerar_z");
+    let _ = std::fs::remove_dir_all(&d);
+    let t = std::time::Instant::now();
+    let r = crate::tests_v12::ctx_call("image_generate", serde_json::json!({ "prompt": "a red bicycle leaning on a blue wooden door, sunny day", "model": "auto", "seed": 7, "out_dir": d.display().to_string() })).unwrap();
+    let f = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
+    println!("RESULT z_image op: {:.0} s {:?}", t.elapsed().as_secs_f32(), image::image_dimensions(&f).unwrap());
+    assert_eq!(image::image_dimensions(&f).unwrap(), (768, 768));
+}
+
+#[test]
+fn background_refine() {
+    use crate::bgremove::{Dot, Refine, paint_mask, refine};
+    // máscara crua: um degradê da esquerda (0) para a direita (255)
+    let raw = image::GrayImage::from_fn(100, 20, |x, _| image::Luma([(x as f32 / 99.0 * 255.0) as u8]));
+    let kept = |m: &image::GrayImage| m.pixels().filter(|p| p[0] > 127).count();
+    let base = Refine { antialias: false, ..Default::default() };
+    let mid = refine(&raw, &base, None, None);
+    let strict = refine(&raw, &Refine { precision: 90.0, ..base }, None, None);
+    let loose = refine(&raw, &Refine { precision: 10.0, ..base }, None, None);
+    assert!(kept(&strict) < kept(&mid) && kept(&mid) < kept(&loose), "precisão maior corta mais");
+    let grown = refine(&raw, &Refine { grow: 5, ..base }, None, None);
+    assert!(kept(&grown) > kept(&mid), "engrossar mantém mais");
+    // pincel: manter à esquerda e tirar à direita
+    let keep = paint_mask(100, 20, &[Dot { x: 0.05, y: 0.5, r: 0.04 }]);
+    let remove = paint_mask(100, 20, &[Dot { x: 0.95, y: 0.5, r: 0.04 }]);
+    let painted = refine(&raw, &base, Some(&keep), Some(&remove));
+    assert_eq!(painted.get_pixel(5, 10)[0], 255);
+    assert_eq!(painted.get_pixel(95, 10)[0], 0);
+    // anticerrilhado: a borda definida ganha tons intermediários
+    let hard = refine(&raw, &Refine { hard: true, antialias: false, ..base }, None, None);
+    let smooth = refine(&raw, &Refine { hard: true, antialias: true, ..base }, None, None);
+    let mids = |m: &image::GrayImage| m.pixels().filter(|p| p[0] > 10 && p[0] < 245).count();
+    assert!(mids(&smooth) >= mids(&hard));
+}
+
+#[test]
+#[ignore] // edita uma imagem pelo caminho do app com o FLUX.2 klein (minutos na placa de vídeo)
+fn image_edit_instruction_op() {
+    let d = crate::tests_v12::tmp("editar_imagem");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let src = d.join("cabana.png");
+    let base = std::env::var("CONVER_EDIT_SRC").unwrap();
+    std::fs::copy(&base, &src).unwrap();
+    let t = std::time::Instant::now();
+    let r = crate::tests_v12::ctx_call("image_edit", serde_json::json!({ "files": [src.display().to_string()], "prompt": "add a snowman in front of the cabin", "how": "instruction", "seed": 5 })).unwrap();
+    let out = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
+    println!("RESULT edit op: {:.0} s {:?} {}", t.elapsed().as_secs_f32(), image::image_dimensions(&out).unwrap(), out.display());
+    assert!(out.file_name().unwrap().to_string_lossy().starts_with("cabana_editada"));
+}
+
+#[test]
+#[ignore] // baixa o Kokoro (92 MB) e gera fala em vários idiomas
+fn kokoro_voices() {
+    use crate::kokoro::{RATE, VOICES, phonemize, speak};
+    let d = crate::tests_v12::tmp("kokoro");
+    let frases = [
+        ("pt", "Olá, bem-vindos ao Conver! Hoje vamos aprender a dublar vídeos com uma voz natural, direto no computador."),
+        ("en", "Hello and welcome. Today we will learn how to dub videos with a natural voice."),
+        ("es", "Hola, bienvenidos. Hoy vamos a aprender a doblar vídeos con una voz natural."),
+        ("fr", "Bonjour et bienvenue. Aujourd'hui, nous allons apprendre à doubler des vidéos."),
+        ("it", "Ciao e benvenuti. Oggi impariamo a doppiare i video con una voce naturale."),
+    ];
+    for (lang, text) in frases {
+        for v in VOICES.iter().filter(|v| v.lang == lang).take(2) {
+            println!("RESULT {} fonemas: {}", v.id, phonemize(text, v).unwrap());
+            let t = std::time::Instant::now();
+            let s = speak(text, v, 1.0, &|_| {}, &|| false).unwrap();
+            let secs = s.len() as f32 / RATE as f32;
+            println!("RESULT {}: {secs:.1} s de fala em {:.1} s", v.id, t.elapsed().as_secs_f32());
+            assert!(secs > 2.0 && s.iter().any(|x| x.abs() > 0.05));
+            let pcm: Vec<i16> = s.iter().map(|x| (x.clamp(-1.0, 1.0) * 32767.0) as i16).collect();
+            crate::translate::write_wav(&d.join(format!("{}.wav", v.id)), &pcm, RATE).unwrap();
+        }
+    }
+}
+
+#[test]
+#[ignore] // usa o Kokoro (baixa o modelo se faltar)
+fn dub_with_kokoro() {
+    let d = tmp("dublagem_kokoro");
+    let vid = d.join("aula.mp4");
+    ffmpeg(&["-f", "lavfi", "-i", "color=c=0x223344:s=320x240:d=10", "-f", "lavfi", "-i", "sine=f=220:d=10", "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", &vid.to_string_lossy()], None);
+    std::fs::write(d.join("aula.srt"), "1\n00:00:00,500 --> 00:00:04,000\nOlá, bem-vindos à aula de hoje.\n\n2\n00:00:04,200 --> 00:00:09,000\nVamos falar sobre legendas e dublagem no computador.\n").unwrap();
+    let t = std::time::Instant::now();
+    let r = ctx_call("subtitle_translate", json!({ "files": [d.join("aula.srt").display().to_string()], "dub": true, "voice": "pf_dora", "original_volume": 0 })).unwrap();
+    println!("RESULT {r} em {:.1} s", t.elapsed().as_secs_f32());
+    assert_eq!(r["ok"], 1, "{r}");
+    let out = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
+    let p = crate::video::probe(&out);
+    assert!(p.has_video && p.has_audio, "{p:?}");
+    let s = crate::tests_v18::lufs(&out);
+    println!("RESULT volume {s:.1} LUFS: {}", out.display());
+    assert!(s > -40.0);
+    // Texto para voz com o Kokoro, em MP3
+    let n = ctx_call("text_to_speech", json!({ "text": "Olá, esta é a voz natural do Conver.", "voice": "pm_alex", "out_dir": d.display().to_string() })).unwrap();
+    println!("RESULT {n}");
+    assert!(std::path::Path::new(n["output"].as_str().unwrap()).is_file());
+}
+
+#[test]
+#[ignore] // usa a placa de vídeo com o modelo rápido
+fn image_edit_paint_and_vary() {
+    let d = crate::tests_v12::tmp("editar_modos");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let src = d.join("foto.png");
+    image::RgbImage::from_fn(600, 400, |x, y| image::Rgb([(x / 3) as u8, (y / 2) as u8, 120])).save(&src).unwrap();
+    let mask = d.join("mascara.png");
+    let mut m = image::GrayImage::new(600, 400);
+    for y in 100..300 {
+        for x in 200..400 {
+            m.put_pixel(x, y, image::Luma([255]));
+        }
+    }
+    m.save(&mask).unwrap();
+    for (how, extra) in [("vary", json!({ "strength": 0.6 })), ("paint", json!({ "mask": mask.display().to_string() }))] {
+        let mut a = json!({ "files": [src.display().to_string()], "prompt": "a red ball", "how": how, "model": "fast", "seed": 3, "out_dir": d.display().to_string() });
+        for (k, v) in extra.as_object().unwrap() {
+            a[k] = v.clone();
+        }
+        let r = ctx_call("image_edit", a).unwrap();
+        let out = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
+        let dims = image::image_dimensions(&out).unwrap();
+        println!("RESULT {how}: {dims:?}");
+        assert!(dims.0 == 512 && dims.0 % 16 == 0 && dims.1 % 16 == 0, "{dims:?}");
+    }
+    // pintar sem máscara é erro claro
+    assert!(ctx_call("image_edit", json!({ "files": [src.display().to_string()], "prompt": "x", "how": "paint" })).is_err());
+}

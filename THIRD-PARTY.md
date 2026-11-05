@@ -70,6 +70,29 @@ O Conver não é derivado do FFmpeg: ele apenas executa o `ffmpeg.exe` como um p
 - Versão: master-1050-58bb3c1, compilação oficial Vulkan (<https://github.com/leejet/stable-diffusion.cpp/releases/tag/master-1050-58bb3c1>)
 - Licenças: MIT — `licencas\stable-diffusion.cpp-LICENSE.txt` e `licencas\ggml-LICENSE.txt`; libwebp — BSD.
 - O modelo não vem no download: **DreamShaper 8 LCM** (Lykon, <https://huggingface.co/Lykon/dreamshaper-8-lcm>, baseado no Stable Diffusion 1.5) é baixado no primeiro uso, conferindo o SHA-256 (`a4f3e1526c5dc4fcbe342f5c410d83ae202c7a415fcefcbb92e0f93fcd0a87c3`). Licença **CreativeML OpenRAIL-M**: o uso é livre, inclusive comercial, mas proíbe usos nocivos listados na licença (<https://huggingface.co/spaces/CompVis/stable-diffusion-license>); quem gera as imagens é responsável por elas.
+- Também opcionais, baixados só se escolhidos em Gerar imagem ou em Modelos de IA (SHA-256 conferido):
+  - **DreamShaper XL Lightning** (Lykon, <https://huggingface.co/Lykon/dreamshaper-xl-lightning>, baseado no SDXL),
+    `DreamShaperXL_Lightning.safetensors` (`fdbe56354b8f876b736f24d3ad867ecd4140c019f57642ec8ddd878088d44f64`). Licença
+    **CreativeML OpenRAIL++-M**: uso livre, inclusive comercial, com as mesmas restrições de uso nocivo.
+  - **Z-Image Turbo** (Tongyi-MAI/Alibaba, <https://huggingface.co/Tongyi-MAI/Z-Image-Turbo>, licença **Apache 2.0**), na
+    conversão GGUF de <https://huggingface.co/leejet/Z-Image-Turbo-GGUF>: `z_image_turbo-Q4_K.gguf`
+    (`14b375ab4f226bc5378f68f37e899ef3c2242b8541e61e2bc1aff40976086fbd`); com o leitor de texto **Qwen3 4B Instruct 2507**
+    (Qwen/Alibaba, Apache 2.0; GGUF de <https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF>,
+    `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`) e o VAE do **FLUX.1 schnell** (Black Forest Labs,
+    Apache 2.0; cópia de <https://huggingface.co/Comfy-Org/Z-Image-Turbo>,
+    `afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38`).
+  - **FLUX.2 klein 4B** (Black Forest Labs, <https://huggingface.co/black-forest-labs/FLUX.2-klein-4B>, licença
+    **Apache 2.0**), para editar imagens por instrução: GGUF de <https://huggingface.co/leejet/FLUX.2-klein-4B-GGUF>,
+    `flux-2-klein-4b-Q4_0.gguf` (`d1023499ef3f2f82ff7c50e6778495195c1b6cc34835741778868428111f9ff4`), e VAE de
+    <https://huggingface.co/Comfy-Org/flux2-klein-4B>, `flux2-vae.safetensors`
+    (`868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3`).
+
+## Vozes Kokoro
+
+- Não vêm no download: **Kokoro 82M v1.0** (hexgrad, <https://huggingface.co/hexgrad/Kokoro-82M>, licença **Apache 2.0**),
+  na conversão ONNX de <https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX>: `model_quantized.onnx`
+  (`fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478`) e um arquivo por voz, baixados no primeiro uso
+  (SHA-256 conferido). A pronúncia vem do `espeak-ng.dll` que já acompanha o Piper (GPLv3).
 
 ## Modelo LaMa (apagar objeto)
 

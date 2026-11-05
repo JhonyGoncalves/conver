@@ -43,9 +43,12 @@ pub fn run_batch(
         ctl.progress((i + 1) as f32 / n as f32);
     }
     ctl.status(format!("Concluído: {ok} de {n} arquivo(s)."));
-    if let Some(folder) = last.as_deref().and_then(|d| d.parent()) {
-        ctl.log(LogKind::Info, format!("Salvo em: {}", folder.display()));
-        ctl.done_folder(folder.to_path_buf());
+    if let Some(last) = last {
+        if let Some(folder) = last.parent() {
+            ctl.log(LogKind::Info, format!("Salvo em: {}", folder.display()));
+        }
+        // "Mostrar arquivo" seleciona o último resultado no Explorer
+        ctl.done_folder(last);
     }
 }
 
@@ -60,8 +63,8 @@ pub fn run_single(ctl: &Ctl, tool: &str, input: &str, work: impl FnOnce() -> Res
             ctl.status("Concluído.");
             if let Some(folder) = dst.parent() {
                 ctl.log(LogKind::Info, format!("Salvo em: {}", folder.display()));
-                ctl.done_folder(folder.to_path_buf());
             }
+            ctl.done_folder(dst.clone());
         }
         Err(e) => {
             ctl.log(LogKind::Err, format!("✖ {e}"));
@@ -307,7 +310,7 @@ impl ImagePage {
                 ImageOp::Transform { rotate: self.rotate, flip_h: self.flip_h, flip_v: self.flip_v, aspect: self.aspect }
             }
             ImgTool::Strip => ImageOp::StripMeta,
-            ImgTool::RemoveBg => ImageOp::RemoveBg { bg: self.bg, hard: self.hard },
+            ImgTool::RemoveBg => ImageOp::RemoveBg { bg: self.bg, refine: crate::bgremove::Refine { hard: self.hard, ..Default::default() } },
             ImgTool::Upscale => ImageOp::Upscale { scale: self.scale },
             ImgTool::Adjust => ImageOp::Adjust {
                 brightness: self.brightness,

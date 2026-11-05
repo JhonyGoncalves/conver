@@ -743,11 +743,12 @@ impl PresetsPage {
                     let ctx = ops::Ctx { progress: &progress, cancelled: &cancelled, log: &log };
                     match ops::call(&pr.tool, &Value::Object(args), &ctx) {
                         Ok(v) => {
-                            let folder = v["results"].as_array().and_then(|a| a.iter().rev().find_map(|r| r["output"].as_str())).or(v["output"].as_str())
-                                .and_then(|o| std::path::Path::new(o).parent().map(|d| d.to_path_buf()));
+                            let last = v["results"].as_array().and_then(|a| a.iter().rev().find_map(|r| r["output"].as_str())).or(v["output"].as_str()).map(PathBuf::from);
                             ctl.status(format!("Concluído: {} ok, {} com erro.", v["ok"].as_u64().unwrap_or(1), v["failed"].as_u64().unwrap_or(0)));
-                            if let Some(f) = folder {
-                                ctl.log(LogKind::Info, format!("Salvo em: {}", f.display()));
+                            if let Some(f) = last {
+                                if let Some(d) = f.parent() {
+                                    ctl.log(LogKind::Info, format!("Salvo em: {}", d.display()));
+                                }
                                 ctl.done_folder(f);
                             }
                         }

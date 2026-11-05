@@ -1211,11 +1211,11 @@ impl FlowsPage {
                     let failed = report["failed_nodes"].as_u64().unwrap_or(0);
                     let n = report["results"].as_array().map(Vec::len).unwrap_or(0);
                     ctl.status(if failed > 0 { format!("Concluído com {failed} node(s) com erro.") } else { format!("Concluído: {n} resultado(s).") });
-                    // "Abrir pasta": a pasta do primeiro resultado final, ou a pasta de trabalho
+                    // "Mostrar arquivo": o primeiro resultado final; sem arquivo, a pasta de trabalho
                     let folder = report["results"]
                         .as_array()
                         .and_then(|r| r.iter().find_map(|i| i["file"].as_str()))
-                        .and_then(|f| std::path::Path::new(f).parent().map(|d| d.to_path_buf()))
+                        .map(PathBuf::from)
                         .or_else(|| report["work_dir"].as_str().map(PathBuf::from));
                     if let Some(d) = folder {
                         ctl.done_folder(d);
@@ -1267,7 +1267,7 @@ impl FlowsPage {
         let thumbs = self.thumbs.get_or_insert_with(|| widgets::Thumbs::new(ui.ctx()));
         let outputs = rep["outputs"].as_object().cloned().unwrap_or_default();
         let several = outputs.len() > 1;
-        let mut folder: Option<std::path::PathBuf> = None;
+        let mut first_file: Option<std::path::PathBuf> = None;
         let mut any = false;
         for (port, items) in &outputs {
             let items = items.as_array().cloned().unwrap_or_default();
@@ -1285,7 +1285,7 @@ impl FlowsPage {
                 any = true;
                 if let Some(f) = it["file"].as_str() {
                     let path = std::path::PathBuf::from(f);
-                    folder.get_or_insert_with(|| path.parent().map(|d| d.to_path_buf()).unwrap_or_default());
+                    first_file.get_or_insert_with(|| path.clone());
                     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 40.0), Sense::click());
                     if resp.hovered() {
                         ui.painter().rect_filled(rect, 6, p.input);
@@ -1331,10 +1331,10 @@ impl FlowsPage {
         if !any {
             widgets::hint(ui, p, "Nada saiu deste node.");
         }
-        if let Some(d) = folder.filter(|d| d.is_dir()) {
+        if let Some(f) = first_file.filter(|f| f.is_file()) {
             ui.add_space(4.0);
-            if widgets::secondary(ui, p, "Abrir pasta", true) {
-                tools::open_folder(&d);
+            if widgets::secondary(ui, p, "Mostrar arquivo", true) {
+                tools::show_in_folder(&f);
             }
         }
     }
@@ -1766,6 +1766,11 @@ pub(crate) fn arg_label(key: &str) -> &str {
         "y" => "Posição vertical (%)",
         "options" => "Opções (uma por linha)",
         "check" => "O que conferir",
+        "precision" => "Precisão (%)",
+        "grow" => "Ajustar a borda (px)",
+        "feather" => "Suavizar a borda (px)",
+        "antialias" => "Anticerrilhado",
+        "how" => "Como editar",
         "orientation" => "Orientação",
         "mode" => "Limpeza",
         "crop" => "Achar a folha e endireitar",
@@ -1875,8 +1880,8 @@ pub(crate) fn enum_text(v: &str) -> String {
     if let Some((_, _, name)) = crate::translate::LANGS.iter().find(|(code, _, _)| *code == v) {
         return crate::i18n::tr(*name);
     }
-    if let Some(voice) = crate::tts::voice(v) {
-        return crate::i18n::tr(voice.label);
+    if let Some(voice) = crate::tts::any_voice(v) {
+        return crate::i18n::tr(voice.label());
     }
     let label = enum_label(v);
     if label == v && v.len() <= 5 && v.starts_with(|c: char| c.is_ascii_lowercase()) && v.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()) {
@@ -1962,6 +1967,11 @@ pub(crate) fn enum_label(v: &str) -> &str {
         "upper" => "MAIÚSCULAS",
         "document" => "Documento (preto e branco)",
         "gray" => "Tons de cinza",
+        "sdxl" => "SDXL Lightning",
+        "z_image" => "Z-Image Turbo (melhor)",
+        "instruction" => "Pedir uma mudança",
+        "paint" => "Pintar e pedir",
+        "vary" => "Variar a imagem",
         other => other,
     }
 }
@@ -1977,6 +1987,7 @@ pub(crate) fn node_help(kind: &str) -> &'static str {
         "ai_gate" => "A IA configurada confere cada item pelo critério que você escrever e manda para a saída \"sim\" ou \"não\".",
         "filter" => "Deixa passar só os arquivos do tipo, extensão ou tamanho escolhidos.",
         "document_scan" => "Foto de papel tirada com o celular vira documento reto e limpo: o Conver acha a folha, endireita e tira as sombras. Para PDF ou OCR.",
+        "image_edit" => "Mude uma imagem com IA no seu PC: escreva o que mudar, pinte uma área e diga o que colocar, ou crie uma versão parecida.",
         "condition" => "Separa os arquivos por uma propriedade: orientação, duração, largura, altura, tamanho, páginas do PDF ou se tem som.",
         "files_rename" => "Copia os arquivos com nomes novos: nome base, procurar e substituir, antes e depois do nome, letras e numeração.",
         "audio_record" => "Grave o microfone (ou outra entrada de áudio do PC) direto em MP3, WAV ou M4A.",

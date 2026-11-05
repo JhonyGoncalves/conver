@@ -157,7 +157,7 @@ pub enum ImageOp {
     Transform { rotate: u16, flip_h: bool, flip_v: bool, aspect: Aspect },
     StripMeta,
     /// Remove o fundo com IA; `hard` deixa a borda mais definida.
-    RemoveBg { bg: Background, hard: bool },
+    RemoveBg { bg: Background, refine: crate::bgremove::Refine },
     /// Brilho, contraste e saturação de -100 a 100, mais um filtro pronto.
     Adjust { brightness: i16, contrast: i16, saturation: i16, filter: Filter },
     /// Amplia 2× ou 4× com IA.
@@ -519,11 +519,9 @@ pub fn process(path: &Path, op: &ImageOp) -> Result<Output, String> {
             };
             Ok(Output { bytes, fmt: src_fmt, suffix: "_limpa".into(), info, dims: (w, h) })
         }
-        ImageOp::RemoveBg { bg, hard } => {
-            let mut mask = crate::bgremove::mask(&img)?;
-            if *hard {
-                crate::bgremove::harden(&mut mask);
-            }
+        ImageOp::RemoveBg { bg, refine } => {
+            let raw = crate::bgremove::mask(&img)?;
+            let mask = crate::bgremove::refine(&raw, refine, None, None);
             let mut rgba = img.to_rgba8();
             for (p, a) in rgba.pixels_mut().zip(mask.pixels()) {
                 p[3] = (p[3] as u16 * a[0] as u16 / 255) as u8;

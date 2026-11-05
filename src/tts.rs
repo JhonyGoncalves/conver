@@ -107,6 +107,67 @@ const VOICE_NAMES: &[&str] = &[
     "Italiano — Paola, feminina",
 ];
 
+/// Uma voz de qualquer motor: Kokoro (mais natural, nos idiomas que ele fala) ou Piper.
+#[derive(Clone, Copy)]
+pub enum AnyVoice {
+    Piper(&'static Voice),
+    Kokoro(&'static crate::kokoro::KVoice),
+}
+
+impl PartialEq for AnyVoice {
+    fn eq(&self, o: &Self) -> bool {
+        self.id() == o.id()
+    }
+}
+
+impl AnyVoice {
+    pub fn id(self) -> &'static str {
+        match self {
+            AnyVoice::Piper(v) => v.id,
+            AnyVoice::Kokoro(v) => v.id,
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            AnyVoice::Piper(v) => v.label,
+            AnyVoice::Kokoro(v) => v.label,
+        }
+    }
+
+    pub fn lang(self) -> &'static str {
+        match self {
+            AnyVoice::Piper(v) => v.lang,
+            AnyVoice::Kokoro(v) => v.lang,
+        }
+    }
+
+    pub fn installed(self) -> bool {
+        match self {
+            AnyVoice::Piper(v) => installed(v),
+            AnyVoice::Kokoro(v) => crate::kokoro::installed(v),
+        }
+    }
+
+    pub fn is_kokoro(self) -> bool {
+        matches!(self, AnyVoice::Kokoro(_))
+    }
+}
+
+/// Todas as vozes: as do Kokoro primeiro.
+pub fn all_voices() -> Vec<AnyVoice> {
+    crate::kokoro::VOICES.iter().map(AnyVoice::Kokoro).chain(VOICES.iter().map(AnyVoice::Piper)).collect()
+}
+
+pub fn any_voice(id: &str) -> Option<AnyVoice> {
+    crate::kokoro::voice_by_id(id).map(AnyVoice::Kokoro).or_else(|| voice(id).map(AnyVoice::Piper))
+}
+
+/// Primeira voz de um idioma (Kokoro, se ele fala esse idioma).
+pub fn best_voice(lang: &str) -> Option<AnyVoice> {
+    all_voices().into_iter().find(|v| v.lang() == lang)
+}
+
 pub fn voice(id: &str) -> Option<&'static Voice> {
     VOICES.iter().find(|v| v.id == id || v.id.eq_ignore_ascii_case(id))
 }
@@ -160,6 +221,44 @@ pub fn text_from_file(p: &Path) -> Result<String, String> {
 pub enum OutFmt {
     Mp3,
     Wav,
+}
+
+/// Salva amostras de −1 a 1 (Kokoro) como WAV de 16 bits, ou MP3 pelo ffmpeg.
+fn save_samples(samples: &[f32], fmt: OutFmt, dst: &Path) -> Result<(), String> {
+    let pcm: Vec<i16> = samples.iter().map(|x| (x.clamp(-1.0, 1.0) * 32767.0) as i16).collect();
+    let wav = if fmt == OutFmt::Wav { dst.to_path_buf() } else { dst.with_extension("kokoro.wav") };
+    crate::translate::write_wav(&wav, &pcm, crate::kokoro::RATE)?;
+    if fmt == OutFmt::Mp3 {
+        let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
+        let st = tools::command(&ff).args(["-hide_banner", "-loglevel", "error", "-y", "-i"]).arg(&wav).args(["-c:a", "libmp3lame", "-b:a", "160k"]).arg(dst).status().map_err(|e| e.to_string())?;
+        let _ = std::fs::remove_file(&wav);
+        if !st.success() {
+            return Err("não foi possível gerar o MP3.".into());
+        }
+    }
+    Ok(())
+}
+
+/// Narra com qualquer motor.
+pub fn speak_any(text: &str, voice: AnyVoice, speed: f32, fmt: OutFmt, dst: &Path, on_progress: &dyn Fn(f32), cancelled: &dyn Fn() -> bool) -> Result<(String, PathBuf), String> {
+    match voice {
+        AnyVoice::Piper(v) => speak(text, v, speed, fmt, dst, on_progress, cancelled),
+        AnyVoice::Kokoro(v) => {
+            let text = text.trim();
+            if text.is_empty() {
+                return Err("o texto está vazio.".into());
+            }
+            let samples = crate::kokoro::speak(text, v, speed, &|p| on_progress(p * 0.3), cancelled)?;
+            if samples.is_empty() {
+                return Err("não há o que falar nesse texto.".into());
+            }
+            on_progress(0.9);
+            save_samples(&samples, fmt, dst)?;
+            on_progress(1.0);
+            let secs = samples.len() as f64 / crate::kokoro::RATE as f64;
+            Ok((format!("{} • {}", crate::video::fmt_time(secs), tools::human_size(tools::file_size(dst))), dst.to_path_buf()))
+        }
+    }
 }
 
 /// Narra `text` com a voz e salva em `dst` (MP3 ou WAV). `speed` 0,5–2 (1 = normal).

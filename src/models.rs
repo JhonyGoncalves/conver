@@ -20,15 +20,31 @@ pub enum Pack {
     Separate,
     Erase,
     Generate,
+    GenerateXl,
+    GenerateZ,
+    EditImage,
     ClassifyImage,
     ClassifySound,
     Language,
     Voice,
+    Kokoro,
 }
 
 impl Pack {
-    pub const ALL: [Pack; 8] =
-        [Pack::Transcribe, Pack::Separate, Pack::Voice, Pack::Erase, Pack::Generate, Pack::ClassifyImage, Pack::ClassifySound, Pack::Language];
+    pub const ALL: [Pack; 12] = [
+        Pack::Transcribe,
+        Pack::Separate,
+        Pack::Kokoro,
+        Pack::Voice,
+        Pack::Erase,
+        Pack::GenerateZ,
+        Pack::GenerateXl,
+        Pack::Generate,
+        Pack::EditImage,
+        Pack::ClassifyImage,
+        Pack::ClassifySound,
+        Pack::Language,
+    ];
 
     /// Nome do pacote (chave de tradução).
     pub fn title(self) -> &'static str {
@@ -36,11 +52,15 @@ impl Pack {
             Pack::Transcribe => "Transcrição (Whisper)",
             Pack::Separate => "Separar voz e instrumental (UVR)",
             Pack::Erase => "Apagar objeto (LaMa)",
-            Pack::Generate => "Gerar imagem (DreamShaper 8)",
+            Pack::Generate => "Gerar imagem — rápido (DreamShaper 8)",
+            Pack::GenerateXl => "Gerar imagem — SDXL Lightning",
+            Pack::GenerateZ => "Gerar imagem — Z-Image Turbo (melhor)",
+            Pack::EditImage => "Editar imagem (FLUX.2 klein)",
             Pack::ClassifyImage => "Classificar imagens (SigLIP 2)",
             Pack::ClassifySound => "Classificar sons (CLAP)",
             Pack::Language => "IA de linguagem (Qwen 3.5 2B)",
-            Pack::Voice => "Voz natural (Piper)",
+            Pack::Voice => "Voz (Piper)",
+            Pack::Kokoro => "Voz natural (Kokoro)",
         }
     }
 
@@ -50,11 +70,15 @@ impl Pack {
             Pack::Transcribe => "Legendas, Transcrever, Ditado ao vivo e Traduzir e dublar",
             Pack::Separate => "Separar voz e instrumental",
             Pack::Erase => "Apagar objeto",
-            Pack::Generate => "Gerar imagem (precisa de uma placa de vídeo razoável)",
+            Pack::Generate => "Gerar imagem, em 512 px: o mais leve, para placas de vídeo fracas",
+            Pack::GenerateXl => "Gerar imagem, em 1024 px (placa de vídeo com 6 GB ou mais)",
+            Pack::GenerateZ => "Gerar imagem, em 1024 px: o melhor resultado, entende pedidos longos e escreve textos na imagem",
+            Pack::EditImage => "Editar imagem escrevendo o que mudar (\"deixe de noite\", \"troque a roupa\")",
             Pack::ClassifyImage => "Node \"IA local: classificar\" dos fluxos, com imagens e vídeos",
             Pack::ClassifySound => "Node \"IA local: classificar\" dos fluxos, com áudios",
             Pack::Language => "Traduzir legendas e classificar textos nos fluxos",
             Pack::Voice => "Texto para voz e dublagem, na voz do idioma do Conver",
+            Pack::Kokoro => "As vozes mais naturais para dublar e narrar: português, inglês, espanhol, francês, italiano e hindi",
         }
     }
 
@@ -65,12 +89,20 @@ impl Pack {
             Pack::Separate => vec![crate::separate::MODEL],
             Pack::Erase => vec![crate::inpaint::MODEL],
             Pack::Generate => vec![crate::imagegen::MODEL],
+            Pack::GenerateXl => crate::imagegen::Engine::Xl.files(),
+            Pack::GenerateZ => crate::imagegen::Engine::ZImage.files(),
+            Pack::EditImage => crate::imagegen::edit_files(),
             Pack::ClassifyImage => crate::classify::MODELS.iter().map(|m| **m).collect(),
             Pack::ClassifySound => crate::audioclass::MODELS.iter().map(|m| **m).collect(),
             Pack::Language => vec![crate::llm::RUNTIME, crate::llm::MODEL],
             Pack::Voice => {
                 let v = self.voice();
                 vec![v.onnx, v.json]
+            }
+            Pack::Kokoro => {
+                let lang = crate::i18n::current().code;
+                let v = crate::kokoro::voice_for(lang).unwrap_or(&crate::kokoro::VOICES[0]);
+                vec![crate::kokoro::MODEL, v.file]
             }
         }
     }
@@ -182,7 +214,7 @@ impl Purpose {
             Purpose::Social => &[Pack::Transcribe],
             Purpose::Audio => &[Pack::Transcribe, Pack::Separate],
             Purpose::Automation => &[Pack::ClassifyImage, Pack::ClassifySound, Pack::Language],
-            Purpose::Create => &[Pack::Generate, Pack::Erase, Pack::Voice],
+            Purpose::Create => &[Pack::GenerateZ, Pack::EditImage, Pack::Erase, Pack::Kokoro],
         }
     }
 }

@@ -107,6 +107,7 @@ pub fn keywords(id: &str) -> &'static str {
         "a_merge" => "juntar audios unir mesclar combinar musicas merge join",
         "a_normalize" => "normalizar volume aumentar volume nivelar som alto baixo loudness normalize",
         "v_translate" => "traduzir legendas dublar dublagem traducao legenda em ingles espanhol voz outra lingua srt translate subtitles dubbing voice over",
+        "img_edit" => "editar imagem com ia mudar foto trocar fundo pintar inpaint variar versao parecida deixar de noite photoshop instrucao edit image",
         "img_scan" => "escanear documento scanner digitalizar foto de papel folha camscanner perspectiva endireitar recibo nota fiscal contrato scan document",
         "pdf_tables" => "tabelas do pdf para excel planilha xlsx csv extrair tabela pdf para excel extrato nota fiscal relatorio numeros table extraction spreadsheet",
         "img_faces" => "desfocar rostos borrar rosto esconder rosto pixelar rosto privacidade anonimizar censurar tarja lgpd blur faces anonymize privacy pixelate",

@@ -8,6 +8,7 @@ use std::process::Stdio;
 
 use crate::captions::{self, Cue};
 use crate::tts::{self, Voice};
+use crate::tts::AnyVoice;
 use crate::{ai, tools, video};
 
 // i18n: fora
@@ -33,8 +34,8 @@ pub fn lang(code: &str) -> Option<&'static (&'static str, &'static str, &'static
 }
 
 /// A primeira voz do Piper para o idioma, se houver.
-pub fn voice_for(code: &str) -> Option<&'static Voice> {
-    tts::VOICES.iter().find(|v| v.lang == code)
+pub fn voice_for(code: &str) -> Option<AnyVoice> {
+    tts::best_voice(code)
 }
 
 /// As frases de um arquivo: .srt/.vtt direto; vídeo ou áudio passam antes pela transcrição (Whisper).
@@ -76,7 +77,7 @@ fn read_wav(p: &Path) -> Result<(Vec<i16>, u32), String> {
 }
 
 // i18n: fora
-fn write_wav(p: &Path, samples: &[i16], rate: u32) -> Result<(), String> {
+pub(crate) fn write_wav(p: &Path, samples: &[i16], rate: u32) -> Result<(), String> {
     let mut f = std::io::BufWriter::new(std::fs::File::create(p).map_err(|e| e.to_string())?);
     let data = (samples.len() * 2) as u32;
     let mut h = Vec::with_capacity(44);
@@ -101,7 +102,28 @@ fn write_wav(p: &Path, samples: &[i16], rate: u32) -> Result<(), String> {
 // ------------------------------------------------------------------ dublagem
 
 /// Gera a faixa dublada (WAV) com as falas nos tempos das legendas. Devolve (caminho, falas aceleradas).
-fn dub_track(cues: &[Cue], voice: &Voice, total: f64, work: &Path, on_progress: &dyn Fn(f32), cancelled: &dyn Fn() -> bool) -> Result<(PathBuf, usize), String> {
+fn dub_track(cues: &[Cue], voice: AnyVoice, total: f64, work: &Path, on_progress: &dyn Fn(f32), cancelled: &dyn Fn() -> bool) -> Result<(PathBuf, usize), String> {
+    match voice {
+        AnyVoice::Piper(v) => speak_cues_piper(cues, v, work, on_progress, cancelled)?,
+        AnyVoice::Kokoro(v) => {
+            for (i, c) in cues.iter().enumerate() {
+                if cancelled() {
+                    return Err("Cancelado.".into());
+                }
+                let s = crate::kokoro::speak(c.text.trim(), v, 1.0, &|_| {}, cancelled)?;
+                if !s.is_empty() {
+                    let pcm: Vec<i16> = s.iter().map(|x| (x.clamp(-1.0, 1.0) * 32767.0) as i16).collect();
+                    write_wav(&work.join(format!("fala_{i:04}.wav")), &pcm, crate::kokoro::RATE)?;
+                }
+                on_progress(0.7 * (i + 1) as f32 / cues.len().max(1) as f32);
+            }
+        }
+    }
+    join_cues(cues, total, work, on_progress)
+}
+
+/// Um arquivo por fala, com um Piper só.
+fn speak_cues_piper(cues: &[Cue], voice: &Voice, work: &Path, on_progress: &dyn Fn(f32), cancelled: &dyn Fn() -> bool) -> Result<(), String> {
     let exe = tools::find_tool_file("piper\\piper.exe").ok_or("Piper não encontrado (pasta bin\\piper).")?;
     let model = ai::ensure_model(&voice.onnx, &|p| on_progress(p * 0.2), cancelled)?;
     ai::ensure_model(&voice.json, &|_| {}, cancelled)?;
@@ -136,6 +158,11 @@ fn dub_track(cues: &[Cue], voice: &Voice, total: f64, work: &Path, on_progress: 
         on_progress(0.2 + 0.5 * done as f32 / cues.len().max(1) as f32);
         std::thread::sleep(std::time::Duration::from_millis(200));
     }
+    Ok(())
+}
+
+/// Junta as falas (`fala_0000.wav`…) numa faixa só, cada uma no tempo da legenda, acelerando a que não couber.
+fn join_cues(cues: &[Cue], total: f64, work: &Path, on_progress: &dyn Fn(f32)) -> Result<(PathBuf, usize), String> {
     let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
     let mut rate = 22_050u32;
     let mut track: Vec<i16> = Vec::new();
@@ -174,7 +201,7 @@ fn dub_track(cues: &[Cue], voice: &Voice, total: f64, work: &Path, on_progress: 
         on_progress(0.7 + 0.2 * (i + 1) as f32 / cues.len() as f32);
     }
     if track.iter().all(|s| *s == 0) {
-        return Err("o Piper não gerou o áudio.".into());
+        return Err("a voz não gerou o áudio.".into());
     }
     let out = work.join("dublagem.wav");
     write_wav(&out, &track, rate)?;
@@ -187,7 +214,7 @@ pub struct Opts {
     /// Código do idioma de destino (`None` = não traduzir: só dublar a legenda como está).
     pub to: Option<String>,
     /// Voz para dublar (`None` = não dublar).
-    pub voice: Option<&'static Voice>,
+    pub voice: Option<AnyVoice>,
     /// Vídeo para receber a dublagem (se não houver, sai só o áudio).
     pub video: Option<PathBuf>,
     /// Volume do som original por baixo da dublagem (0 a 1).

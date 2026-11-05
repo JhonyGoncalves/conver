@@ -74,7 +74,7 @@ fn remove_background() {
     img.save(&src).unwrap();
 
     let t = std::time::Instant::now();
-    let (info, out) = imaging::process_and_save(&src, &ImageOp::RemoveBg { bg: Background::Transparente, hard: true }, None).unwrap();
+    let (info, out) = imaging::process_and_save(&src, &ImageOp::RemoveBg { bg: Background::Transparente, refine: crate::bgremove::Refine::default() }, None).unwrap();
     println!("{info} em {:.1}s -> {}", t.elapsed().as_secs_f32(), tools::file_name(&out));
     assert_eq!(tools::ext_lower(&out), "png");
     let res = image::open(&out).unwrap().to_rgba8();
@@ -85,7 +85,7 @@ fn remove_background() {
 
     // fundo branco mantém JPG
     let t = std::time::Instant::now();
-    let (_, white) = imaging::process_and_save(&src, &ImageOp::RemoveBg { bg: Background::Cor(255, 255, 255), hard: false }, None).unwrap();
+    let (_, white) = imaging::process_and_save(&src, &ImageOp::RemoveBg { bg: Background::Cor(255, 255, 255), refine: crate::bgremove::Refine { hard: false, ..Default::default() } }, None).unwrap();
     println!("segunda imagem (modelo já carregado): {:.1}s", t.elapsed().as_secs_f32());
     assert_eq!(tools::ext_lower(&white), "jpg");
     let px = image::open(&white).unwrap().to_rgb8();

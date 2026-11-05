@@ -97,6 +97,14 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   `special_editor` (cor, arquivo, pasta, microfone); `arg_hidden` esconde ajustes que não valem; `node_results`
   mostra a saída da última execução (`execucao.json`); `import_flow` confere os tipos de node. Teste
   `flow_nodes_in_portuguese` exige rótulo, valor e ajuda em português para todo node. Captura: `CONVER_FLUXO_NODE`.
+- Leva 1.9: `imagegen.rs` com `Engine` (Rápido, SDXL Lightning, Z-Image Turbo; Z-Image precisa de `--flash-attn on` em
+  8 GB) e `edit` (`EditMode`: instrução com FLUX.2 klein `-r`, pintar com `--mask`, variar com `--strength`; imagem e
+  máscara redimensionadas para múltiplos de 16); tela `editpage.rs`, op `image_edit` (o argumento é `how`, não `mode`).
+  `bgremove.rs`: `Refine` (precisão, grow, feather, antialias), `Strokes` e `Dot` (traços em proporção da imagem); tela
+  `bgpage.rs` (etapa pesada numa thread, ajustes e pincel na hora). `kokoro.rs`: Kokoro 82M no `ort` + fonemas do
+  `espeak-ng.dll` do Piper por FFI (`LoadLibraryW`, IPA com "^" e a troca do misaki); o sherpa-onnx foi descartado (a 2.0
+  não tem português e estraga UTF-8 no argv do Windows). `tts::AnyVoice` une Piper e Kokoro (Kokoro primeiro).
+  `Job::done_folder` aceita arquivo: o botão vira "Mostrar arquivo".
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;

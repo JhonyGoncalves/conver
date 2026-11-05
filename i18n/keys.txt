@@ -26,6 +26,47 @@ ffmpeg não encontrado.
 o arquivo não tem áudio.
 falha na IA: {e}
 informe pelo menos duas opções.
+Imagens
+Remover fundo
+Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.
+Pincel:
+Só ver
+Manter
+Tirar
+Apagar objeto (IA)
+Desfazer
+Limpar
+Ver o original
+Escolha "Manter" ou "Tirar" e pinte para corrigir o recorte; "Apagar objeto" tira uma coisa da foto e a IA preenche com o fundo.
+Pinte o que deve ficar na imagem (verde).
+Pinte o que deve sair junto com o fundo (vermelho).
+Pinte um objeto, pessoa ou texto: a IA apaga e preenche com o que estaria atrás.
+Fundo novo:
+Transparente
+Branco
+Preto
+Cor
+O que fazer:
+Tirar o fundo
+Só apagar os objetos pintados
+Borda:
+Definida
+Suave (cabelo, pelos)
+Precisão:
+Mais alta corta mais (só o que é com certeza o assunto); mais baixa mantém mais (sombras, fios soltos).
+Ajustar a borda:
+ px
+Suavizar a borda:
+Anticerrilhado:
+Borda lisa, sem "escadinha"
+Voltar ao padrão
+Os ajustes valem para todas as imagens da lista; as pinceladas, só para a imagem em que você pintou.
+Apagar objetos
+nada pintado para apagar nesta imagem.
+não foi possível salvar: {e}
+fundo removido • {kept:.0}% da imagem mantida
+Adicione uma imagem para começar.
+Atualizando a prévia…
 o modelo de remoção de fundo não foi encontrado (pasta modelos).
 resposta inesperada do modelo.
 Reels
@@ -67,7 +108,6 @@ Tamanho:
 Contorno:
 Sombra:
 Faixa atrás:
-Cor
 Horizontal:
 Vertical:
 Salvar estilo:
@@ -120,7 +160,6 @@ o reconhecimento de fala demorou demais para começar.
 Ouvindo… fale à vontade.
 Parou: {e}
 Parado.
-não foi possível salvar: {e}
 {size} • {}
 folha não encontrada (foto inteira)
 320 kbps
@@ -134,6 +173,47 @@ Processando com o ffmpeg…
 {prefix}Baixando: {title}   {speed}
 este site pediu login. Em "Login do navegador", escolha o navegador em que você está logado no site e tente de novo.
 o download falhou.
+Editar imagem
+Mude uma imagem com IA no seu PC: escreva o que mudar, pinte uma área e diga o que colocar, ou crie uma versão parecida.
+Como editar:
+Pedir uma mudança
+Pintar e pedir
+Variar a imagem
+O que mudar
+ex.: deixe de noite com céu estrelado; troque a camisa por uma azul; tire as pessoas do fundo
+O que colocar na área pintada
+ex.: um chapéu de palha; uma janela; flores vermelhas
+Como deve ficar
+ex.: a mesma cena no outono; estilo aquarela
+Z-Image Turbo (melhor)
+SDXL Lightning
+Rápido
+Quanto mudar:
+Pouco
+Médio
+Muito
+Qualidade:
+Rápida
+Melhor (mais lenta)
+Quantas:
+Idioma:
+Traduzir o pedido para o inglês com a IA configurada
+FLUX.2 klein 4B
+✔ Pronto neste computador.
+Baixado uma vez, na primeira edição ({}).
+Usa o modelo de edição {what}; muda só o que você pedir e mantém o resto. Alguns minutos por imagem.
+Só a área pintada muda; o resto da imagem fica igual.
+Cria uma imagem nova parecida com a original: "Pouco" mantém quase tudo, "Muito" muda bastante.
+Clique para abrir
+Continuar editando esta
+Editar
+Traduzindo o pedido…
+Pedido em inglês: {t}
+Sem tradução ({e}); usando o texto como está.
+Editando…
+✔ {} imagem(ns) em {}
+Pronto.
+A IA está editando…
 Arquivos
 Renomear em lote
 Renomeie vários arquivos de uma vez. Confira os novos nomes antes de aplicar; dá para desfazer.
@@ -155,16 +235,13 @@ começando em
 dígitos
 separador
 Letras:
-Manter
 minúsculas
 MAIÚSCULAS
 A extensão (.jpg, .mp4…) é sempre mantida. Os arquivos são renomeados na mesma pasta.
 {changed} arquivo(s) serão renomeados.
 Renomear
 ✔ {} arquivo(s) renomeados.
-Desfazer
 Nomes originais restaurados.
-Preto
 Gerador de QR Code
 Crie um QR Code de um link, texto, Wi-Fi ou contato e salve como imagem PNG.
 Conteúdo
@@ -172,7 +249,6 @@ https://… ou qualquer texto
 Colar
 Modelo de Wi-Fi
 No modelo de Wi-Fi, troque NomeDaRede e SenhaDaRede pelos dados da sua rede.
- px
 Cor:
 Correção de erro:
 Baixa
@@ -287,7 +363,6 @@ Pasta:
 nenhuma escolhida
 Escolher…
 Pasta para vigiar
-O que fazer:
 Converter para:
 Processar também os arquivos que já estão na pasta
 Os resultados vão para a subpasta "{}". Os originais não são alterados.
@@ -317,7 +392,6 @@ Parar o teste
 Testar microfone
 Ouvir
 Dica: se a lista estiver vazia, confira em Configurações do Windows › Privacidade › Microfone se os apps podem usar o microfone.
-Imagens
 a área de transferência não tem imagem.
 imagem inválida.
 Texto de imagem (OCR)
@@ -329,7 +403,6 @@ Copiar
 Clique em "Ler texto" para reconhecer o texto desta imagem.
 Nenhum texto encontrado nesta imagem.
 O texto aparece aqui. Você pode corrigir antes de copiar.
-Idioma:
 Print:
 Colar imagem (Ctrl+V)
 tire um print com Win+Shift+S e cole aqui
@@ -384,7 +457,6 @@ nenhuma janela encontrada
 Área (px):
 Largura
 Altura
-Qualidade:
 Leve (arquivo menor)
 Resolução máxima:
 Original
@@ -420,15 +492,10 @@ Apagar objeto
 Pinte por cima de um objeto, pessoa, texto ou marca d'água e a IA preenche o fundo. No seu PC, sem internet.
 ✖ não foi possível abrir a imagem: {e}
 ✔ Pronto. Pinte mais para continuar apagando ou salve a imagem.
-Pincel:
-Limpar
-Ver o original
-Adicione uma imagem para começar.
 A IA está preenchendo…
 Salvar imagem
 Voltar ao original
 Apagando…
-Pronto.
 Texto para voz
 Transforme textos e legendas em narração com uma voz natural, no seu PC e sem internet.
 Abrir arquivo…
@@ -436,35 +503,33 @@ Texto e legendas
 {n} caracteres  •  ~{} de fala
 Escreva ou cole o texto aqui (ou arraste um .txt ou uma legenda .srt para a janela).
 Voz:
+{} (Kokoro)
 Velocidade:
 Devagar
 Normal
-Rápida
 Bem rápida
 ✔ Voz pronta neste computador.
+Voz Kokoro: mais natural. O modelo (92 MB) é baixado uma vez, na primeira vez que você usar (a assinatura é conferida).
 A voz (cerca de 63 MB) é baixada uma vez, na primeira vez que você usar (a assinatura é conferida).
 Gerar narração
 Gerar imagem
 Descreva uma imagem e a IA cria no seu PC, usando a placa de vídeo. Sem internet e sem limite.
 O que a imagem mostra
 ex.: uma cabana de madeira numa floresta com neve ao pôr do sol, luz quente nas janelas
+Baixado uma vez, ao gerar a primeira imagem ({}).
+O que melhor entende pedidos longos, mãos e rostos, e escreve textos na imagem. O mais lento: alguns minutos por imagem (768 px na qualidade rápida, 1024 px na melhor).
+Imagens de 1024 px bem detalhadas; cerca de 2 minutos por imagem numa placa comum.
+Imagens de 512 px em poucos segundos, para placas de vídeo fracas; erra mais mãos, rostos e textos.
+{}  {state}
 Evitar:
 opcional: o que não deve aparecer
 Quadrada
 Retrato
 Paisagem
-Melhor (mais lenta)
-Quantas:
-Traduzir o pedido para o inglês com a IA configurada
 O modelo entende melhor pedidos em inglês. Com uma IA configurada em Configurações, o Conver traduz sozinho.
-Usa a placa de vídeo (Vulkan). Numa placa comum, cada imagem leva uns 10 a 20 segundos, mais uns segundos para carregar o modelo.
-Clique para abrir
+Usa a placa de vídeo (Vulkan). Antes da primeira imagem há uns segundos para carregar o modelo; os modelos de 1024 px precisam de uma placa com 6 GB ou mais.
 Gerar
-Traduzindo o pedido…
-Pedido em inglês: {t}
-Sem tradução ({e}); usando o texto como está.
 Gerando…
-✔ {} imagem(ns) em {}
 Ditado ao vivo
 Fale e o texto aparece na tela enquanto você fala, com o Whisper no seu PC. Para ditar, legendar ao vivo ou fazer anotações.
 Rápido (82 MB)
@@ -682,7 +747,7 @@ Nada chegou neste node.
 {name} ({})
 e mais {}
 Nada saiu deste node.
-Abrir pasta
+Mostrar arquivo
 Últimas execuções
 O fluxo ainda não foi executado.
 {when}  •  {secs:.0} s
@@ -691,7 +756,6 @@ O fluxo ainda não foi executado.
 {outs} resultado(s), {} arquivo(s) com erro
 Pasta
 Repetir falhas
-Voltar ao padrão
 (padrão)
 (automático)
 um por linha
@@ -700,8 +764,6 @@ Imagem
 Vídeo
 Legenda
 #ffffff
-Transparente
-Branco
 O primeiro da lista
 Sem microfone
 o arquivo não é um fluxo do Conver.
@@ -746,6 +808,11 @@ Posição horizontal (%)
 Posição vertical (%)
 Opções (uma por linha)
 O que conferir
+Precisão (%)
+Ajustar a borda (px)
+Suavizar a borda (px)
+Anticerrilhado
+Como editar
 Orientação
 Limpeza
 Comparação
@@ -834,7 +901,6 @@ Tamanho mínimo (MB)
 Tamanho máximo (MB)
 Mover em vez de copiar
 Salvar os textos como .txt
-Rápido
 Equilibrado
 Preciso
 Voz e instrumental
@@ -847,7 +913,6 @@ Inverter
 Pequeno
 Grande
 Suave
-Definida
 Áudios
 PDFs
 Textos
@@ -889,7 +954,6 @@ Escolha de 1 a 100. JPG e WEBP mantêm o formato; os demais viram JPG (ou WEBP, 
 Gire, espelhe ou recorte as imagens numa proporção pronta (o recorte é centralizado).
 Mude brilho, contraste e saturação ou aplique um filtro pronto. Confira na prévia antes de salvar.
 Apaga informações escondidas da foto (EXIF, localização GPS, câmera, data) sem perder qualidade.
-Tire o fundo de fotos de pessoas, produtos e animais com inteligência artificial, no seu PC e sem internet.
 Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os detalhes. Roda no seu PC, sem internet.
 Junte várias imagens num único PDF, uma por página, na ordem da lista.
 Converta entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ou extraia o áudio em MP3.
@@ -912,6 +976,7 @@ Baixe vídeos e músicas de centenas de sites pelo link.
 Usa uma predefinição salva: a ferramenta com os ajustes que você guardou.
 descreva a imagem.
 não foi possível criar a pasta: {e}
+escreva o que mudar na imagem.
 não foi possível iniciar o gerador: {e}
 o gerador parou sem salvar a imagem.
 faltou memória na placa de vídeo; tente o formato quadrado. ({why})
@@ -931,7 +996,6 @@ sem alterações
 metadados removidos (rotação da câmera aplicada na imagem)
 metadados removidos ({})
 nenhum metadado encontrado
-fundo removido • {kept:.0}% da imagem mantida
 saturação
 {name} {v:+}
 {w}x{h} → {}x{} (IA {scale}×)
@@ -978,6 +1042,20 @@ a versão baixada não funcionou; a anterior foi mantida.
 Cancelando…
 Iniciando…
 Erro inesperado.
+Português (Brasil) — Dora, feminina
+Português (Brasil) — Alex, masculina
+Português (Brasil) — Santa, masculina
+Inglês (EUA) — Heart, feminina
+Inglês (EUA) — Michael, masculina
+Espanhol (Espanha) — Dora, feminina
+Espanhol (Espanha) — Alex, masculina
+Francês — Siwis, feminina
+Italiano — Sara, feminina
+Italiano — Nicola, masculina
+Hindi — Alpha, feminina
+Hindi — Omega, masculina
+esta voz não está disponível.
+arquivo de voz inválido.
 Qwen 3.5 2B (1,3 GB)
 não foi possível extrair o llama.cpp.
 o processo fechou
@@ -994,7 +1072,6 @@ Fluxos de automação
 Redimensionar
 Diminuir qualidade
 Converter formato
-Remover fundo
 Ampliar com IA
 Girar / recortar
 Ajustes de cor
@@ -1038,6 +1115,7 @@ Baixando… {:.0}%
 Na fila
 Baixar
 Espaço usado: {}
+Abrir pasta
 Cancelar downloads
 conversor universal
 🔍  Buscar ferramenta…
@@ -1228,7 +1306,6 @@ Encontrada para o vídeo selecionado: {}
 Nenhuma legenda com o mesmo nome do vídeo selecionado. Escolha o arquivo.
 Cada vídeo usa a legenda com o mesmo nome dele (video.srt), ou escolha uma para todos.
 Tamanho do texto:
-Médio
 Música:
 Todos os arquivos
 Escolha a música
@@ -1246,17 +1323,25 @@ escolha a música.
 Transcrição (Whisper)
 Separar voz e instrumental (UVR)
 Apagar objeto (LaMa)
-Gerar imagem (DreamShaper 8)
+Gerar imagem — rápido (DreamShaper 8)
+Gerar imagem — SDXL Lightning
+Gerar imagem — Z-Image Turbo (melhor)
+Editar imagem (FLUX.2 klein)
 Classificar imagens (SigLIP 2)
 Classificar sons (CLAP)
 IA de linguagem (Qwen 3.5 2B)
-Voz natural (Piper)
+Voz (Piper)
+Voz natural (Kokoro)
 Legendas, Transcrever, Ditado ao vivo e Traduzir e dublar
-Gerar imagem (precisa de uma placa de vídeo razoável)
+Gerar imagem, em 512 px: o mais leve, para placas de vídeo fracas
+Gerar imagem, em 1024 px (placa de vídeo com 6 GB ou mais)
+Gerar imagem, em 1024 px: o melhor resultado, entende pedidos longos e escreve textos na imagem
+Editar imagem escrevendo o que mudar ("deixe de noite", "troque a roupa")
 Node "IA local: classificar" dos fluxos, com imagens e vídeos
 Node "IA local: classificar" dos fluxos, com áudios
 Traduzir legendas e classificar textos nos fluxos
 Texto para voz e dublagem, na voz do idioma do Conver
+As vozes mais naturais para dublar e narrar: português, inglês, espanhol, francês, italiano e hindi
 não foi possível apagar {} (está em uso?).
 Converter e comprimir
 Vídeos para redes sociais
@@ -1324,9 +1409,6 @@ Leve = quase sem perda visível  •  Forte = arquivo bem menor
 Na vertical ↕
 JPG, PNG e WEBP: só os metadados são apagados, a imagem não é recomprimida.
 Se a foto tiver rotação da câmera, ela é aplicada antes, para a imagem não ficar de lado.
-Fundo novo:
-Borda:
-Suave (cabelo, pelos)
 Transparente salva em PNG. A primeira imagem demora alguns segundos enquanto o modelo carrega.
 ⚠ Modelo de IA não encontrado: coloque o silueta.onnx na pasta modelos.
 Ampliar:
@@ -1448,7 +1530,7 @@ o Whisper não gerou o resultado.
 WAV inválido
 WAV sem dados
 Piper não encontrado (pasta bin\piper).
-o Piper não gerou o áudio.
+a voz não gerou o áudio.
 nenhuma frase para traduzir.
 idioma desconhecido: {code}
 não foi possível juntar a dublagem.
@@ -1476,10 +1558,12 @@ Inglês (EUA) — Amy, feminina
 Inglês (EUA) — Lessac, feminina
 Espanhol (Espanha) — Davefx, masculina
 Espanhol (México) — Claude, masculina
-Francês — Siwis, feminina
 Alemão — Thorsten, masculina
 Italiano — Paola, feminina
+não foi possível gerar o MP3.
+não há o que falar nesse texto.
 não foi possível iniciar o Piper: {e}
+o Piper não gerou o áudio.
 não foi possível converter para MP3.
 esta cópia do Conver não foi instalada pelo instalador nem é a portátil; baixe pelo site.
 a versão nova não tem o arquivo para esta cópia do Conver; baixe pelo site.

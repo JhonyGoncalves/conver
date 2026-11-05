@@ -384,8 +384,14 @@ fn t_image_remove_bg(a: &Args, ctx: &Ctx) -> Result<Value, String> {
             Background::Cor(r, g, b)
         }
     };
-    let hard = a.choice("edge", &[("hard", true), ("soft", false)], true)?;
-    image_op("Remover fundo", a, ctx, ImageOp::RemoveBg { bg, hard })
+    let refine = crate::bgremove::Refine {
+        hard: a.choice("edge", &[("hard", true), ("soft", false)], true)?,
+        precision: a.num_or("precision", 50.0)?.clamp(0.0, 100.0) as f32,
+        grow: a.num_or("grow", 0.0)?.clamp(-30.0, 30.0) as i32,
+        feather: a.num_or("feather", 0.0)?.clamp(0.0, 30.0) as f32,
+        antialias: a.bool_or("antialias", true)?,
+    };
+    image_op("Remover fundo", a, ctx, ImageOp::RemoveBg { bg, refine })
 }
 
 fn t_image_upscale(a: &Args, ctx: &Ctx) -> Result<Value, String> {
@@ -755,10 +761,10 @@ fn t_subtitle_translate(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     }
     let voice = if a.bool_or("dub", false)? {
         let v = match a.str("voice") {
-            Some(id) => crate::tts::voice(&id).ok_or_else(|| format!("voz desconhecida: {id}"))?,
+            Some(id) => crate::tts::any_voice(&id).ok_or_else(|| format!("voz desconhecida: {id}"))?,
             None => {
                 let code = to.clone().ok_or("para dublar sem traduzir, informe \"voice\".")?;
-                crate::translate::voice_for(&code).ok_or_else(|| format!("não há voz para dublar em {code}; vozes: pt, en, es, fr, de, it."))?
+                crate::translate::voice_for(&code).ok_or_else(|| format!("não há voz para dublar em {code}; vozes: pt, en, es, fr, de, it, hi."))?
             }
         };
         Some(v)
@@ -870,11 +876,11 @@ fn music_dir() -> Option<PathBuf> {
 
 fn t_tts(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let voice = match a.str("voice").filter(|s| !s.trim().is_empty()) {
-        Some(v) => crate::tts::voice(v.trim()).ok_or_else(|| {
-            let ids: Vec<&str> = crate::tts::VOICES.iter().map(|v| v.id).collect();
+        Some(v) => crate::tts::any_voice(v.trim()).ok_or_else(|| {
+            let ids: Vec<&str> = crate::tts::all_voices().iter().map(|v| v.id()).collect();
             format!("voz desconhecida: {v}. Use uma de: {}.", ids.join(", "))
         })?,
-        None => crate::tts::default_voice(&a.str_or("language", "pt")),
+        None => crate::tts::best_voice(&a.str_or("language", "pt")).unwrap_or(crate::tts::AnyVoice::Piper(crate::tts::default_voice("pt"))),
     };
     let speed = a.num_or("speed", 1.0)? as f32;
     let fmt = a.choice("format", &[("mp3", crate::tts::OutFmt::Mp3), ("wav", crate::tts::OutFmt::Wav)], crate::tts::OutFmt::Mp3)?;
@@ -886,13 +892,13 @@ fn t_tts(a: &Args, ctx: &Ctx) -> Result<Value, String> {
             Some(p) => tools::unique_path(PathBuf::from(p).with_extension(ext)),
             None => tools::unique_path(dir.join(format!("narracao_{}.{ext}", tools::now_string().replace([':', ' ', '/'], "-")))),
         };
-        return single("Texto para voz", "texto", crate::tts::speak(&text, voice, speed, fmt, &dst, ctx.progress, ctx.cancelled));
+        return single("Texto para voz", "texto", crate::tts::speak_any(&text, voice, speed, fmt, &dst, ctx.progress, ctx.cancelled));
     }
     let files = filter_ext(a.files().map_err(|_| "informe \"text\" ou arquivos de texto em \"files\".".to_string())?, &["txt", "md", "srt", "vtt"])?;
     batch("Texto para voz", &files, ctx, |f, p| {
         let text = crate::tts::text_from_file(f)?;
         let dst = tools::out_path(f, out.as_deref(), "_narracao", ext);
-        crate::tts::speak(&text, voice, speed, fmt, &dst, p, ctx.cancelled)
+        crate::tts::speak_any(&text, voice, speed, fmt, &dst, p, ctx.cancelled)
     })
 }
 
@@ -911,13 +917,49 @@ fn t_image_generate(a: &Args, ctx: &Ctx) -> Result<Value, String> {
         quality: a.choice("quality", &[("fast", Quality::Rapida), ("better", Quality::Melhor)], Quality::Rapida)?,
         count: a.num_or("count", 1.0)?.clamp(1.0, 8.0) as u32,
         seed: a.num("seed")?.map(|s| s as i64),
+        engine: a.choice("model", &[("auto", crate::imagegen::Engine::best_installed()), ("fast", crate::imagegen::Engine::Rapido), ("sdxl", crate::imagegen::Engine::Xl), ("z_image", crate::imagegen::Engine::ZImage)], crate::imagegen::Engine::best_installed())?,
     };
     let dir = a.out_dir()?.unwrap_or_else(crate::imagegen::default_dir);
     let files = crate::imagegen::generate(&req, &dir, ctx.progress, ctx.cancelled)?;
     for f in &files {
-        history::record("Gerar imagem", &req.prompt.chars().take(60).collect::<String>(), f, &format!("{}×{}", req.shape.size().0, req.shape.size().1));
+        history::record("Gerar imagem", &req.prompt.chars().take(60).collect::<String>(), f, &{ let (w, h) = req.shape.size_for(req.engine, req.quality); format!("{w}×{h}") });
     }
     Ok(json!({ "prompt": req.prompt, "results": files.iter().map(|f| json!({ "output": f.display().to_string() })).collect::<Vec<_>>() }))
+}
+
+fn t_image_edit(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::imagegen::{EditMode, EditRequest, Engine, Quality};
+    let files = images(a)?;
+    let mut prompt = a.str("prompt").filter(|s| !s.trim().is_empty()).ok_or("informe \"prompt\" (o que mudar).")?;
+    if a.bool_or("translate", false)? {
+        let cfg = crate::ai_api::Settings::load().config()?;
+        prompt = crate::ai_api::ask(&cfg, "Translate the user's image editing request to English for an image model. Reply with only the translation.", &[crate::ai_api::Part::Text(prompt.clone())], 300)?;
+    }
+    let mode_name = a.str_or("how", "instruction");
+    let mode = match mode_name.as_str() {
+        "instruction" => EditMode::Instruction,
+        "vary" => EditMode::Vary(a.num_or("strength", 0.7)?.clamp(0.1, 0.95) as f32),
+        "paint" => {
+            let m = a.str("mask").filter(|s| !s.trim().is_empty()).ok_or("\"how\": \"paint\" precisa de \"mask\" (imagem: branco = área a repintar).")?;
+            EditMode::Paint(image::open(&m).map_err(|e| format!("não foi possível abrir a máscara: {e}"))?.to_luma8())
+        }
+        other => return Err(format!("\"how\" inválido: {other} (instruction, paint ou vary).")),
+    };
+    let req = EditRequest {
+        prompt,
+        mode,
+        engine: a.choice("model", &[("auto", Engine::best_installed()), ("fast", Engine::Rapido), ("sdxl", Engine::Xl), ("z_image", Engine::ZImage)], Engine::best_installed())?,
+        quality: a.choice("quality", &[("fast", Quality::Rapida), ("better", Quality::Melhor)], Quality::Rapida)?,
+        count: a.num_or("count", 1.0)?.clamp(1.0, 4.0) as u32,
+        seed: a.num("seed")?.map(|s| s as i64),
+    };
+    let dir = a.out_dir()?;
+    batch("Editar imagem", &files, ctx, |f, p| {
+        let d = dir.clone().or_else(|| f.parent().map(Path::to_path_buf)).unwrap_or_else(crate::imagegen::default_dir);
+        let out = crate::imagegen::edit(f, &req, &d, p, ctx.cancelled)?;
+        let first = out.first().cloned().ok_or("nenhuma imagem foi salva.")?;
+        Ok((format!("{} versão(ões)", out.len()), first))
+    })
 }
 
 fn t_image_erase(a: &Args, ctx: &Ctx) -> Result<Value, String> {
@@ -1470,7 +1512,11 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("images") }), &["files"]), t_image_strip),
     tool!("image_remove_background", "Remover fundo", "Remove the background of photos with a local AI model. Transparent output is saved as PNG.",
         schema(json!({ "files": files_prop("images"), "background": str_prop("\"transparent\" (default) or a color like \"#ffffff\"."),
-            "edge": enum_prop("Edge style: hard (crisp) or soft (better for hair).", &["hard", "soft"], "hard") }), &["files"]), t_image_remove_bg),
+            "edge": enum_prop("Edge style: hard (crisp) or soft (better for hair).", &["hard", "soft"], "hard"),
+            "precision": int_prop("Cut precision 0-100: higher cuts more (only what is surely the subject), lower keeps more (shadows, loose hair).", 0, 100, 50),
+            "grow": int_prop("Grow (positive) or shrink (negative) the cutout, in pixels.", -30, 30, 0),
+            "feather": int_prop("Soften the edge, in pixels.", 0, 30, 0),
+            "antialias": bool_prop("Smooth edge without jaggies.", true) }), &["files"]), t_image_remove_bg),
     tool!("image_upscale", "Ampliar com IA", "Upscale images 2x or 4x with a local AI model (Real-ESRGAN), keeping details sharp.",
         schema(json!({ "files": files_prop("images"), "scale": int_prop("Scale factor: 2 or 4.", 2, 4, 2) }), &["files"]), t_image_upscale),
     tool!("images_to_pdf", "Imagens para PDF", "Combine images (in the given order) into one PDF.",
@@ -1583,18 +1629,28 @@ pub static TOOLS: &[Tool] = &[
     tool!("text_to_speech", "Texto para voz", "Read text aloud with a natural local voice (Piper, offline; ~63 MB per voice, downloaded on first use) and save MP3/WAV. Give \"text\" or text/subtitle files (.txt, .md, .srt, .vtt).",
         json!({ "type": "object", "properties": {
             "text": str_prop("Text to read (instead of files)."), "files": files_prop("text or subtitle files"),
-            "voice": enum_prop("Voice id (default: the first one of \"language\").", &crate::tts::VOICES.iter().map(|v| v.id).collect::<Vec<_>>(), "pt_BR-faber-medium"),
+            "voice": enum_prop("Voice id (default: the first one of \"language\").", &crate::tts::all_voices().iter().map(|v| v.id()).collect::<Vec<_>>(), "pf_dora"),
             "language": str_prop("Language code to pick a default voice: pt, en, es, fr, de, it."),
             "speed": num_prop("Speech speed, 0.5 to 2 (1 = normal)."), "format": enum_prop("Output format.", &["mp3", "wav"], "mp3"),
             "output": str_prop("Output file (with \"text\")."), "out_dir": str_prop("Output folder (default: Music, or next to each file).") } }), t_tts),
-    tool!("image_generate", "Gerar imagem", "Create images from a text description on this PC (stable-diffusion.cpp on the GPU via Vulkan, DreamShaper 8 LCM model, 2.1 GB downloaded on first use; about 10 s per 512px image on a mid-range GPU). Write the prompt in English, or set translate to use the configured AI.",
+    tool!("image_generate", "Gerar imagem", "Create images from a text description on this PC (stable-diffusion.cpp on the GPU via Vulkan). Models (downloaded on first use): fast = DreamShaper 8 LCM (2.1 GB, 512 px, quickest), sdxl = DreamShaper XL Lightning (6.9 GB, 1024 px), z_image = Z-Image Turbo (6.7 GB, best quality, follows long prompts and writes text in the image; 768 px with quality fast, 1024 px with better; slowest: minutes per image on a mid-range GPU). auto = the best one already downloaded. Write the prompt in English, or set translate to use the configured AI.",
         json!({ "type": "object", "properties": {
-            "prompt": str_prop("What the image shows (English works best)."), "negative": str_prop("What to avoid (optional)."),
-            "shape": enum_prop("square 512×512, portrait 512×768 or landscape 768×512.", &["square", "portrait", "landscape"], "square"),
+            "prompt": str_prop("What the image shows (English works best)."), "negative": str_prop("What to avoid (optional; ignored by z_image)."),
+            "model": enum_prop("Image model.", &["auto", "fast", "sdxl", "z_image"], "auto"),
+            "shape": enum_prop("square, portrait or landscape (512 px models: 512×512, 512×768, 768×512; the others: 1024×1024, 832×1216, 1216×832).", &["square", "portrait", "landscape"], "square"),
             "quality": enum_prop("fast (4 steps) or better (8 steps, slower).", &["fast", "better"], "fast"),
             "count": int_prop("How many images.", 1, 8, 1), "seed": num_prop("Seed to repeat a result (default random)."),
             "translate": bool_prop("Translate the prompt to English with the AI configured in Settings.", false),
             "out_dir": str_prop("Folder (default: Pictures\\Conver).") }, "required": ["prompt"] }), t_image_generate),
+    tool!("image_edit", "Editar imagem", "Edit images with a local AI (GPU via Vulkan). how = instruction: write what to change (\"make it night\", \"change the shirt to blue\"), FLUX.2 klein 4B (2.8 GB downloaded on first use); how = paint: repaint only the white area of \"mask\" with the prompt; how = vary: a new similar version (strength 0.1-0.95). paint and vary use the image generation models (model). Minutes per image on a mid-range GPU.",
+        schema(json!({ "files": files_prop("images"), "prompt": str_prop("What to change (English works best)."),
+            "how": enum_prop("How to edit.", &["instruction", "paint", "vary"], "instruction"),
+            "mask": str_prop("For how = paint: mask image, white = area to repaint."),
+            "strength": num_prop("For how = vary: how much it changes, 0.1 to 0.95 (default 0.7)."),
+            "model": enum_prop("Model for paint and vary.", &["auto", "fast", "sdxl", "z_image"], "auto"),
+            "quality": enum_prop("fast or better (larger, slower).", &["fast", "better"], "fast"),
+            "count": int_prop("Versions per image.", 1, 4, 1), "seed": num_prop("Seed to repeat a result (default random)."),
+            "translate": bool_prop("Translate the prompt to English with the AI configured in Settings.", false) }), &["files", "prompt"]), t_image_edit),
     tool!("image_erase", "Apagar objeto", "Erase objects, people, text or watermarks from images with a local AI (LaMa inpainting, 208 MB downloaded on first use): the area is filled with what would be behind it. Give rectangles in \"regions\" or a mask image.",
         schema(json!({ "files": files_prop("images"), "regions": json!({ "type": "array", "items": { "type": "array", "items": { "type": "integer" } }, "description": "Rectangles to erase, each [x, y, width, height] in image pixels." }),
             "mask": str_prop("Mask image path (white = erase), instead of regions.") }), &["files"]), t_image_erase),

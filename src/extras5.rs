@@ -257,7 +257,7 @@ pub struct TtsPage {
 impl TtsPage {
     pub fn new() -> Self {
         let lang = crate::i18n::current().code;
-        let voice = crate::tts::VOICES.iter().position(|v| v.lang == lang).unwrap_or(0);
+        let voice = crate::tts::all_voices().iter().position(|v| v.lang() == lang).unwrap_or(0);
         let music = std::env::var_os("USERPROFILE").map(|h| PathBuf::from(h).join("Music")).filter(|p| p.is_dir());
         Self {
             text: String::new(),
@@ -310,12 +310,13 @@ impl TtsPage {
         ui.add_space(4.0);
         card(ui, p, |ui| {
             row(ui, p, "Voz:", |ui| {
-                let voices = crate::tts::VOICES;
+                let voices = crate::tts::all_voices();
                 self.voice = self.voice.min(voices.len() - 1);
-                egui::ComboBox::from_id_salt("tts_voice").selected_text(crate::i18n::tr(voices[self.voice].label)).width(340.0).show_ui(ui, |ui| {
+                let name = |v: &crate::tts::AnyVoice| if v.is_kokoro() { format!("{} (Kokoro)", crate::i18n::tr(v.label())) } else { crate::i18n::tr(v.label()) };
+                egui::ComboBox::from_id_salt("tts_voice").selected_text(name(&voices[self.voice])).width(340.0).show_ui(ui, |ui| {
                     for (i, v) in voices.iter().enumerate() {
-                        let mark = if crate::tts::installed(v) { "✔ " } else { "" };
-                        ui.selectable_value(&mut self.voice, i, format!("{mark}{}", crate::i18n::tr(v.label)));
+                        let mark = if v.installed() { "✔ " } else { "" };
+                        ui.selectable_value(&mut self.voice, i, format!("{mark}{}", name(v)));
                     }
                 });
             });
@@ -325,9 +326,11 @@ impl TtsPage {
             row(ui, p, "Formato:", |ui| {
                 segmented(ui, p, &mut self.mp3, &[(true, "MP3"), (false, "WAV (sem perda)")]);
             });
-            let v = &crate::tts::VOICES[self.voice];
-            if crate::tts::installed(v) {
+            let v = crate::tts::all_voices()[self.voice];
+            if v.installed() {
                 hint(ui, p, "✔ Voz pronta neste computador.");
+            } else if v.is_kokoro() {
+                hint(ui, p, "Voz Kokoro: mais natural. O modelo (92 MB) é baixado uma vez, na primeira vez que você usar (a assinatura é conferida).");
             } else {
                 hint(ui, p, "A voz (cerca de 63 MB) é baixada uma vez, na primeira vez que você usar (a assinatura é conferida).");
             }
@@ -348,7 +351,7 @@ impl TtsPage {
         }
         match widgets::action_bar(ui, p, &self.job, "Gerar narração", !self.text.trim().is_empty()) {
             Act::Start => {
-                let (text, voice, speed) = (self.text.clone(), &crate::tts::VOICES[self.voice], self.speed);
+                let (text, voice, speed) = (self.text.clone(), crate::tts::all_voices()[self.voice], self.speed);
                 let fmt = if self.mp3 { crate::tts::OutFmt::Mp3 } else { crate::tts::OutFmt::Wav };
                 let dir = self.out.path.clone().unwrap_or_else(std::env::temp_dir);
                 let slot = self.last.clone();
@@ -357,7 +360,7 @@ impl TtsPage {
                     let ext = if fmt == crate::tts::OutFmt::Mp3 { "mp3" } else { "wav" };
                     let dst = crate::tools::unique_path(dir.join(format!("narracao_{}.{ext}", crate::tools::now_string().replace([':', ' ', '/'], "-"))));
                     crate::pages::run_single(ctl, title, "texto", || {
-                        let r = crate::tts::speak(&text, voice, speed, fmt, &dst, &|x| ctl.progress(x), &|| ctl.cancelled());
+                        let r = crate::tts::speak_any(&text, voice, speed, fmt, &dst, &|x| ctl.progress(x), &|| ctl.cancelled());
                         if let Ok((_, f)) = &r {
                             *slot.lock().unwrap() = Some(f.clone());
                         }
@@ -380,10 +383,14 @@ pub struct ImageGenPage {
     quality: crate::imagegen::Quality,
     count: u32,
     translate: bool,
+    /// Modelo escolhido: começa no melhor que já está no computador.
+    engine: crate::imagegen::Engine,
     out: OutDir,
     job: Job,
     results: Arc<Mutex<Vec<PathBuf>>>,
     shown: Vec<(PathBuf, egui::TextureHandle)>,
+    /// Imagem que a pessoa quer levar para "Editar imagem".
+    pub edit_request: Option<PathBuf>,
 }
 
 impl ImageGenPage {
@@ -395,15 +402,17 @@ impl ImageGenPage {
             quality: crate::imagegen::Quality::Rapida,
             count: 2,
             translate: true,
+            engine: crate::imagegen::Engine::best_installed(),
             out: OutDir::fixed(crate::imagegen::default_dir()),
             job: Job::default(),
             results: Arc::default(),
             shown: Vec::new(),
+            edit_request: None,
         }
     }
 
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
-        use crate::imagegen::{Quality, Shape};
+        use crate::imagegen::{Engine, Quality, Shape};
         let title = "Gerar imagem";
         widgets::header(ui, p, title, "Descreva uma imagem e a IA cria no seu PC, usando a placa de vídeo. Sem internet e sem limite.");
         let ai_ok = crate::ai_api::Settings::load().has_key() || !crate::ai_api::Settings::load().base_url.is_empty();
@@ -415,9 +424,26 @@ impl ImageGenPage {
                     .desired_rows(3)
                     .desired_width(f32::INFINITY),
             );
-            row(ui, p, "Evitar:", |ui| {
-                ui.add(egui::TextEdit::singleline(&mut self.negative).margin(widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("opcional: o que não deve aparecer")).desired_width(ui.available_width()));
+            row(ui, p, "Modelo:", |ui| {
+                segmented(ui, p, &mut self.engine, &[(Engine::ZImage, "Z-Image Turbo (melhor)"), (Engine::Xl, "SDXL Lightning"), (Engine::Rapido, "Rápido")]);
             });
+            let e = self.engine;
+            let state = if e.installed() {
+                crate::i18n::tr("✔ Pronto neste computador.")
+            } else {
+                crate::i18n::tr(format!("Baixado uma vez, ao gerar a primeira imagem ({}).", crate::tools::human_size(e.size())))
+            };
+            let what = match e {
+                Engine::ZImage => "O que melhor entende pedidos longos, mãos e rostos, e escreve textos na imagem. O mais lento: alguns minutos por imagem (768 px na qualidade rápida, 1024 px na melhor).",
+                Engine::Xl => "Imagens de 1024 px bem detalhadas; cerca de 2 minutos por imagem numa placa comum.",
+                Engine::Rapido => "Imagens de 512 px em poucos segundos, para placas de vídeo fracas; erra mais mãos, rostos e textos.",
+            };
+            hint(ui, p, &format!("{}  {state}", crate::i18n::tr(what)));
+            if e.uses_negative() {
+                row(ui, p, "Evitar:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.negative).margin(widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("opcional: o que não deve aparecer")).desired_width(ui.available_width()));
+                });
+            }
             row(ui, p, "Formato:", |ui| {
                 segmented(ui, p, &mut self.shape, &[(Shape::Quadrada, "Quadrada"), (Shape::Retrato, "Retrato"), (Shape::Paisagem, "Paisagem")]);
             });
@@ -436,8 +462,7 @@ impl ImageGenPage {
             if !ai_ok {
                 hint(ui, p, "O modelo entende melhor pedidos em inglês. Com uma IA configurada em Configurações, o Conver traduz sozinho.");
             }
-            crate::ai::model_hint(ui, p, &crate::imagegen::MODEL);
-            hint(ui, p, "Usa a placa de vídeo (Vulkan). Numa placa comum, cada imagem leva uns 10 a 20 segundos, mais uns segundos para carregar o modelo.");
+            hint(ui, p, "Usa a placa de vídeo (Vulkan). Antes da primeira imagem há uns segundos para carregar o modelo; os modelos de 1024 px precisam de uma placa com 6 GB ou mais.");
         });
         // imagens prontas
         let new: Vec<PathBuf> = std::mem::take(&mut *self.results.lock().unwrap());
@@ -457,12 +482,17 @@ impl ImageGenPage {
             card(ui, p, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     for (f, tex) in &self.shown {
-                        let s = tex.size_vec2();
-                        let size = widgets::fit((s.x, s.y), vec2(220.0, 220.0));
-                        let r = ui.add(egui::Image::new(tex).fit_to_exact_size(size).corner_radius(6).sense(Sense::click()));
-                        if r.on_hover_text(crate::i18n::tr("Clique para abrir")).clicked() {
-                            crate::tools::open_file(f);
-                        }
+                        crate::widgets::vt(ui, |ui| {
+                            let s = tex.size_vec2();
+                            let size = widgets::fit((s.x, s.y), vec2(220.0, 220.0));
+                            let r = ui.add(egui::Image::new(tex).fit_to_exact_size(size).corner_radius(6).sense(Sense::click()));
+                            if r.on_hover_text(crate::i18n::tr("Clique para abrir")).clicked() {
+                                crate::tools::open_file(f);
+                            }
+                            if widgets::secondary(ui, p, "Editar", true) {
+                                self.edit_request = Some(f.clone());
+                            }
+                        });
                     }
                 });
             });
@@ -471,7 +501,7 @@ impl ImageGenPage {
         self.out.ui(ui, p);
         match widgets::action_bar(ui, p, &self.job, "Gerar", !self.prompt.trim().is_empty()) {
             Act::Start => {
-                let mut req = crate::imagegen::Request { prompt: self.prompt.clone(), negative: self.negative.clone(), shape: self.shape, quality: self.quality, count: self.count, seed: None };
+                let mut req = crate::imagegen::Request { prompt: self.prompt.clone(), negative: self.negative.clone(), shape: self.shape, quality: self.quality, count: self.count, seed: None, engine: self.engine };
                 let translate = self.translate && ai_ok;
                 let dir = self.out.path.clone().unwrap_or_else(crate::imagegen::default_dir);
                 let slot = self.results.clone();
@@ -496,7 +526,7 @@ impl ImageGenPage {
                             }
                             ctl.log(crate::job::LogKind::Ok, format!("✔ {} imagem(ns) em {}", files.len(), dir.display()));
                             ctl.status("Pronto.");
-                            ctl.done_folder(dir.clone());
+                            ctl.done_folder(files.first().cloned().unwrap_or_else(|| dir.clone()));
                             *slot.lock().unwrap() = files;
                         }
                         Err(e) => {
