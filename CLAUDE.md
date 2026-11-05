@@ -91,6 +91,12 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   no app; horário com `schtasks`, tarefa `Conver\Fluxo - <nome>` chamando `Conver.exe --cli flow_run`). Telas em
   `extras6.rs`. Fluxos: `Item.tag` (opção do classificador) e `Item.origin` (arquivo de entrada) seguem pelos nodes;
   cada execução grava `execucao.json` (histórico, `retry_failed`); node `rename`.
+- Leva 1.8: `docscan.rs` (Escanear documento: maior área clara por Otsu, cantos por x±y, homografia 8×8 e limpeza
+  dividindo pelo fundo; tela em `extras6.rs`, op `document_scan`). Fluxos: node `condition` (`flow::condition_passes`),
+  ops `files_rename` e `audio_record`; no painel (`flows_page.rs`) `arg_editor` usa seletor segmentado/slider e
+  `special_editor` (cor, arquivo, pasta, microfone); `arg_hidden` esconde ajustes que não valem; `node_results`
+  mostra a saída da última execução (`execucao.json`); `import_flow` confere os tipos de node. Teste
+  `flow_nodes_in_portuguese` exige rótulo, valor e ajuda em português para todo node. Captura: `CONVER_FLUXO_NODE`.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;

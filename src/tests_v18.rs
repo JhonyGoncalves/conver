@@ -607,3 +607,132 @@ fn flow_nodes_in_portuguese() {
     assert_eq!(crate::flows_page::enum_text("1080p"), "1080p");
     assert_eq!(crate::flows_page::enum_text("mp4"), "MP4");
 }
+
+
+/// Foto sintética: mesa escura com ruído e uma folha branca torta com linhas de "texto" e uma sombra.
+fn fake_paper_photo() -> (image::RgbImage, [(f32, f32); 4]) {
+    let quad = [(220.0, 160.0), (1010.0, 110.0), (1060.0, 820.0), (160.0, 770.0)];
+    let inside = |x: f32, y: f32| {
+        (0..4).all(|i| {
+            let (a, b) = (quad[i], quad[(i + 1) % 4]);
+            (b.0 - a.0) * (y - a.1) - (b.1 - a.1) * (x - a.0) >= 0.0
+        })
+    };
+    let mut seed = 7u32;
+    let img = image::RgbImage::from_fn(1200, 900, |x, y| {
+        seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
+        let noise = (seed >> 27) as u8;
+        let (fx, fy) = (x as f32, y as f32);
+        if inside(fx, fy) {
+            // sombra suave no canto de baixo e linhas de texto a cada 40 px
+            let shade = (fy / 900.0 * 40.0) as u8;
+            let text = (fy as u32 % 40) < 6 && fx > 300.0 && fx < 900.0;
+            let v = if text { 40 } else { 235 - shade };
+            image::Rgb([v, v, v.saturating_sub(8)])
+        } else {
+            image::Rgb([70 + noise, 50 + noise, 35 + noise])
+        }
+    });
+    (img, quad)
+}
+
+#[test]
+fn document_scan() {
+    let (img, quad) = fake_paper_photo();
+    let found = crate::docscan::detect(&img).expect("achou a folha");
+    for (a, b) in found.iter().zip(quad.iter()) {
+        let d = ((a.0 - b.0).powi(2) + (a.1 - b.1).powi(2)).sqrt();
+        assert!(d < 20.0, "canto {a:?} longe de {b:?} ({d:.1} px)");
+    }
+    let (doc, ok) = crate::docscan::scan(&img, &crate::docscan::Opts { mode: crate::docscan::Mode::Documento, crop: true });
+    assert!(ok);
+    println!("cantos {found:?} → {}×{}", doc.width(), doc.height());
+    assert!((doc.width() as f32 - 850.0).abs() < 60.0 && (doc.height() as f32 - 680.0).abs() < 60.0);
+    // preto e branco: quase tudo branco (papel), um pouco de preto (texto), e nada da mesa nas bordas
+    let px: Vec<u8> = doc.pixels().map(|p| p[0]).collect();
+    let black = px.iter().filter(|&&v| v == 0).count() as f32 / px.len() as f32;
+    let white = px.iter().filter(|&&v| v == 255).count() as f32 / px.len() as f32;
+    println!("preto {:.1}% branco {:.1}%", black * 100.0, white * 100.0);
+    assert!(white > 0.75 && black > 0.03 && black < 0.25);
+    // sem recorte: mesmo tamanho da foto
+    let (whole, _) = crate::docscan::scan(&img, &crate::docscan::Opts { mode: crate::docscan::Mode::Cor, crop: false });
+    assert_eq!(whole.dimensions(), img.dimensions());
+    // salvar como imagem e como PDF
+    let d = crate::tests_v12::tmp("escanear");
+    let src = d.join("folha.jpg");
+    img.save(&src).unwrap();
+    doc.save(d.join("folha_escaneada.png")).unwrap();
+    let r = crate::tests_v12::ctx_call("document_scan", serde_json::json!({ "files": [src.display().to_string(), src.display().to_string()], "format": "pdf", "mode": "document" })).unwrap();
+    println!("{r}");
+    let pdf = std::path::PathBuf::from(r["output"].as_str().unwrap());
+    assert_eq!(crate::pdf::open(&pdf).unwrap().get_pages().len(), 2);
+}
+
+#[test]
+fn flow_condition_rename_qr_import() {
+    use crate::tests_v15::{link, node};
+    let d = crate::tests_v12::tmp("condicao");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let deitada = d.join("deitada.png");
+    let empe = d.join("em pe.png");
+    image::RgbImage::new(300, 200).save(&deitada).unwrap();
+    image::RgbImage::new(200, 300).save(&empe).unwrap();
+    // condição: vertical → sim; e o "sim" passa por Renomear em lote (cópia com prefixo, o original fica)
+    let mut f = crate::flow::Flow { name: "teste - condicao".into(), ..Default::default() };
+    f.nodes = vec![
+        node(1, "input", serde_json::json!({ "files": [deitada.display().to_string(), empe.display().to_string()] })),
+        node(2, "condition", serde_json::json!({ "check": "orientation", "orientation": "vertical" })),
+        node(3, "tool:files_rename", serde_json::json!({ "prefix": "story_", "find": " ", "replace": "-" })),
+    ];
+    f.links = vec![link(1, "out", 2), link(2, "yes", 3)];
+    crate::flow::save(&f).unwrap();
+    let r = crate::tests_v12::ctx_call("flow_run", serde_json::json!({ "name": "teste - condicao" })).unwrap();
+    let nodes = r["nodes"].as_array().unwrap();
+    let cond = nodes.iter().find(|n| n["id"] == 2).unwrap();
+    println!("{}", cond["note"]);
+    assert_eq!(cond["outputs"]["yes"].as_array().unwrap().len(), 1);
+    assert_eq!(cond["outputs"]["no"].as_array().unwrap().len(), 1);
+    let renamed = nodes.iter().find(|n| n["id"] == 3).unwrap()["outputs"]["out"][0]["file"].as_str().unwrap().to_string();
+    assert!(renamed.ends_with("story_em-pe.png"), "{renamed}");
+    assert!(empe.is_file(), "o original continua");
+    // duração: imagem não tem duração → "não"
+    assert!(!super::flow::condition_passes_for_test(&deitada, "duration", true, 1.0));
+    assert!(super::flow::condition_passes_for_test(&deitada, "width", true, 250.0));
+    // exportar/importar: o arquivo exportado volta como fluxo; node desconhecido é recusado
+    let exp = d.join("fluxo.json");
+    std::fs::write(&exp, serde_json::to_string(&f).unwrap()).unwrap();
+    let back = crate::flows_page::import_flow(&exp).unwrap();
+    assert_eq!(back.nodes.len(), 3);
+    let mut bad = f.clone();
+    bad.nodes[1].kind = "tool:nao_existe".into();
+    std::fs::write(&exp, serde_json::to_string(&bad).unwrap()).unwrap();
+    assert!(crate::flows_page::import_flow(&exp).is_err());
+    let _ = crate::flow::remove("teste - condicao");
+    // QR com correção de erro alta fica mais denso que com a baixa
+    let low = crate::tests_v12::ctx_call("qr_code", serde_json::json!({ "text": "https://github.com/JhonyGoncalves/conver", "error_correction": "low", "output": d.join("baixa.png").display().to_string() })).unwrap();
+    let high = crate::tests_v12::ctx_call("qr_code", serde_json::json!({ "text": "https://github.com/JhonyGoncalves/conver", "error_correction": "high", "output": d.join("alta.png").display().to_string() })).unwrap();
+    assert!(std::path::Path::new(low["output"].as_str().unwrap()).is_file() && std::path::Path::new(high["output"].as_str().unwrap()).is_file());
+    assert!(crate::ops::find("audio_record").is_some() && crate::ops::find("document_scan").is_some());
+}
+
+#[test]
+#[ignore] // cria e roda um fluxo de demonstração para as capturas do editor (apague "Teste - controles" depois)
+fn tmp_demo_flow_for_capture() {
+    use crate::tests_v15::{link, node};
+    let a = std::path::PathBuf::from(std::env::var("CONVER_AMOSTRAS").unwrap());
+    let files: Vec<String> = ["foto-viagem-praia.png", "capa.jpg"].iter().map(|f| a.join(f).display().to_string()).collect();
+    let mut f = crate::flow::Flow { name: "Teste - controles".into(), ..Default::default() };
+    f.nodes = vec![
+        node(1, "input", serde_json::json!({ "files": files })),
+        node(2, "tool:watermark", serde_json::json!({ "text": "© Conver", "color": "#f13030", "position": "bottom_right", "opacity": 70 })),
+        node(3, "condition", serde_json::json!({ "check": "width", "compare": "more", "value": 1500 })),
+    ];
+    f.links = vec![link(1, "out", 2), link(2, "out", 3)];
+    for (i, n) in f.nodes.iter_mut().enumerate() {
+        n.pos = [i as f32 * 260.0, 80.0];
+    }
+    crate::flow::save(&f).unwrap();
+    let r = crate::tests_v12::ctx_call("flow_run", serde_json::json!({ "name": "Teste - controles" })).unwrap();
+    println!("{}", r["nodes"]);
+}

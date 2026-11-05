@@ -55,6 +55,8 @@ pub struct FlowsPage {
     /// Gatilho de horário já enviado ao Agendador do Windows, por fluxo (para só sincronizar quando muda).
     sched_synced: std::collections::HashMap<String, (String, Vec<u8>, bool)>,
     sched_msg: Arc<Mutex<Option<(bool, String)>>>,
+    /// Miniaturas dos resultados de cada node (criado no primeiro uso).
+    thumbs: Option<widgets::Thumbs>,
 }
 
 impl FlowsPage {
@@ -82,6 +84,7 @@ impl FlowsPage {
             history: None,
             sched_synced: Default::default(),
             sched_msg: Arc::default(),
+            thumbs: None,
         }
     }
 
@@ -95,7 +98,9 @@ impl FlowsPage {
         if let Some(name) = std::env::var("CONVER_FLUXO").ok().filter(|n| self.names.contains(n)) {
             self.open(&name);
             // CONVER_FLUXO_PAINEL: sem node escolhido, para mostrar o painel do fluxo (gatilhos e histórico)
-            self.sel = if std::env::var_os("CONVER_FLUXO_PAINEL").is_some() { None } else { Some(Sel::Node(2)) };
+            // CONVER_FLUXO_NODE=<id>: escolhe outro node (padrão: 2)
+            let id = std::env::var("CONVER_FLUXO_NODE").ok().and_then(|v| v.parse().ok()).unwrap_or(2);
+            self.sel = if std::env::var_os("CONVER_FLUXO_PAINEL").is_some() { None } else { Some(Sel::Node(id)) };
             return;
         }
         let name = flow::examples()[0].name.clone();
@@ -293,7 +298,8 @@ impl FlowsPage {
     }
 
     fn toolbar(&mut self, ui: &mut Ui, p: &Palette) {
-        ui.horizontal(|ui| {
+        // a linha quebra quando não cabe (janela estreita, textos longos em outros idiomas)
+        ui.horizontal_wrapped(|ui| {
             ui.label(RichText::new(crate::i18n::tr("Automação")).family(bold()).size(22.0).color(p.text));
             ui.add_space(10.0);
             let current = self.flow.as_ref().map(|f| f.name.clone()).unwrap_or_default();
@@ -320,7 +326,7 @@ impl FlowsPage {
                 }
                 return;
             }
-            egui::ComboBox::from_id_salt("flow_pick").selected_text(crate::i18n::tr(&current)).width(300.0).show_ui(ui, |ui| {
+            egui::ComboBox::from_id_salt("flow_pick").selected_text(crate::i18n::tr(&current)).width((ui.available_width() - 620.0).clamp(180.0, 300.0)).show_ui(ui, |ui| {
                 for n in self.names.clone() {
                     if ui.selectable_label(n == current, crate::i18n::tr(&n)).clicked() && n != current {
                         self.open(&n);
@@ -342,6 +348,44 @@ impl FlowsPage {
                     self.dirty = Some(Instant::now() - Duration::from_secs(1));
                     self.save_now();
                     self.load_list();
+                }
+            }
+            // exportar: um .json para compartilhar, sem os arquivos de entrada nem o gatilho (são do seu PC)
+            if widgets::secondary(ui, p, "Exportar", has) {
+                self.save_now();
+                if let Some(mut f) = self.flow.clone() {
+                    for n in f.nodes.iter_mut().filter(|n| n.kind == "input") {
+                        n.args.remove("files");
+                    }
+                    f.trigger = Default::default();
+                    if let Some(dst) = rfd::FileDialog::new().add_filter(crate::i18n::tr("Fluxo do Conver"), &["json"]).set_file_name(format!("{}.json", f.name)).save_file() {
+                        let r = serde_json::to_string_pretty(&f).map_err(|e| e.to_string()).and_then(|t| std::fs::write(&dst, t).map_err(|e| e.to_string()));
+                        self.notice = Some(match r {
+                            Ok(()) => (true, format!("✔ Exportado: {}", tools::file_name(&dst))),
+                            Err(e) => (false, format!("✖ {e}")),
+                        });
+                    }
+                }
+            }
+            if widgets::secondary(ui, p, "Importar", true) {
+                if let Some(src) = rfd::FileDialog::new().add_filter(crate::i18n::tr("Fluxo do Conver"), &["json"]).pick_file() {
+                    match import_flow(&src) {
+                        Ok(mut f) => {
+                            self.save_now();
+                            self.load_list();
+                            f.name = self.unique_name(f.name.trim());
+                            match flow::save_draft(&f) {
+                                Ok(()) => {
+                                    let name = f.name.clone();
+                                    self.load_list();
+                                    self.open(&name);
+                                    self.notice = Some((true, format!("✔ Importado: {name}")));
+                                }
+                                Err(e) => self.notice = Some((false, format!("✖ {e}"))),
+                            }
+                        }
+                        Err(e) => self.notice = Some((false, format!("✖ {e}"))),
+                    }
                 }
             }
             let confirming = self.confirm_delete.is_some_and(|t| t.elapsed() < Duration::from_secs(4));
@@ -461,6 +505,19 @@ impl FlowsPage {
                 }
             }
             "output" => vec![s("folder").map(|f| tools::file_name(std::path::Path::new(&f))).unwrap_or_else(|| crate::i18n::tr("Documentos\\Conver"))],
+            "condition" => {
+                let check = s("check").unwrap_or_else(|| "orientation".into());
+                let what = crate::i18n::tr(enum_label(&check));
+                if check == "orientation" {
+                    vec![format!("{what}: {}", enum_text(&s("orientation").unwrap_or_else(|| "vertical".into())))]
+                } else if check == "has_audio" {
+                    vec![what]
+                } else {
+                    let op = if s("compare").as_deref() == Some("less") { "<" } else { ">" };
+                    let v = a.get("value").and_then(Value::as_f64).map(|v| format!("{v}")).unwrap_or_else(|| "?".into());
+                    vec![format!("{what} {op} {v}")]
+                }
+            }
             "filter" => {
                 let t: Vec<String> = a.get("types").and_then(Value::as_array).map(|x| x.iter().filter_map(|v| v.as_str()).map(|v| enum_text(v)).collect()).unwrap_or_default();
                 let mut v = Vec::new();
@@ -1025,8 +1082,17 @@ impl FlowsPage {
                     }
                 }
                 if let Some(props) = info.schema["properties"].as_object() {
-                    for (key, prop) in props {
-                        arg_editor(ui, p, key, prop, &mut n.args);
+                    // na ordem do esquema, mostrando só os ajustes que valem para o que já foi escolhido
+                    let order = |k: &str| ["check", "orientation", "compare", "value"].iter().position(|x| *x == k).unwrap_or(99);
+                    let mut keys: Vec<&String> = props.keys().collect();
+                    if n.kind == "condition" {
+                        keys.sort_by_key(|k| order(k));
+                    }
+                    for key in keys {
+                        if arg_hidden(&n.kind, key, &n.args) {
+                            continue;
+                        }
+                        arg_editor(ui, p, key, &props[key], &mut n.args);
                     }
                 }
                 if n.kind.starts_with("ai_") || n.kind.starts_with("tool:") {
@@ -1044,9 +1110,12 @@ impl FlowsPage {
             }
         });
         let status = self.run.lock().unwrap().status.get(&id).cloned();
-        if let Some(Status::Failed(e)) = status {
+        if let Some(Status::Failed(e)) = &status {
             ui.add_space(6.0);
             ui.label(RichText::new(crate::i18n::tr(format!("✖ {e}"))).size(12.5).color(p.accent));
+        }
+        if !self.job.state().running && !matches!(status, Some(Status::Failed(_))) {
+            self.node_results(ui, p, id);
         }
         if self.flow.as_ref().and_then(|f| f.node(id)).is_some_and(|cur| *cur != n) {
             if let Some(cur) = self.flow.as_mut().and_then(|f| f.node_mut(id)) {
@@ -1161,14 +1230,121 @@ impl FlowsPage {
         });
     }
 
-    /// Histórico no painel do fluxo: as últimas execuções, com "Repetir falhas" e a pasta de cada uma.
-    fn history_ui(&mut self, ui: &mut Ui, p: &Palette) {
-        let Some(name) = self.flow.as_ref().map(|f| f.name.clone()) else { return };
+    /// Execuções do fluxo aberto, da mais nova para a mais velha (relidas do disco a cada 3 s).
+    fn runs(&mut self) -> Vec<Value> {
+        let Some(name) = self.flow.as_ref().map(|f| f.name.clone()) else { return Vec::new() };
         let stale = self.history.as_ref().is_none_or(|(n, t, _)| *n != name || t.elapsed() > Duration::from_secs(3));
         if stale {
             self.history = Some((name.clone(), Instant::now(), flow::history(&name)));
         }
-        let runs = self.history.as_ref().map(|(_, _, r)| r.clone()).unwrap_or_default();
+        self.history.as_ref().map(|(_, _, r)| r.clone()).unwrap_or_default()
+    }
+
+    /// O que o node produziu na última execução: miniaturas e nomes dos arquivos (um clique abre), textos e a pasta.
+    fn node_results(&mut self, ui: &mut Ui, p: &Palette, id: u32) {
+        let runs = self.runs();
+        let Some(last) = runs.first() else { return };
+        ui.add_space(12.0);
+        ui.label(RichText::new(crate::i18n::tr("Resultado da última execução")).family(bold()).color(p.text));
+        if let Some(when) = last["started"].as_str() {
+            ui.label(RichText::new(when).size(12.0).color(p.muted));
+        }
+        let Some(rep) = last["nodes"].as_array().and_then(|a| a.iter().find(|r| r["id"].as_u64() == Some(id as u64))).cloned() else {
+            widgets::hint(ui, p, "Este node não rodou na última execução.");
+            return;
+        };
+        match rep["status"].as_str() {
+            Some("failed") => {
+                ui.label(RichText::new(crate::i18n::tr(format!("✖ {}", rep["error"].as_str().unwrap_or_default()))).size(12.5).color(p.accent));
+                return;
+            }
+            Some("skipped") => {
+                widgets::hint(ui, p, "Nada chegou neste node.");
+                return;
+            }
+            _ => {}
+        }
+        let thumbs = self.thumbs.get_or_insert_with(|| widgets::Thumbs::new(ui.ctx()));
+        let outputs = rep["outputs"].as_object().cloned().unwrap_or_default();
+        let several = outputs.len() > 1;
+        let mut folder: Option<std::path::PathBuf> = None;
+        let mut any = false;
+        for (port, items) in &outputs {
+            let items = items.as_array().cloned().unwrap_or_default();
+            if several {
+                let name = match port.as_str() {
+                    "yes" => crate::i18n::tr("sim"),
+                    "no" => crate::i18n::tr("não"),
+                    flow::UNCERTAIN => crate::i18n::tr("incerto"),
+                    "out" => String::new(),
+                    other => other.to_string(),
+                };
+                ui.label(RichText::new(crate::i18n::tr(format!("{name} ({})", items.len()))).size(12.0).color(p.muted));
+            }
+            for it in items.iter().take(12) {
+                any = true;
+                if let Some(f) = it["file"].as_str() {
+                    let path = std::path::PathBuf::from(f);
+                    folder.get_or_insert_with(|| path.parent().map(|d| d.to_path_buf()).unwrap_or_default());
+                    let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 40.0), Sense::click());
+                    if resp.hovered() {
+                        ui.painter().rect_filled(rect, 6, p.input);
+                    }
+                    let slot = widgets::mirror(Rect::from_min_size(rect.min + vec2(4.0, 4.0), vec2(32.0, 32.0)), rect);
+                    let is_image = crate::imaging::IMAGE_EXTS.contains(&tools::ext_lower(&path).as_str());
+                    match is_image.then(|| thumbs.get(&path)) {
+                        Some(widgets::Thumb::Ready { tex, .. }) => {
+                            let s = tex.size_vec2();
+                            let r = Rect::from_center_size(slot.center(), widgets::fit((s.x, s.y), slot.size()));
+                            ui.painter().image(tex.id(), r, Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)), Color32::WHITE);
+                        }
+                        _ => {
+                            ui.painter().rect_filled(slot, 5, p.action);
+                            let ext: String = tools::ext_lower(&path).to_uppercase().chars().take(4).collect();
+                            ui.painter().text(slot.center(), Align2::CENTER_CENTER, ext, FontId::new(9.5, bold()), p.on_accent);
+                        }
+                    }
+                    let text_rect = widgets::mirror(Rect::from_min_max(pos2(slot.right() + 8.0, rect.top()), rect.max), rect);
+                    let (x, anchor) = if widgets::rtl() { (text_rect.right(), Align2::RIGHT_CENTER) } else { (text_rect.left(), Align2::LEFT_CENTER) };
+                    let painter = ui.painter().with_clip_rect(text_rect);
+                    painter.text(pos2(x, rect.center().y - 7.0), anchor, tools::file_name(&path), FontId::proportional(13.0), p.text);
+                    painter.text(pos2(x, rect.center().y + 8.0), anchor, tools::human_size(tools::file_size(&path)), FontId::proportional(11.5), p.muted);
+                    if resp.on_hover_cursor(CursorIcon::PointingHand).on_hover_text(crate::i18n::tr("Abrir")).clicked() {
+                        tools::open_file(&path);
+                    }
+                } else if let Some(t) = it["text"].as_str() {
+                    let short: String = t.chars().take(220).collect();
+                    let more = if t.chars().count() > 220 { "…" } else { "" };
+                    Frame::default().fill(p.input).corner_radius(6).inner_margin(Margin::same(6)).show(ui, |ui| {
+                        ui.set_width(ui.available_width());
+                        ui.label(RichText::new(format!("{short}{more}")).size(12.5).color(p.text));
+                        if ui.small_button(crate::i18n::tr("Copiar")).clicked() {
+                            ui.ctx().copy_text(t.to_string());
+                        }
+                    });
+                }
+            }
+            if items.len() > 12 {
+                ui.label(RichText::new(crate::i18n::tr(format!("e mais {}", items.len() - 12))).size(12.0).color(p.muted));
+            }
+        }
+        if !any {
+            widgets::hint(ui, p, "Nada saiu deste node.");
+        }
+        if let Some(d) = folder.filter(|d| d.is_dir()) {
+            ui.add_space(4.0);
+            if widgets::secondary(ui, p, "Abrir pasta", true) {
+                tools::open_folder(&d);
+            }
+        }
+    }
+
+    /// Histórico no painel do fluxo: as últimas execuções, com "Repetir falhas" e a pasta de cada uma.
+    fn history_ui(&mut self, ui: &mut Ui, p: &Palette) {
+        if self.flow.is_none() {
+            return;
+        }
+        let runs = self.runs();
         ui.add_space(12.0);
         ui.label(RichText::new(crate::i18n::tr("Últimas execuções")).family(bold()).color(p.text));
         if runs.is_empty() {
@@ -1296,6 +1472,17 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
     });
     if let Some(values) = prop["enum"].as_array() {
         let cur = current.as_ref().and_then(Value::as_str).or(default.as_ref().and_then(Value::as_str)).unwrap_or_default().to_string();
+        let list: Vec<&str> = values.iter().filter_map(Value::as_str).collect();
+        if list.len() <= 5 {
+            // como nas telas (vira menu suspenso sozinho se não couber)
+            let texts: Vec<String> = list.iter().map(|v| enum_text(v)).collect();
+            let mut idx = list.iter().position(|v| *v == cur).unwrap_or(usize::MAX);
+            let opts: Vec<(usize, &str)> = texts.iter().enumerate().map(|(i, t)| (i, t.as_str())).collect();
+            if widgets::segmented(ui, p, &mut idx, &opts) {
+                args.insert(key.into(), json!(list[idx]));
+            }
+            return;
+        }
         egui::ComboBox::from_id_salt(("arg", key)).selected_text(enum_text(&cur)).width(ui.available_width() - 8.0).show_ui(ui, |ui| {
             for v in values.iter().filter_map(Value::as_str) {
                 if ui.selectable_label(v == cur, enum_text(v)).clicked() {
@@ -1313,7 +1500,16 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
             let mut v = current.as_ref().and_then(Value::as_f64).or(default.as_ref().and_then(Value::as_f64)).unwrap_or(0.0);
             ui.horizontal(|ui| {
                 let speed = if max - min < 300.0 { 0.2 } else { 1.0 };
-                let r = ui.add(egui::DragValue::new(&mut v).range(min..=max).speed(speed).max_decimals(if ty == "integer" { 0 } else { 2 }));
+                let slider = min.is_finite() && max.is_finite() && min > f64::MIN && max < f64::MAX && max - min <= 1000.0;
+                let r = if slider {
+                    ui.spacing_mut().slider_width = (ui.available_width() - 70.0).clamp(80.0, 200.0);
+                    {
+                        let sl = egui::Slider::new(&mut v, min..=max).max_decimals(if ty == "integer" { 0 } else { 2 });
+                        ui.add(if ty == "integer" { sl.integer() } else { sl })
+                    }
+                } else {
+                    ui.add(egui::DragValue::new(&mut v).range(min..=max).speed(speed).max_decimals(if ty == "integer" { 0 } else { 2 }))
+                };
                 if r.changed() {
                     args.insert(key.into(), if ty == "integer" { json!(v.round() as i64) } else { json!(v) });
                 }
@@ -1357,6 +1553,7 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
                 }
             }
         }
+        _ if special_editor(ui, p, key, current.as_ref().and_then(Value::as_str), args) => {}
         _ => {
             let mut s = current.as_ref().map(|v| v.as_str().map(String::from).unwrap_or_else(|| v.to_string())).unwrap_or_default();
             let long = matches!(key, "prompt" | "criteria" | "text" | "options");
@@ -1374,6 +1571,146 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
             }
         }
     }
+}
+
+// i18n: fora
+/// Ajustes que não valem para o que já foi escolhido no node (ficam escondidos no painel).
+fn arg_hidden(kind: &str, key: &str, args: &Map<String, Value>) -> bool {
+    let s = |k: &str| args.get(k).and_then(Value::as_str).unwrap_or_default().to_string();
+    match kind {
+        "condition" => {
+            let check = args.get("check").and_then(Value::as_str).unwrap_or("orientation");
+            match key {
+                "orientation" => check != "orientation",
+                "compare" | "value" => matches!(check, "orientation" | "has_audio"),
+                _ => false,
+            }
+        }
+        "tool:files_rename" => matches!(key, "start" | "digits" | "separator") && !args.get("numbering").and_then(Value::as_bool).unwrap_or(false),
+        "tool:subtitle_translate" => matches!(key, "voice" | "original_volume" | "video") && !args.get("dub").and_then(Value::as_bool).unwrap_or(false),
+        "tool:document_scan" => key == "name" && s("format") != "pdf",
+        _ => false,
+    }
+}
+
+// i18n: dentro
+
+/// Que tipo de arquivo um argumento de texto recebe (para o botão "Escolher…"): nome do filtro e extensões.
+fn file_kind(key: &str) -> Option<(&'static str, &'static [&'static str])> {
+    match key {
+        "logo" | "mask" => Some(("Imagem", crate::imaging::IMAGE_EXTS)),
+        "music" => Some(("Áudio", crate::media::AUDIO_EXTS)),
+        "video" => Some(("Vídeo", crate::video::VIDEO_EXTS)),
+        "subtitle" | "subtitle_file" => Some(("Legenda", &["srt", "ass", "vtt"])),
+        _ => None,
+    }
+}
+
+fn hex_to_color(s: &str) -> Option<[u8; 3]> {
+    let h = s.trim().trim_start_matches('#');
+    (h.len() == 6).then(|| u32::from_str_radix(h, 16).ok()).flatten().map(|v| [(v >> 16) as u8, (v >> 8) as u8, v as u8])
+}
+
+fn color_to_hex(c: [u8; 3]) -> String {
+    format!("#{:02x}{:02x}{:02x}", c[0], c[1], c[2])
+}
+
+/// Controles especiais, como nas telas: cor, arquivo, pasta e microfone. Devolve `false` para o campo de texto comum.
+fn special_editor(ui: &mut Ui, p: &Palette, key: &str, cur: Option<&str>, args: &mut Map<String, Value>) -> bool {
+    let is_color = matches!(key, "color" | "text_color" | "background_color" | "highlight_color" | "outline_color");
+    if key == "background" {
+        // Remover fundo: transparente, branco, preto ou uma cor (como na tela)
+        let v = cur.unwrap_or("transparent").to_lowercase();
+        let mut kind = match v.as_str() {
+            "transparent" => 0usize,
+            "#ffffff" | "white" => 1,
+            "#000000" | "black" => 2,
+            _ => 3,
+        };
+        let before = kind;
+        ui.horizontal(|ui| {
+            widgets::segmented(ui, p, &mut kind, &[(0, "Transparente"), (1, "Branco"), (2, "Preto"), (3, "Cor")]);
+            if kind == 3 {
+                let mut c = hex_to_color(&v).unwrap_or([0x22, 0x88, 0xee]);
+                if egui::color_picker::color_edit_button_srgb(ui, &mut c).changed() || before != 3 {
+                    args.insert(key.into(), json!(color_to_hex(c)));
+                }
+            }
+        });
+        if kind != before && kind != 3 {
+            args.insert(key.into(), json!(["transparent", "#ffffff", "#000000"][kind]));
+        }
+        return true;
+    }
+    if is_color {
+        ui.horizontal(|ui| {
+            let mut c = cur.and_then(hex_to_color).unwrap_or([0, 0, 0]);
+            if egui::color_picker::color_edit_button_srgb(ui, &mut c).changed() {
+                args.insert(key.into(), json!(color_to_hex(c)));
+            }
+            ui.label(RichText::new(cur.map(|c| c.to_uppercase()).unwrap_or_else(|| crate::i18n::tr("(padrão)"))).size(12.0).color(p.muted));
+        });
+        return true;
+    }
+    if key == "microphone" {
+        let list = crate::recorder::cached_devices(ui.ctx()).unwrap_or_default();
+        let shown = cur.map(String::from).unwrap_or_else(|| crate::i18n::tr(list.first().map(|_| "O primeiro da lista").unwrap_or("Sem microfone")));
+        egui::ComboBox::from_id_salt(("arg", key)).selected_text(shown).width(ui.available_width() - 8.0).show_ui(ui, |ui| {
+            if ui.selectable_label(cur.is_none(), crate::i18n::tr("O primeiro da lista")).clicked() {
+                args.remove(key);
+            }
+            for d in &list {
+                if ui.selectable_label(cur == Some(d.as_str()), d).clicked() {
+                    args.insert(key.into(), json!(d));
+                }
+            }
+        });
+        return true;
+    }
+    let kind = file_kind(key);
+    let folder = key == "folder";
+    if kind.is_none() && !folder {
+        return false;
+    }
+    // o botão primeiro, no fim da linha; o campo ocupa o que sobra (o botão é mais largo em alguns idiomas)
+    ui.allocate_ui_with_layout(vec2(ui.available_width(), 30.0), widgets::back(egui::Align::Center), |ui| {
+        let mut s = cur.unwrap_or_default().to_string();
+        let pick = widgets::secondary(ui, p, "Escolher…", true);
+        if ui.add(egui::TextEdit::singleline(&mut s).margin(widgets::FIELD_MARGIN).desired_width(ui.available_width())).changed() {
+            if s.trim().is_empty() {
+                args.remove(key);
+            } else {
+                args.insert(key.into(), json!(s));
+            }
+        }
+        if pick {
+            let picked = if folder {
+                rfd::FileDialog::new().pick_folder()
+            } else {
+                let (name, exts) = kind.unwrap();
+                rfd::FileDialog::new().add_filter(crate::i18n::tr(name), exts).pick_file()
+            };
+            if let Some(f) = picked {
+                args.insert(key.into(), json!(f.display().to_string()));
+            }
+        }
+    });
+    true
+}
+
+/// Lê um fluxo exportado: precisa ter nome e nodes de tipos que este Conver conhece. O gatilho não vem junto.
+pub(crate) fn import_flow(src: &std::path::Path) -> Result<Flow, String> {
+    let text = std::fs::read_to_string(src).map_err(|e| e.to_string())?;
+    let mut f: Flow = serde_json::from_str(text.trim_start_matches('\u{feff}')).map_err(|_| crate::i18n::tr("o arquivo não é um fluxo do Conver."))?;
+    if f.name.trim().is_empty() {
+        f.name = src.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "Fluxo importado".into());
+    }
+    let kinds = flow::kinds();
+    if let Some(n) = f.nodes.iter().find(|n| !kinds.iter().any(|k| k.kind == n.kind)) {
+        return Err(crate::i18n::tr(format!("o fluxo usa um node que este Conver não tem: {} (atualize o Conver).", n.kind)));
+    }
+    f.trigger = Default::default();
+    Ok(f)
 }
 
 /// Nomes em português dos argumentos das ferramentas (no esquema eles estão em inglês, para os agentes).
@@ -1428,6 +1765,21 @@ pub(crate) fn arg_label(key: &str) -> &str {
         "x" => "Posição horizontal (%)",
         "y" => "Posição vertical (%)",
         "options" => "Opções (uma por linha)",
+        "check" => "O que conferir",
+        "orientation" => "Orientação",
+        "mode" => "Limpeza",
+        "crop" => "Achar a folha e endireitar",
+        "compare" => "Comparação",
+        "value" => "Valor",
+        "base" => "Nome base",
+        "find" => "Procurar",
+        "replace" => "Substituir por",
+        "prefix" => "Antes do nome",
+        "suffix" => "Depois do nome",
+        "numbering" => "Numerar",
+        "separator" => "Separador",
+        "case" => "Letras",
+        "error_correction" => "Correção de erro",
         "pattern" => "Padrão do nome",
         "digits" => "Dígitos do número",
         "count_per_option" => "Contar separado por opção",
@@ -1594,6 +1946,22 @@ pub(crate) fn enum_label(v: &str) -> &str {
         "classic" => "Clássica",
         "band" => "Faixa escura",
         "color" => "Cor",
+        "orientation" => "Orientação",
+        "duration" => "Duração (s)",
+        "width" => "Largura (px)",
+        "height" => "Altura (px)",
+        "size_mb" => "Tamanho (MB)",
+        "pages" => "Páginas do PDF",
+        "has_audio" => "Tem som",
+        "vertical" => "Vertical",
+        "horizontal" => "Horizontal",
+        "more" => "Maior que",
+        "less" => "Menor que",
+        "keep" => "Manter",
+        "lower" => "minúsculas",
+        "upper" => "MAIÚSCULAS",
+        "document" => "Documento (preto e branco)",
+        "gray" => "Tons de cinza",
         other => other,
     }
 }
@@ -1608,6 +1976,10 @@ pub(crate) fn node_help(kind: &str) -> &'static str {
         "ai_prompt" => "Pede à IA configurada em Configurações para fazer algo com o que chega: descrever, resumir, traduzir, escrever legendas… A resposta segue como texto.",
         "ai_gate" => "A IA configurada confere cada item pelo critério que você escrever e manda para a saída \"sim\" ou \"não\".",
         "filter" => "Deixa passar só os arquivos do tipo, extensão ou tamanho escolhidos.",
+        "document_scan" => "Foto de papel tirada com o celular vira documento reto e limpo: o Conver acha a folha, endireita e tira as sombras. Para PDF ou OCR.",
+        "condition" => "Separa os arquivos por uma propriedade: orientação, duração, largura, altura, tamanho, páginas do PDF ou se tem som.",
+        "files_rename" => "Copia os arquivos com nomes novos: nome base, procurar e substituir, antes e depois do nome, letras e numeração.",
+        "audio_record" => "Grave o microfone (ou outra entrada de áudio do PC) direto em MP3, WAV ou M4A.",
         "rename" => "Copia cada arquivo com um nome novo, montado com a opção escolhida pela IA, a data, um contador ou o nome original.",
         "classify" => "Uma IA no próprio PC olha cada imagem, ouve cada som ou lê cada texto e manda para a saída da opção que combina mais.",
         "image_convert" => "Converta entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.",

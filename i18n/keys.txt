@@ -120,6 +120,9 @@ o reconhecimento de fala demorou demais para começar.
 Ouvindo… fale à vontade.
 Parou: {e}
 Parado.
+não foi possível salvar: {e}
+{size} • {}
+folha não encontrada (foto inteira)
 320 kbps
 192 kbps
 128 kbps
@@ -516,7 +519,22 @@ Som original:
 Cada fala entra na hora da legenda; quando não cabe no tempo, ela é acelerada (no máximo 1,5×). O vídeo com o mesmo nome da legenda recebe a dublagem; sem vídeo, sai um MP3.
 Vídeos e áudios sem legenda são transcritos antes (Whisper). A tradução é feita por uma IA local pequena: revise nomes e termos técnicos.
 Traduzir
-não foi possível salvar: {e}
+Fotos de documentos
+Escanear documento
+Foto de papel tirada com o celular vira documento reto e limpo: o Conver acha a folha, endireita e tira as sombras. Para PDF ou OCR.
+Limpeza:
+Documento (preto e branco)
+Tons de cinza
+Recorte:
+Achar a folha e endireitar
+Foto inteira
+PDF (tudo num arquivo)
+Uma página por foto, na ordem da lista (use ↑ e ↓ para mudar).
+Funciona melhor com a folha inteira na foto, sobre uma mesa mais escura que o papel.
+⚠ A folha não foi encontrada nesta foto: ela será só limpa, sem recorte.
+Adicione fotos de documentos para ver a prévia.
+Escanear
+{n} página(s)
 {} rosto(s)
 não foi possível iniciar o ffmpeg: {e}
 quadro inválido
@@ -543,6 +561,7 @@ IA: avaliar
 Filtrar arquivos
 IA local: classificar
 Renomear com padrão
+Condição
 não foi possível salvar o fluxo: {e}
 fluxo não encontrado: {name}
 não foi possível criar a pasta de trabalho: {e}
@@ -556,6 +575,7 @@ nenhum arquivo de entrada (adicione arquivos ao node ou passe "files").
 {n} arquivo(s)
 o texto está vazio.
 {} sim, {} não
+informe o valor para comparar.
 escreva pelo menos duas opções.
 não foi possível criar {}: {e}
 {n} salvo(s) em {}
@@ -579,6 +599,11 @@ Já existe um fluxo com esse nome.
 + Novo
 Duplicar
 cópia
+Exportar
+Fluxo do Conver
+✔ Exportado: {}
+Importar
+✔ Importado: {name}
 Clique de novo para excluir
 Excluir
 🔍  Procurar node…
@@ -591,6 +616,8 @@ escreva as opções
 {n} opções
 confiança mínima {min:.0}%
 Documentos\Conver
+{what}: {}
+{what} {op} {v}
 tudo passa
 ajustes padrão
 Crie um fluxo com "+ Novo".
@@ -649,6 +676,13 @@ Pela linha de comando ou pelo MCP, os arquivos passados em flow_run substituem e
 Executando “{}”…
 Concluído com {failed} node(s) com erro.
 Concluído: {n} resultado(s).
+Resultado da última execução
+Este node não rodou na última execução.
+Nada chegou neste node.
+{name} ({})
+e mais {}
+Nada saiu deste node.
+Abrir pasta
 Últimas execuções
 O fluxo ainda não foi executado.
 {when}  •  {secs:.0} s
@@ -661,6 +695,18 @@ Voltar ao padrão
 (padrão)
 (automático)
 um por linha
+Imagem
+Áudio
+Vídeo
+Legenda
+#ffffff
+Transparente
+Branco
+O primeiro da lista
+Sem microfone
+o arquivo não é um fluxo do Conver.
+Fluxo importado
+o fluxo usa um node que este Conver não tem: {} (atualize o Conver).
 Animada (palavra por palavra)
 Cor da caixa
 Opacidade da caixa (%)
@@ -694,12 +740,24 @@ Arquivo de legenda
 Cor do texto
 Traduzir para
 Traduzir o pedido para o inglês
-Vídeo
 Voz
 Palavras por linha
 Posição horizontal (%)
 Posição vertical (%)
 Opções (uma por linha)
+O que conferir
+Orientação
+Limpeza
+Comparação
+Valor
+Nome base
+Procurar
+Substituir por
+Antes do nome
+Depois do nome
+Separador
+Letras
+Correção de erro
 Padrão do nome
 Dígitos do número
 Contar separado por opção
@@ -783,8 +841,6 @@ Voz e instrumental
 Só a voz
 Só o instrumental
 Nenhum
-Transparente
-Branco
 Preto e branco
 Sépia
 Inverter
@@ -807,12 +863,23 @@ No centro
 À direita
 Podcast (−16 LUFS)
 Reels e YouTube (−14 LUFS)
+Largura (px)
+Altura (px)
+Tamanho (MB)
+Páginas do PDF
+Tem som
+Vertical
+Horizontal
+Maior que
+Menor que
 Começo do fluxo: os arquivos que vão passar pelos nodes.
 Um texto escrito por você, que segue para os próximos nodes.
 Salva numa pasta tudo o que chega (arquivos e textos).
 Pede à IA configurada em Configurações para fazer algo com o que chega: descrever, resumir, traduzir, escrever legendas… A resposta segue como texto.
 A IA configurada confere cada item pelo critério que você escrever e manda para a saída "sim" ou "não".
 Deixa passar só os arquivos do tipo, extensão ou tamanho escolhidos.
+Separa os arquivos por uma propriedade: orientação, duração, largura, altura, tamanho, páginas do PDF ou se tem som.
+Copia os arquivos com nomes novos: nome base, procurar e substituir, antes e depois do nome, letras e numeração.
 Copia cada arquivo com um nome novo, montado com a opção escolhida pela IA, a data, um contador ou o nome original.
 Uma IA no próprio PC olha cada imagem, ouve cada som ou lê cada texto e manda para a saída da opção que combina mais.
 Converta entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO.
@@ -888,8 +955,6 @@ Foto (EXIF)
 Duração
 Taxa de bits total
 Capa
-Áudio
-Legenda
 Mídia
 Faixas
 Etiquetas
@@ -901,7 +966,6 @@ Dimensões
 {w} × {h} px ({mp:.1} megapixels)
 Cores
  (com transparência)
-Imagem
 não foi possível ler (danificado ou protegido)
 a máscara precisa ter o tamanho da imagem.
 pinte o que deve ser apagado.
@@ -974,7 +1038,6 @@ Baixando… {:.0}%
 Na fila
 Baixar
 Espaço usado: {}
-Abrir pasta
 Cancelar downloads
 conversor universal
 🔍  Buscar ferramenta…

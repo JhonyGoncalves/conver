@@ -224,6 +224,7 @@ const T_AI_GATE: &str = "IA: avaliar";
 const T_FILTER: &str = "Filtrar arquivos";
 const T_CLASSIFY: &str = "IA local: classificar";
 const T_RENAME: &str = "Renomear com padrão";
+const T_CONDITION: &str = "Condição";
 
 /// Saída do classificador para o que ficou abaixo da confiança mínima (ou não é imagem nem vídeo).
 pub const UNCERTAIN: &str = "uncertain";
@@ -236,6 +237,40 @@ pub fn node_outputs(n: &Node) -> Vec<String> {
         return v;
     }
     kind_info(&n.kind).map(|k| k.outputs.iter().map(|o| o.to_string()).collect()).unwrap_or_else(|| vec!["out".into()])
+}
+
+/// Largura e altura de uma imagem ou vídeo.
+fn dims_of(p: &Path) -> Option<(u32, u32)> {
+    if crate::imaging::IMAGE_EXTS.contains(&tools::ext_lower(p).as_str()) {
+        if let Ok(d) = image::image_dimensions(p) {
+            return Some(d);
+        }
+    }
+    crate::video::probe(p).size
+}
+
+#[cfg(test)]
+pub(crate) fn condition_passes_for_test(p: &Path, check: &str, more: bool, value: f64) -> bool {
+    condition_passes(p, check, more, value, "vertical")
+}
+
+/// O node "Condição": o arquivo tem a propriedade pedida?
+fn condition_passes(p: &Path, check: &str, more: bool, value: f64, orientation: &str) -> bool {
+    let cmp = |x: f64| if more { x > value } else { x < value };
+    match check {
+        "orientation" => dims_of(p).is_some_and(|(w, h)| match orientation {
+            "horizontal" => w > h,
+            "square" => w == h,
+            _ => h > w,
+        }),
+        "width" => dims_of(p).is_some_and(|(w, _)| cmp(w as f64)),
+        "height" => dims_of(p).is_some_and(|(_, h)| cmp(h as f64)),
+        "duration" => crate::video::probe(p).duration.is_some_and(cmp),
+        "size_mb" => cmp(tools::file_size(p) as f64 / 1_048_576.0),
+        "pages" => tools::ext_lower(p) == "pdf" && crate::pdf::open(p).is_ok_and(|d| cmp(d.get_pages().len() as f64)),
+        "has_audio" => crate::video::probe(p).has_audio,
+        _ => false,
+    }
 }
 
 /// Todos os tipos de node: entrada, texto, IA, filtro, saída e uma para cada ferramenta.
@@ -274,6 +309,13 @@ pub fn kinds() -> Vec<KindInfo> {
             s(json!({ "types": { "type": "array", "items": { "type": "string", "enum": ["image", "video", "audio", "pdf", "text"] }, "description": "Accepted kinds (empty = any)." },
                 "extensions": { "type": "string", "description": "Accepted extensions, e.g. \"png, jpg\" (empty = any)." },
                 "min_mb": { "type": "number", "description": "Minimum size in MB." }, "max_mb": { "type": "number", "description": "Maximum size in MB." } }), &[])),
+        special("condition", T_CONDITION, "FERRAMENTAS",
+            "Send items to \"yes\" or \"no\" by a property of the file: orientation, duration, width, height, size, number of PDF pages or whether it has sound. Items without that property (texts, or a duration of an image) go to \"no\".",
+            &["yes", "no"], true,
+            s(json!({ "check": { "type": "string", "enum": ["orientation", "duration", "width", "height", "size_mb", "pages", "has_audio"], "default": "orientation", "description": "What to check." },
+                "orientation": { "type": "string", "enum": ["vertical", "horizontal", "square"], "default": "vertical", "description": "For check = orientation: the orientation that goes to \"yes\"." },
+                "compare": { "type": "string", "enum": ["more", "less"], "default": "more", "description": "For numeric checks: \"yes\" when the value is more (or less) than \"value\"." },
+                "value": { "type": "number", "description": "Number to compare with (seconds, pixels, MB or pages)." } }), &[])),
         special("rename", T_RENAME, "FERRAMENTAS",
             "Copy each file that arrives with a new name from a pattern (the originals are not touched). Tokens: {name} original name, {n} counter, {option} option chosen by the local classifier, {date} today (YYYY-MM-DD), {time} (HH-MM), {file_date} date the file was modified, {folder} name of its folder. Portuguese aliases also work: {nome}, {opcao}, {data}, {hora}, {data_arquivo}, {pasta}. The extension is kept.",
             &["out"], true,
@@ -369,6 +411,10 @@ pub fn remove(name: &str) -> Result<(), String> {
     // a tarefa agendada (se houver) vai junto
     if find(name).is_some_and(|f| !f.trigger.time.trim().is_empty()) {
         crate::triggers::unschedule(name);
+    }
+    // as pastas das execuções (histórico) do fluxo também
+    for d in run_dirs(name) {
+        let _ = std::fs::remove_dir_all(d);
     }
     std::fs::remove_file(p).map_err(|e| e.to_string())
 }
@@ -802,6 +848,22 @@ fn run_node(
                     // textos só passam se o filtro aceitar "text" (ou não tiver tipos nem extensões)
                     None => (types.is_empty() && exts.is_empty()) || types.iter().any(|t| t == "text"),
                 };
+                if pass { yes.push(it.clone()) } else { no.push(it.clone()) }
+            }
+            let note = format!("{} sim, {} não", yes.len(), no.len());
+            Ok((HashMap::from([("yes".to_string(), yes), ("no".to_string(), no)]), note))
+        }
+        "condition" => {
+            let check = args.get("check").and_then(Value::as_str).unwrap_or("orientation");
+            let more = args.get("compare").and_then(Value::as_str).unwrap_or("more") != "less";
+            let value = args.get("value").and_then(Value::as_f64);
+            let wanted = args.get("orientation").and_then(Value::as_str).unwrap_or("vertical");
+            if !matches!(check, "orientation" | "has_audio") && value.is_none() {
+                return Err("informe o valor para comparar.".into());
+            }
+            let (mut yes, mut no) = (Vec::new(), Vec::new());
+            for it in incoming {
+                let pass = it.path.as_deref().is_some_and(|p| condition_passes(p, check, more, value.unwrap_or(0.0), wanted));
                 if pass { yes.push(it.clone()) } else { no.push(it.clone()) }
             }
             let note = format!("{} sim, {} não", yes.len(), no.len());

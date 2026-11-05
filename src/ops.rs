@@ -450,7 +450,8 @@ fn t_qr(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
     let text = a.str("text").filter(|t| !t.is_empty()).ok_or("informe \"text\".")?;
     let size = a.num_or("size", 800.0)?.clamp(64.0, 4000.0) as u32;
     let (r, g, b) = parse_color(&a.str_or("color", "#000000"))?;
-    let img = qr::render(&text, size, [r, g, b], qr::Correction::Media)?;
+    let correction = a.choice("error_correction", &[("low", qr::Correction::Baixa), ("medium", qr::Correction::Media), ("high", qr::Correction::Alta)], qr::Correction::Media)?;
+    let img = qr::render(&text, size, [r, g, b], correction)?;
     let dst = match a.str("output").filter(|s| !s.trim().is_empty()) {
         Some(o) => tools::unique_path(PathBuf::from(o).with_extension("png")),
         None => {
@@ -460,6 +461,110 @@ fn t_qr(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
     };
     img.save(&dst).map_err(|e| format!("não foi possível salvar: {e}"))?;
     single("QR Code", &text, Ok((format!("{size}×{size} px", size = img.width()), dst)))
+}
+
+/// Gravador de áudio por tempo (o mesmo da tela "Gravador de áudio").
+fn t_audio_record(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let seconds = a.num("seconds")?.ok_or("informe \"seconds\" (duração da gravação).")?;
+    if !(1.0..=4.0 * 3600.0).contains(&seconds) {
+        return Err("\"seconds\" deve ficar entre 1 e 14400.".into());
+    }
+    let devices = crate::recorder::devices();
+    let device = match a.str("microphone").filter(|s| !s.trim().is_empty()) {
+        Some(d) => devices.iter().find(|x| x.eq_ignore_ascii_case(d.trim()) || x.to_lowercase().contains(&d.trim().to_lowercase())).cloned()
+            .ok_or_else(|| format!("microfone não encontrado: {d} (veja list_devices)."))?,
+        None => devices.first().cloned().ok_or("nenhum microfone encontrado.")?,
+    };
+    let fmt = a.choice("format", &[("mp3", media::AFmt::Mp3), ("wav", media::AFmt::Wav), ("m4a", media::AFmt::M4a)], media::AFmt::Mp3)?;
+    let ext = match fmt {
+        media::AFmt::Wav => "wav",
+        media::AFmt::M4a => "m4a",
+        _ => "mp3",
+    };
+    let dst = match a.str("output").filter(|s| !s.trim().is_empty()) {
+        Some(p) => tools::unique_path(PathBuf::from(p).with_extension(ext)),
+        None => {
+            let dir = a.out_dir()?.or_else(|| std::env::var_os("USERPROFILE").map(|h| PathBuf::from(h).join("Music"))).unwrap_or_else(std::env::temp_dir);
+            std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+            tools::unique_path(dir.join(format!("gravacao_{}.{ext}", tools::now_string().replace([':', ' ', '/'], "-"))))
+        }
+    };
+    let mut rec = crate::recorder::Recording::start(&device, fmt, &dst, || {})?;
+    let t = std::time::Instant::now();
+    while t.elapsed().as_secs_f64() < seconds {
+        if (ctx.cancelled)() {
+            break;
+        }
+        if !rec.check()? {
+            break;
+        }
+        (ctx.progress)((t.elapsed().as_secs_f64() / seconds) as f32);
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+    let silent = rec.silent();
+    let out = rec.stop()?;
+    let info = format!("{} • {}", crate::video::fmt_time(t.elapsed().as_secs_f64()), device);
+    let info = if silent { format!("{info} • nenhum som chegou do microfone") } else { info };
+    single("Gravador de áudio", &device, Ok((info, out)))
+}
+
+/// Renomear em lote com as regras da tela. Com pasta de saída, copia com o nome novo (o original fica); sem ela,
+/// renomeia no lugar.
+fn t_files_rename(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = a.files()?;
+    let r = crate::rename::Rules {
+        base: a.str_or("base", ""),
+        find: a.str_or("find", ""),
+        replace: a.str_or("replace", ""),
+        prefix: a.str_or("prefix", ""),
+        suffix: a.str_or("suffix", ""),
+        numbering: a.bool_or("numbering", false)?,
+        start: a.num_or("start", 1.0)?.max(0.0) as u32,
+        digits: a.num_or("digits", 3.0)?.clamp(1.0, 9.0) as usize,
+        sep: a.str_or("separator", "_"),
+        case: a.choice("case", &[("keep", crate::rename::Case::Manter), ("lower", crate::rename::Case::Minusculas), ("upper", crate::rename::Case::Maiusculas)], crate::rename::Case::Manter)?,
+    };
+    let names: Vec<String> = files.iter().enumerate().map(|(i, f)| crate::rename::new_name(f, i, &r)).collect();
+    match a.out_dir()? {
+        Some(dir) => {
+            std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+            let mut i = 0;
+            batch("Renomear em lote", &files, ctx, |f, _| {
+                let dst = tools::unique_path(dir.join(&names[i]));
+                i += 1;
+                std::fs::copy(f, &dst).map_err(|e| format!("não foi possível copiar: {e}"))?;
+                Ok((tools::file_name(&dst), dst))
+            })
+        }
+        None => {
+            if let Some((k, why)) = crate::rename::problems(&files, &names).iter().enumerate().find_map(|(k, p)| p.map(|w| (k, w))) {
+                return Err(format!("{}: {why}", names[k]));
+            }
+            let done = crate::rename::apply(&files, &names)?;
+            Ok(json!({ "ok": done.len(), "failed": 0, "results": done.iter().map(|(from, to)| json!({ "input": from.display().to_string(), "output": to.display().to_string() })).collect::<Vec<_>>() }))
+        }
+    }
+}
+
+fn t_document_scan(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::docscan::{Mode, Opts, Out};
+    let files = a.files()?;
+    let o = Opts {
+        mode: a.choice("mode", &[("document", Mode::Documento), ("gray", Mode::Cinza), ("color", Mode::Cor)], Mode::Documento)?,
+        crop: a.bool_or("crop", true)?,
+    };
+    let out = a.choice("format", &[("jpg", Out::Jpg), ("png", Out::Png), ("pdf", Out::Pdf)], Out::Jpg)?;
+    if out == Out::Pdf {
+        // todas as fotos num PDF só, na ordem
+        let dir = a.out_dir()?.or_else(|| files[0].parent().map(Path::to_path_buf)).unwrap_or_default();
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        let name = a.str("name").filter(|n| !n.trim().is_empty()).unwrap_or_else(|| "documento_escaneado".into());
+        let dst = tools::unique_path(dir.join(format!("{}.pdf", name.trim())));
+        let n = crate::docscan::to_pdf(&files, &dst, &o, ctx.progress, ctx.cancelled)?;
+        return single("Escanear documento", &tools::file_name(&files[0]), Ok((format!("{n} página(s)"), dst)));
+    }
+    let out_dir = a.out_dir()?;
+    batch("Escanear documento", &files, ctx, |f, _| crate::docscan::process(f, out_dir.as_deref(), &o, out))
 }
 
 fn dirs_downloads() -> Option<PathBuf> {
@@ -1375,8 +1480,27 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("images"), "language": str_prop("BCP-47 tag like \"pt-BR\" or \"en-US\" (default: user languages).") }), &["files"]), t_image_ocr),
     tool!("qr_code", "Gerador de QR Code", "Create a QR code PNG for a text, link, Wi-Fi string etc.",
         json!({ "type": "object", "properties": { "text": str_prop("Content of the QR code."), "size": int_prop("Size in px.", 64, 4000, 800),
-            "color": str_prop("Foreground color #rrggbb (default black)."), "output": str_prop("Output PNG path (default: Downloads/qrcode.png)."),
+            "color": str_prop("Foreground color #rrggbb (default black)."),
+            "error_correction": enum_prop("Error correction: high keeps the code readable when dirty or creased, but makes it denser.", &["low", "medium", "high"], "medium"),
+            "output": str_prop("Output PNG path (default: Downloads/qrcode.png)."),
             "out_dir": str_prop("Output folder.") }, "required": ["text"] }), t_qr),
+    tool!("document_scan", "Escanear documento", "Turn photos of paper documents (taken with a phone) into clean, straight scans: finds the sheet, corrects the perspective and cleans it (document = black and white without shadows, gray or color). Saves JPG/PNG next to each photo, or all pages in one PDF.",
+        schema(json!({ "files": files_prop("photos of documents"), "mode": enum_prop("Cleaning.", &["document", "gray", "color"], "document"),
+            "crop": bool_prop("Find the sheet and straighten it (false = keep the whole photo, only clean it).", true),
+            "format": enum_prop("jpg or png (one file per photo) or pdf (all photos in one PDF).", &["jpg", "png", "pdf"], "jpg"),
+            "name": str_prop("PDF file name without extension (format = pdf).") }), &["files"]), t_document_scan),
+    tool!("files_rename", "Renomear em lote", "Rename many files at once with the same rules as the Batch rename screen: new base name, find/replace, prefix, suffix, letter case and numbering. With out_dir (as inside flows) the files are copied there with the new names; without it they are renamed in place.",
+        schema(json!({ "files": files_prop("files"), "base": str_prop("New base name (empty = keep the current name)."),
+            "find": str_prop("Text to find in the name."), "replace": str_prop("Replacement for the found text."),
+            "prefix": str_prop("Text added before the name."), "suffix": str_prop("Text added after the name."),
+            "case": enum_prop("Letter case.", &["keep", "lower", "upper"], "keep"),
+            "numbering": bool_prop("Add a number at the end.", false), "start": int_prop("First number.", 0, 1_000_000, 1),
+            "digits": int_prop("Digits of the number (zeros on the left).", 1, 9, 3), "separator": str_prop("Text between the name and the number (default \"_\").") }), &["files"]), t_files_rename),
+    tool!("audio_record", "Gravador de áudio", "Record the microphone (or another audio input) for a number of seconds to MP3, WAV or M4A.",
+        json!({ "type": "object", "properties": { "seconds": num_prop("Recording length in seconds (1 to 14400)."),
+            "microphone": str_prop("Input device name or part of it (default: the first one; see list_devices)."),
+            "format": enum_prop("File format.", &["mp3", "wav", "m4a"], "mp3"),
+            "output": str_prop("Output file path (optional)."), "out_dir": str_prop("Output folder (default: Music).") }, "required": ["seconds"] }), t_audio_record),
     tool!("video_convert", "Converter vídeo", "Convert videos to MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF or extract MP3.",
         schema(json!({ "files": files_prop("videos"), "format": enum_prop("Target format.", &names(VFMTS), "mp4"),
             "quality": enum_prop("Quality.", &["high", "medium", "low"], "medium") }), &["files", "format"]), t_video_convert),

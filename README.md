@@ -68,6 +68,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 **PDF**
 - Juntar PDFs e dividir (páginas como `1-3, 7` ou uma página por arquivo)
 - **Organizar páginas**: arrastar, girar e apagar vendo as miniaturas
+- **Escanear documento**: foto de papel tirada com o celular vira documento reto e limpo, em imagem ou PDF
 - **Tabelas do PDF para Excel** (.xlsx ou .csv), inclusive de PDFs escaneados
 - **Comprimir PDF**, **PDF → imagens** (PNG/JPG), **proteger com senha** e **tirar a senha**
 - **PDF pesquisável (OCR)**: o texto de PDFs escaneados passa a poder ser pesquisado e copiado

@@ -1,5 +1,21 @@
 # Lista de mudanças
 
+## 1.8.0
+
+### Novidades
+- **Escanear documento:** foto de papel tirada com o celular vira documento reto e limpo: o Conver acha a folha, endireita a perspectiva e tira as sombras (preto e branco, tons de cinza ou cor). Salva em JPG/PNG ou junta todas as fotos num PDF. Também como node dos fluxos e no MCP (`document_scan`).
+- **Fluxos de automação mais completos:**
+  - **painel do node com os controles das telas:** seletores, sliders, seletor de cor, botão "Escolher…" para logo, música, legenda, vídeo e pasta, e a lista de microfones; ajustes que não valem para o que foi escolhido ficam escondidos;
+  - **node "Condição":** separa os arquivos por orientação (vertical, horizontal, quadrada), duração, largura, altura, tamanho, páginas do PDF ou se tem som;
+  - **resultado de cada node:** depois de rodar, clicar num node mostra o que ele produziu (miniaturas, arquivos que abrem com um clique, textos para copiar e a pasta);
+  - **exportar e importar fluxos:** salve um fluxo num arquivo para compartilhar e abra fluxos de outras pessoas (sem os seus arquivos de entrada nem o horário);
+  - **nodes novos:** Renomear em lote (com as mesmas regras da tela), Gravador de áudio (grava por um tempo) e Escanear documento; o QR Code ganhou a correção de erro.
+- **MCP e linha de comando:** `document_scan`, `files_rename` e `audio_record`; `qr_code` aceita `error_correction`.
+
+### Correções
+- A barra de cima dos fluxos quebra linha quando não cabe (textos longos em outros idiomas).
+- Apagar um fluxo também apaga as pastas das execuções dele.
+
 ## 1.7.1
 
 ### Correções

@@ -451,3 +451,115 @@ impl TranslatePage {
         }
     }
 }
+
+// ============================================================== escanear documento
+
+// i18n: fora
+pub const SCAN_EXTS: &[&str] = &["jpg", "jpeg", "jfif", "png", "webp", "bmp", "tif", "tiff", "heic"];
+// i18n: dentro
+
+pub struct ScanPage {
+    pub queue: FileQueue,
+    out: OutDir,
+    job: Job,
+    mode: crate::docscan::Mode,
+    crop: bool,
+    format: crate::docscan::Out,
+    pdf_name: String,
+    prev: LivePreview,
+    found: Arc<Mutex<Option<bool>>>,
+}
+
+impl ScanPage {
+    pub fn new() -> Self {
+        Self {
+            queue: FileQueue::new(SCAN_EXTS, "Fotos de documentos"),
+            out: OutDir::same_as_source(),
+            job: Job::default(),
+            mode: crate::docscan::Mode::Documento,
+            crop: true,
+            format: crate::docscan::Out::Pdf,
+            pdf_name: "documento_escaneado".into(),
+            prev: LivePreview::default(),
+            found: Arc::default(),
+        }
+    }
+
+    pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
+        use crate::docscan::{Mode, Opts, Out};
+        let title = "Escanear documento";
+        widgets::header(ui, p, title, "Foto de papel tirada com o celular vira documento reto e limpo: o Conver acha a folha, endireita e tira as sombras. Para PDF ou OCR.");
+        self.queue.reorder = self.format == Out::Pdf;
+        widgets::file_list(ui, p, &mut self.queue, None, None, 120.0);
+        ui.add_space(4.0);
+        let o = Opts { mode: self.mode, crop: self.crop };
+        if let Some(src) = self.queue.selected_path().cloned() {
+            let found = self.found.clone();
+            self.prev.update(ui.ctx(), format!("{src:?}|{o:?}"), move || {
+                let img = crate::imaging::load(&src)?.thumbnail(1400, 1400).to_rgb8();
+                let (out, ok) = crate::docscan::scan(&img, &o);
+                *found.lock().unwrap() = Some(ok);
+                let mut png = Vec::new();
+                image::DynamicImage::ImageRgb8(out).thumbnail(800, 600).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).map_err(|e| e.to_string())?;
+                Ok(png)
+            });
+        }
+        card(ui, p, |ui| {
+            ui.horizontal_top(|ui| {
+                crate::widgets::vt(ui, |ui| {
+                    ui.set_width((ui.available_width() - 316.0).max(300.0));
+                    row(ui, p, "Limpeza:", |ui| {
+                        segmented(ui, p, &mut self.mode, &[(Mode::Documento, "Documento (preto e branco)"), (Mode::Cinza, "Tons de cinza"), (Mode::Cor, "Cor")]);
+                    });
+                    row(ui, p, "Recorte:", |ui| {
+                        segmented(ui, p, &mut self.crop, &[(true, "Achar a folha e endireitar"), (false, "Foto inteira")]);
+                    });
+                    row(ui, p, "Salvar como:", |ui| {
+                        segmented(ui, p, &mut self.format, &[(Out::Pdf, "PDF (tudo num arquivo)"), (Out::Jpg, "JPG"), (Out::Png, "PNG")]);
+                    });
+                    if self.format == Out::Pdf {
+                        row(ui, p, "Nome do PDF:", |ui| {
+                            ui.add(egui::TextEdit::singleline(&mut self.pdf_name).margin(widgets::FIELD_MARGIN).desired_width(200.0));
+                            ui.label(RichText::new(".pdf").color(p.muted));
+                        });
+                        hint(ui, p, "Uma página por foto, na ordem da lista (use ↑ e ↓ para mudar).");
+                    }
+                    hint(ui, p, "Funciona melhor com a folha inteira na foto, sobre uma mesa mais escura que o papel.");
+                    if let Some(false) = *self.found.lock().unwrap() {
+                        if self.crop {
+                            ui.label(RichText::new(tr("⚠ A folha não foi encontrada nesta foto: ela será só limpa, sem recorte.")).size(12.5).color(p.accent));
+                        }
+                    }
+                });
+                ui.add_space(8.0);
+                crate::widgets::vt(ui, |ui| {
+                    ui.set_width(296.0);
+                    self.prev.show(ui, p, vec2(296.0, 240.0), if self.queue.selected_path().is_some() { "Preparando…" } else { "Adicione fotos de documentos para ver a prévia." });
+                });
+            });
+        });
+        ui.add_space(4.0);
+        self.out.ui(ui, p);
+        match widgets::action_bar(ui, p, &self.job, "Escanear", !self.queue.files.is_empty()) {
+            Act::Start => {
+                let (files, out, format) = (self.queue.files.clone(), self.out.path.clone(), self.format);
+                let name = if self.pdf_name.trim().is_empty() { "documento_escaneado".to_string() } else { self.pdf_name.trim().to_string() };
+                self.job.start(ui.ctx(), move |ctl| {
+                    if format == Out::Pdf {
+                        let first = files[0].clone();
+                        run_batch(ctl, title, &[first.clone()], |_, progress| {
+                            let dir = out.clone().or_else(|| first.parent().map(|d| d.to_path_buf())).unwrap_or_default();
+                            let dst = crate::tools::unique_path(dir.join(format!("{name}.pdf")));
+                            let n = crate::docscan::to_pdf(&files, &dst, &o, progress, &|| ctl.cancelled())?;
+                            Ok((tr(format!("{n} página(s)")), dst))
+                        });
+                    } else {
+                        run_batch(ctl, title, &files, |src, _| crate::docscan::process(src, out.as_deref(), &o, format));
+                    }
+                });
+            }
+            Act::Cancel => self.job.cancel(),
+            Act::None => {}
+        }
+    }
+}

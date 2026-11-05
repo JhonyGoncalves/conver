@@ -14,6 +14,7 @@ mod watermark;
 mod captura;
 mod cli;
 mod dictation;
+mod docscan;
 mod download;
 mod extras;
 mod extras2;
@@ -162,6 +163,7 @@ enum Page {
     Watermark,
     Faces,
     Translate,
+    Scan,
     Tts,
     ImageGen,
     Dictation,
@@ -219,6 +221,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Img(ImgTool::Strip), "Remover metadados"),
             (Page::Img(ImgTool::Pdf), "Imagens → PDF"),
             (Page::Ocr, "Texto de imagem (OCR)"),
+            (Page::Scan, "Escanear documento"),
         ],
     ),
     (
@@ -325,6 +328,7 @@ struct ConverApp {
     watermark: extras6::WatermarkPage,
     faces: extras6::FacesPage,
     translate: extras6::TranslatePage,
+    scan: extras6::ScanPage,
     tts: extras5::TtsPage,
     imagegen: extras5::ImageGenPage,
     dictation: extras5::DictationPage,
@@ -407,6 +411,7 @@ impl ConverApp {
             watermark: extras6::WatermarkPage::new(),
             faces: extras6::FacesPage::new(),
             translate: extras6::TranslatePage::new(),
+            scan: extras6::ScanPage::new(),
             tts: extras5::TtsPage::new(),
             imagegen: extras5::ImageGenPage::new(),
             dictation: extras5::DictationPage::new(),
@@ -706,6 +711,7 @@ impl ConverApp {
             Page::Watermark => Some(&mut self.watermark.queue),
             Page::Faces => Some(&mut self.faces.queue),
             Page::Translate => Some(&mut self.translate.queue),
+            Page::Scan => Some(&mut self.scan.queue),
             _ => None,
         }
     }
@@ -1271,6 +1277,7 @@ fn page_id(page: Page) -> &'static str {
         Page::Watermark => "watermark",
         Page::Faces => "img_faces",
         Page::Translate => "v_translate",
+        Page::Scan => "img_scan",
         Page::Tts => "tts",
         Page::ImageGen => "img_generate",
         Page::Dictation => "dictation",
@@ -1462,6 +1469,7 @@ impl eframe::App for ConverApp {
                         Page::Watermark => self.watermark.ui(ui, &p),
                         Page::Faces => self.faces.ui(ui, &p),
                         Page::Translate => self.translate.ui(ui, &p),
+                        Page::Scan => self.scan.ui(ui, &p),
                         Page::Tts => self.tts.ui(ui, &p),
                         Page::ImageGen => self.imagegen.ui(ui, &p),
                         Page::Dictation => self.dictation.ui(ui, &p),
