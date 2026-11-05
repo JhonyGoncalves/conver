@@ -856,6 +856,66 @@ fn t_captions(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     })
 }
 
+fn t_classify(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let exts: Vec<&str> = imaging::IMAGE_EXTS.iter().chain(video::VIDEO_EXTS.iter()).copied().collect();
+    let files = filter_ext(a.files()?, &exts)?;
+    let options_text = match a.get("options") {
+        Some(Value::Array(v)) => v.iter().filter_map(Value::as_str).collect::<Vec<_>>().join("
+"),
+        _ => a.str_or("options", ""),
+    };
+    let options = crate::classify::parse_options(&options_text);
+    if options.len() < 2 {
+        return Err("informe pelo menos duas opções em \"options\".".into());
+    }
+    let min = (a.num_or("min_confidence", 50.0)? / 100.0).clamp(0.0, 1.0) as f32;
+    let sort = a.bool_or("sort_into_folders", false)?;
+    let out = a.out_dir()?;
+    if !crate::classify::installed() {
+        (ctx.log)("Baixando o modelo SigLIP 2…");
+        crate::classify::ensure(&|p| (ctx.progress)(p * 0.4), ctx.cancelled)?;
+    }
+    let n = files.len();
+    let mut results = Vec::new();
+    let mut counts: Map<String, Value> = Map::new();
+    for (i, f) in files.iter().enumerate() {
+        if (ctx.cancelled)() {
+            return Err("Cancelado.".into());
+        }
+        let item = match crate::classify::classify_file(f, &options) {
+            Ok(c) => {
+                let best = crate::classify::decide(&c, min).map(|b| b.label.clone());
+                let folder_name = best.clone().unwrap_or_else(|| "incerto".into());
+                let mut item = json!({
+                    "file": f.display().to_string(),
+                    "choice": best,
+                    "confidence": (c[0].prob * 1000.0).round() / 10.0,
+                    "probabilities": c.iter().map(|x| (x.label.clone(), json!((x.prob * 1000.0).round() / 10.0))).collect::<Map<String, Value>>(),
+                });
+                (ctx.log)(&format!("{} → {} ({:.0}%)", tools::file_name(f), folder_name, c[0].prob * 100.0));
+                let e = counts.entry(folder_name.clone()).or_insert(json!(0));
+                *e = json!(e.as_u64().unwrap_or(0) + 1);
+                if sort {
+                    let root = out.clone().unwrap_or_else(|| f.parent().map(|p| p.join("Classificadas")).unwrap_or_default());
+                    // o nome da opção vira nome de pasta: sem os caracteres que o Windows não aceita
+                    let safe: String = folder_name.chars().map(|c| if r#"<>:"/\|?*"#.contains(c) || c.is_control() { '_' } else { c }).collect();
+                    let safe = safe.trim().trim_end_matches('.').to_string();
+                    let dir = root.join(if safe.is_empty() { "_".to_string() } else { safe });
+                    std::fs::create_dir_all(&dir).map_err(|e| format!("não foi possível criar a pasta {}: {e}", dir.display()))?;
+                    let dst = tools::unique_path(dir.join(f.file_name().unwrap_or_default()));
+                    std::fs::copy(f, &dst).map_err(|e| format!("não foi possível copiar {}: {e}", tools::file_name(f)))?;
+                    item["copied_to"] = json!(dst.display().to_string());
+                }
+                item
+            }
+            Err(e) => json!({ "file": f.display().to_string(), "error": e }),
+        };
+        results.push(item);
+        (ctx.progress)(0.4 + 0.6 * (i + 1) as f32 / n as f32);
+    }
+    Ok(json!({ "results": results, "counts": counts }))
+}
+
 fn t_pdf_organize(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
     let files = pdfs(a)?;
     let src = files.first().ok_or("informe o PDF.")?;
@@ -1275,6 +1335,11 @@ pub static TOOLS: &[Tool] = &[
             "model": enum_prop("Whisper model: fast, balanced or accurate.", &["fast", "balanced", "accurate"], "fast"),
             "language": str_prop("Spoken language code like \"pt\" or \"auto\" (default)."),
             "keep_ass": bool_prop("Also keep the .ass subtitle file next to the video.", false) }), &["files"]), t_captions),
+    tool!("image_classify", "Classificar imagens", "Classify images (or a frame of each video) among the options you give, offline, with a local AI (SigLIP 2, 412 MB downloaded on first use). Options can be in Portuguese, English and 100+ languages. Returns, for each file, the chosen option (or null below min_confidence), its confidence and the probability of every option (in %, adding up to 100). With sort_into_folders, copies each file into out_dir/<option>/ (\"incerto\" for the uncertain ones; default out_dir: a \"Classificadas\" folder next to the files).",
+        schema(json!({ "files": files_prop("images or videos"),
+            "options": json!({ "type": ["array", "string"], "items": { "type": "string" }, "description": "The options (at least 2): a list, or a text with one per line or separated by commas." }),
+            "min_confidence": num_prop("Minimum confidence in % (0-100) for the best option (default 50)."),
+            "sort_into_folders": bool_prop("Copy each file into a folder named after its option.", false) }), &["files", "options"]), t_classify),
     tool!("pdf_organize", "Organizar páginas", "Reorder, rotate and delete PDF pages. \"order\" lists the pages of the new PDF (e.g. \"3, 1, 2, 5-8\"; pages left out are deleted, a page may repeat); \"rotate\" maps original page numbers to extra degrees (e.g. {\"2\": 90}).",
         schema(json!({ "files": files_prop("PDF (only the first is used)"), "order": str_prop("New page order, e.g. \"3, 1, 2-5\" (default: all, unchanged)."),
             "rotate": json!({ "type": "object", "description": "Extra rotation per original page number, e.g. {\"1\": 90, \"4\": 180}." }) }), &["files"]), t_pdf_organize),

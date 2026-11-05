@@ -138,9 +138,10 @@ impl Flow {
         for l in &self.links {
             match (self.node(l.from), self.node(l.to)) {
                 (Some(a), Some(b)) => {
-                    if let Some(k) = kind_info(&a.kind) {
-                        if !k.outputs.contains(&l.port.as_str()) {
-                            errs.push(format!("ligação {} → {}: o node {} não tem a saída \"{}\" (tem: {}).", l.from, l.to, l.from, l.port, k.outputs.join(", ")));
+                    if kind_info(&a.kind).is_some() {
+                        let outs = node_outputs(a);
+                        if !outs.contains(&l.port) {
+                            errs.push(format!("ligação {} → {}: o node {} não tem a saída \"{}\" (tem: {}).", l.from, l.to, l.from, l.port, outs.join(", ")));
                         }
                     }
                     if let Some(k) = kind_info(&b.kind) {
@@ -218,6 +219,20 @@ const T_OUTPUT: &str = "Salvar em pasta";
 const T_AI_PROMPT: &str = "IA: instrução";
 const T_AI_GATE: &str = "IA: avaliar";
 const T_FILTER: &str = "Filtrar arquivos";
+const T_CLASSIFY: &str = "IA local: classificar";
+
+/// Saída do classificador para o que ficou abaixo da confiança mínima (ou não é imagem nem vídeo).
+pub const UNCERTAIN: &str = "uncertain";
+
+/// As saídas de um node: as fixas do tipo ou, no classificador, uma por opção mais "uncertain".
+pub fn node_outputs(n: &Node) -> Vec<String> {
+    if n.kind == "classify" {
+        let mut v = crate::classify::parse_options(n.args.get("options").and_then(Value::as_str).unwrap_or_default());
+        v.push(UNCERTAIN.into());
+        return v;
+    }
+    kind_info(&n.kind).map(|k| k.outputs.iter().map(|o| o.to_string()).collect()).unwrap_or_else(|| vec!["out".into()])
+}
 
 /// Todos os tipos de node: entrada, texto, IA, filtro, saída e uma para cada ferramenta.
 // i18n: fora
@@ -255,6 +270,11 @@ pub fn kinds() -> Vec<KindInfo> {
             s(json!({ "types": { "type": "array", "items": { "type": "string", "enum": ["image", "video", "audio", "pdf", "text"] }, "description": "Accepted kinds (empty = any)." },
                 "extensions": { "type": "string", "description": "Accepted extensions, e.g. \"png, jpg\" (empty = any)." },
                 "min_mb": { "type": "number", "description": "Minimum size in MB." }, "max_mb": { "type": "number", "description": "Maximum size in MB." } }), &[])),
+        special("classify", T_CLASSIFY, "IA",
+            "Local AI, offline (SigLIP 2, 412 MB downloaded on first use): compares each image (or a frame of each video) with the options and sends it to the output named after the most likely option. Items below min_confidence, and texts or other files, go to \"uncertain\". The outputs are one per option (link with \"port\": \"<option>\") plus \"uncertain\". Options can be written in Portuguese, English and 100+ other languages. Short, concrete options work best (\"cat\", \"receipt\", \"beach\"); an option like \"person or animal\" scores lower than separate options linked to the same next node.",
+            &[UNCERTAIN], true,
+            s(json!({ "options": { "type": "string", "description": "The options, one per line or separated by commas, e.g. \"documento, selfie, paisagem, comida\"." },
+                "min_confidence": { "type": "number", "default": 50, "description": "Minimum confidence in % (0-100) for the best option; below it the item goes to \"uncertain\"." } }), &["options"])),
     ];
     for t in ops::TOOLS.iter().filter(|t| !HIDDEN_TOOLS.contains(&t.name) && !t.name.starts_with("flow_")) {
         let schema = (t.schema)();
@@ -701,6 +721,47 @@ fn run_node(
             }
             let note = format!("{} sim, {} não", yes.len(), no.len());
             Ok((HashMap::from([("yes".to_string(), yes), ("no".to_string(), no)]), note))
+        }
+        "classify" => {
+            let options = crate::classify::parse_options(args.get("options").and_then(Value::as_str).unwrap_or_default());
+            if options.len() < 2 {
+                return Err("escreva pelo menos duas opções.".into());
+            }
+            let min = (args.get("min_confidence").and_then(Value::as_f64).unwrap_or(50.0) / 100.0).clamp(0.0, 1.0) as f32;
+            if !crate::classify::installed() {
+                (ctx.log)("Baixando o modelo SigLIP 2…");
+                crate::classify::ensure(&|p| (ctx.progress)(p * 0.5), ctx.cancelled)?;
+            }
+            let mut ports: Ports = options.iter().chain(std::iter::once(&UNCERTAIN.to_string())).map(|o| (o.clone(), Vec::new())).collect();
+            for (i, it) in incoming.iter().enumerate() {
+                if (ctx.cancelled)() {
+                    return Err("Cancelado.".into());
+                }
+                let usable = it.path.as_ref().filter(|p| kind_matches(p, &["image".into(), "video".into()]));
+                let port = match usable {
+                    Some(p) => match crate::classify::classify_file(p, &options) {
+                        Ok(c) => {
+                            let best = crate::classify::decide(&c, min).map(|b| b.label.clone());
+                            (ctx.log)(&format!("{} → {} ({:.0}%)", tools::file_name(p), best.clone().unwrap_or_else(|| "?".into()), c[0].prob * 100.0));
+                            best.unwrap_or_else(|| UNCERTAIN.into())
+                        }
+                        Err(e) => {
+                            (ctx.log)(&format!("✖ {}: {e}", tools::file_name(p)));
+                            UNCERTAIN.into()
+                        }
+                    },
+                    None => UNCERTAIN.into(),
+                };
+                ports.get_mut(&port).unwrap().push(it.clone());
+                (ctx.progress)(0.5 + 0.5 * (i + 1) as f32 / incoming.len().max(1) as f32);
+            }
+            let note = ports
+                .iter()
+                .filter(|(_, v)| !v.is_empty())
+                .map(|(k, v)| format!("{} {}", if k == UNCERTAIN { "?" } else { k.as_str() }, v.len()))
+                .collect::<Vec<_>>()
+                .join(", ");
+            Ok((ports, note))
         }
         "output" => {
             let folder = args.get("folder").and_then(Value::as_str).map(str::trim).filter(|s| !s.is_empty()).map(PathBuf::from).or_else(|| out_dir.map(Path::to_path_buf)).unwrap_or_else(|| {

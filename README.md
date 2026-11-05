@@ -102,6 +102,8 @@ que você configurar (Anthropic/Claude ou qualquer API compatível com a da Open
 - **IA: instrução** — descrever imagens, resumir transcrições, escrever legendas, traduzir… (a resposta segue
   adiante como texto e pode ser salva como .txt, .md, .srt…)
 - **IA: avaliar** — confere cada arquivo contra um critério e manda para a saída "sim" ou "não"
+- **IA local: classificar** — sem internet e sem API: olha cada imagem (ou um quadro do vídeo) e manda para a saída da
+  opção que combina mais ("documento", "selfie", "comida"…), ou para "incerto"
 
 Os fluxos ficam salvos e também rodam pela linha de comando (`conver-cli flow_run --name "Meu fluxo" fotos\*`)
 e pelo MCP, onde agentes de IA podem criar e editar fluxos (`flow_node_types`, `flow_save`, `flow_run`).

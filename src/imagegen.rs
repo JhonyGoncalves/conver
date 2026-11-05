@@ -81,7 +81,14 @@ pub fn generate(req: &Request, dir: &Path, on_progress: &dyn Fn(f32), cancelled:
     };
     let count = req.count.clamp(1, 8);
     let stamp: String = tools::now_string().chars().map(|c| if c.is_ascii_digit() { c } else { '-' }).collect();
-    let base = format!("imagem_{stamp}");
+    // o horário vai até o minuto: se já há imagens com esse nome (outra geração no mesmo minuto), acrescenta um número
+    let taken = |b: &str| (0..count).any(|i| dir.join(format!("{b}_{i}.png")).exists());
+    let mut base = format!("imagem_{stamp}");
+    let mut n = 2;
+    while taken(&base) {
+        base = format!("imagem_{stamp}-{n}");
+        n += 1;
+    }
     let negative = if req.negative.trim().is_empty() { BASE_NEGATIVE.to_string() } else { format!("{}, {BASE_NEGATIVE}", req.negative.trim()) };
     let mut child = tools::command(&exe)
         .arg("-m")

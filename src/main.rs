@@ -6,6 +6,7 @@ mod ai_api;
 mod bgremove;
 mod captions;
 mod captions_page;
+mod classify;
 mod captura;
 mod cli;
 mod dictation;
@@ -1313,3 +1314,5 @@ mod tests_v14;
 mod tests_v15;
 #[cfg(test)]
 mod tests_v16;
+#[cfg(test)]
+mod tests_v17;

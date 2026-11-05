@@ -17,6 +17,7 @@ erro {code} da IA: {msg}
 não foi possível falar com a IA em {url}: {e}
 resposta inválida da IA.
 a IA não devolveu texto.
+sim
 o modelo de remoção de fundo não foi encontrado (pasta modelos).
 resposta inesperada do modelo.
 Reels
@@ -97,6 +98,13 @@ Clique ou arraste na prévia para mudar a posição.
 Salvar também a legenda (.ass)
 Gravar no vídeo
 Legendar
+vocabulário inválido: {e}
+vocabulário inválido.
+a IA não devolveu o vetor esperado.
+falha na IA: {e}
+informe pelo menos duas opções.
+não foi possível ler um quadro do vídeo.
+não foi possível abrir a imagem: {e}
 o reconhecimento de fala não respondeu: {e}
 Preparando o modelo…
 Baixando o modelo… {:.0}%
@@ -463,6 +471,7 @@ Salvar em pasta
 IA: instrução
 IA: avaliar
 Filtrar arquivos
+IA local: classificar
 não foi possível salvar o fluxo: {e}
 fluxo não encontrado: {name}
 não foi possível criar a pasta de trabalho: {e}
@@ -476,6 +485,8 @@ nenhum arquivo de entrada (adicione arquivos ao node ou passe "files").
 {n} arquivo(s)
 o texto está vazio.
 {} sim, {} não
+escreva pelo menos duas opções.
+Baixando o modelo SigLIP 2…
 não foi possível criar {}: {e}
 {n} salvo(s) em {}
 escreva a instrução para a IA.
@@ -506,12 +517,14 @@ arraste arquivos para cá
 (vazio)
 escreva a instrução
 escreva o critério
+escreva as opções
+{n} opções
+confiança mínima {min:.0}%
 Documentos\Conver
 tudo passa
 ajustes padrão
 Crie um fluxo com "+ Novo".
 rodando…
-não
 Remover
 Esse node não recebe entradas.
 Essa ligação criaria um ciclo.
@@ -521,6 +534,8 @@ Mostrar o fluxo inteiro
 Adicione nodes pelo botão "+ Adicionar node".
 Puxe da bolinha à direita de um node até outro node para ligar os dois.
 Ligação
+não
+incerto
 Remover ligação
 Dica: a tecla Delete também remove.
 Fluxo
@@ -553,6 +568,8 @@ Voltar ao padrão
 (padrão)
 (automático)
 um por linha
+Opções (uma por linha)
+Confiança mínima (%)
 Formato
 Qualidade
 Nível
@@ -712,8 +729,6 @@ Imagem
 não foi possível ler (danificado ou protegido)
 a máscara precisa ter o tamanho da imagem.
 pinte o que deve ser apagado.
-falha na IA: {e}
-não foi possível abrir a imagem: {e}
 não foi possível consultar o GitHub: {e}
 não foi possível acessar o GitHub: {e}
 falha no download: {e}
@@ -989,6 +1004,7 @@ Converter vídeo
 Velocidade
 Legendas no vídeo
 Converter áudio
+Classificar imagens
 Download
 Microfones e janelas
 Listar predefinições

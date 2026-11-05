@@ -67,10 +67,15 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   `dictation.rs` (ditado ao vivo: sobe o `whisper-server` numa porta livre e manda trechos do microfone por HTTP),
   `tts.rs` (Piper como processo, `VOICES` com revisão fixa do Hugging Face), `imagegen.rs` (`sd-cli` com
   `--sampling-method lcm`, Vulkan), `inpaint.rs` (LaMa em 512×512 recortado em volta da máscara). Telas em `extras5.rs`.
+- `classify.rs`: classificação local sem exemplos (SigLIP 2 base 224, ONNX da onnx-community: imagem em q4 — o int8
+  usa ConvInteger, que o ort não roda na CPU —, texto em int8 e `tokenizer.json`; BPE do Gemma implementado ali).
+  Probabilidade = softmax de cosseno × 112,66 − 16,77 entre as opções. Node `classify` em `flow.rs`: as saídas são as
+  opções + `uncertain` (`flow::node_outputs`, que o editor e a validação usam); op `image_classify` em `ops.rs`.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;
-  `tests_v16.rs` = ferramentas da 1.5). Transcrição, separação, ditado, voz, gerar imagem, apagar objeto e legendas
+  `tests_v16.rs` = ferramentas da 1.5; `tests_v17.rs` = classificar, com as imagens de exemplo em
+  `CONVER_CLASSIFY_IMGS`). Transcrição, separação, ditado, voz, gerar imagem, apagar objeto e legendas
   animadas são `#[ignore]` (baixam modelos): rode com `--include-ignored`. O teste `integrations`
   falha se o Conver estiver aberto (a porta da instância única fica ocupada). Com placa AMD, o processo de teste
   termina com 0xC0000005 depois de `pdf_tools` (o driver `atidxx64.dll`, usado pela API de PDF do Windows, quebra ao

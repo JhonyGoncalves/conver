@@ -63,8 +63,12 @@ TOOL_TITLE = re.compile(r'tool!\(\s*"[a-z_]+",\s*"((?:[^"\\]|\\.)*)"')
 SECTIONS = {"IMAGEM", "VÍDEO", "ÁUDIO", "DOWNLOAD", "FERRAMENTAS", "AUTOMAÇÃO", "ENTRADA E SAÍDA"}
 
 
+# palavras de tela curtas, minúsculas e sem acento (pareceriam chaves de código)
+WORDS = {"sim", "incerto"}
+
+
 def is_ui(s):
-    if s in SECTIONS:
+    if s in SECTIONS or s in WORDS:
         return True
     if len(s) < 2 or "://" in s or ".exe" in s or "::" in s or s.startswith("-") or s.startswith("/"):
         return False

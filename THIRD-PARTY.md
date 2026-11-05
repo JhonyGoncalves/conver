@@ -75,6 +75,10 @@ O Conver não é derivado do FFmpeg: ele apenas executa o `ffmpeg.exe` como um p
 
 - Não vem no download: `lama_fp32.onnx` de <https://huggingface.co/Carve/LaMa-ONNX> (licença Apache 2.0, a partir do [LaMa](https://github.com/advimman/lama), Apache 2.0) é baixado no primeiro uso, conferindo o SHA-256 (`1faef5301d78db7dda502fe59966957ec4b79dd64e16f03ed96913c7a4eb68d6`).
 
+## Modelo SigLIP 2 (classificar imagens)
+
+- Não vem no download: o SigLIP 2 base (patch16, 224) do Google ([google/siglip2-base-patch16-224](https://huggingface.co/google/siglip2-base-patch16-224), licença Apache 2.0), na conversão ONNX de <https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX> (revisão `ba1f3b0`), é baixado no primeiro uso, conferindo o SHA-256: `vision_model_q4.onnx` (`03e61be2…`), `text_model_int8.onnx` (`3a0603d3…`) e `tokenizer.json` (`cb9140fa…`).
+
 ## Bibliotecas Rust
 
 O Conver usa bibliotecas Rust de código aberto (egui/eframe, image, lopdf, ort, realfft, sha2, ar-reshaper, unicode-bidi, rfd, serde, ureq, windows-rs e outras), quase todas sob MIT e/ou Apache 2.0. A lista completa, com versões, está no arquivo `Cargo.lock` do repositório.

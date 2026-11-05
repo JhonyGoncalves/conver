@@ -1,5 +1,16 @@
 # Lista de mudanças
 
+## 1.6.0
+
+### Novidades
+- **IA local: classificar** (novo node dos fluxos de automação): uma IA que roda no próprio PC, sem internet, olha cada imagem (ou um quadro de cada vídeo) e escolhe entre as opções que você escrever, como "documento", "selfie" ou "comida". O node tem uma saída para cada opção e uma saída "incerto" para o que ficar abaixo da confiança mínima. Assim, cada arquivo segue para a ferramenta certa (por exemplo: documentos para o OCR, fotos de pessoas para remover o fundo). Usa o SigLIP 2, do Google; o modelo (412 MB) é baixado no primeiro uso. As opções podem ser escritas em português, inglês e mais de 100 idiomas. Cada imagem leva cerca de 0,3 s no processador.
+- **MCP e linha de comando:** `image_classify` devolve, para cada arquivo, a opção escolhida, a confiança e a probabilidade de cada opção. Com `sort_into_folders`, copia cada arquivo para uma pasta com o nome da opção.
+
+### Correções
+- **Gerar imagem:** duas gerações no mesmo minuto não substituem mais as imagens da primeira (as novas ganham "-2", "-3"…).
+- **Fluxos:** a saída "sim" dos nodes de filtro e de IA aparece traduzida nos outros idiomas.
+- **Downloads de modelos de IA e atualizações** com antivírus que inspecionam conexões seguras (Kaspersky, Avast, ESET…): falhavam com "invalid peer certificate: UnknownIssuer". Agora o Conver usa os certificados do Windows, como o navegador.
+
 ## 1.5.2
 
 ### Correções

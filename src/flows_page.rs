@@ -83,6 +83,12 @@ impl FlowsPage {
         self.kinds = flow::kinds();
         flow::ensure_examples();
         self.load_list();
+        // CONVER_FLUXO=<nome>: abre esse fluxo com o node 2 escolhido
+        if let Some(name) = std::env::var("CONVER_FLUXO").ok().filter(|n| self.names.contains(n)) {
+            self.open(&name);
+            self.sel = Some(Sel::Node(2));
+            return;
+        }
         let name = flow::examples()[0].name.clone();
         self.open(&name);
         self.sel = Some(Sel::Node(3));
@@ -419,6 +425,15 @@ impl FlowsPage {
             "text" => vec![s("text").unwrap_or_else(|| crate::i18n::tr("(vazio)"))],
             "ai_prompt" => vec![s("prompt").unwrap_or_else(|| crate::i18n::tr("escreva a instrução"))],
             "ai_gate" => vec![s("criteria").unwrap_or_else(|| crate::i18n::tr("escreva o critério"))],
+            "classify" => {
+                let n = crate::classify::parse_options(&s("options").unwrap_or_default()).len();
+                let min = a.get("min_confidence").and_then(Value::as_f64).unwrap_or(50.0);
+                if n < 2 {
+                    vec![crate::i18n::tr("escreva as opções")]
+                } else {
+                    vec![crate::i18n::tr(format!("{n} opções")), crate::i18n::tr(format!("confiança mínima {min:.0}%"))]
+                }
+            }
             "output" => vec![s("folder").map(|f| tools::file_name(std::path::Path::new(&f))).unwrap_or_else(|| crate::i18n::tr("Documentos\\Conver"))],
             "filter" => {
                 let t: Vec<String> = a.get("types").and_then(Value::as_array).map(|x| x.iter().filter_map(|v| v.as_str()).map(|v| crate::i18n::tr(enum_label(v))).collect()).unwrap_or_default();
@@ -449,7 +464,11 @@ impl FlowsPage {
 
     fn node_size(&self, n: &Node) -> Vec2 {
         let lines = self.node_lines(n).len().max(1) as f32;
-        vec2(NODE_W, HEADER + 8.0 + lines * 17.0 + 26.0)
+        // com muitas saídas (classificador), o node cresce para caber uma por linha
+        let outs = flow::node_outputs(n).len() as f32;
+        let h = (HEADER + 8.0 + lines * 17.0 + 26.0).max(HEADER + 14.0 + outs * 20.0);
+        // e fica mais largo, para o nome de cada opção aparecer inteiro ao lado da saída
+        vec2(if outs > 2.0 { NODE_W + 70.0 } else { NODE_W }, h)
     }
 
     fn canvas(&mut self, ui: &mut Ui, p: &Palette, size: Vec2) {
@@ -485,12 +504,17 @@ impl FlowsPage {
         // geometria de cada node
         let geo: Vec<(u32, Rect)> = flow.nodes.iter().map(|n| (n.id, Rect::from_min_size(to_screen(n.pos), self.node_size(n) * z))).collect();
         let rect_of = |id: u32| geo.iter().find(|(i, _)| *i == id).map(|(_, r)| *r);
-        let kind_outs: std::collections::HashMap<String, &'static [&'static str]> = self.kinds.iter().map(|k| (k.kind.clone(), k.outputs)).collect();
-        let outputs_of = |kind: &str| -> &'static [&'static str] { kind_outs.get(kind).copied().unwrap_or(&["out"]) };
-        let out_pos = |r: Rect, kind: &str, port: &str| -> Pos2 {
-            let outs = outputs_of(kind);
-            let i = outs.iter().position(|o| *o == port).unwrap_or(0) as f32;
-            let y = if outs.len() == 1 { r.top() + HEADER * z / 2.0 + r.height() / 2.0 - HEADER * z / 4.0 } else { r.top() + r.height() * (0.45 + 0.3 * i) };
+        let outs_of: std::collections::HashMap<u32, Vec<String>> = flow.nodes.iter().map(|n| (n.id, flow::node_outputs(n))).collect();
+        let outputs_of = |id: u32| -> Vec<String> { outs_of.get(&id).cloned().unwrap_or_else(|| vec!["out".into()]) };
+        let out_pos = |r: Rect, id: u32, port: &str| -> Pos2 {
+            let outs = outputs_of(id);
+            let i = outs.iter().position(|o| o == port).unwrap_or(0) as f32;
+            let y = match outs.len() {
+                1 => r.top() + HEADER * z / 2.0 + r.height() / 2.0 - HEADER * z / 4.0,
+                2 => r.top() + r.height() * (0.45 + 0.3 * i),
+                // várias saídas: igualmente espaçadas abaixo do cabeçalho
+                n => r.top() + HEADER * z + (r.height() - HEADER * z) * (i + 0.5) / n as f32,
+            };
             pos2(r.right(), y)
         };
         let in_pos = |r: Rect| pos2(r.left(), r.top() + HEADER * z / 2.0 + r.height() / 2.0 - HEADER * z / 4.0);
@@ -502,8 +526,7 @@ impl FlowsPage {
                 link_paths.push(Vec::new());
                 continue;
             };
-            let kind = flow.node(l.from).map(|n| n.kind.as_str()).unwrap_or("");
-            let (s, e) = (out_pos(a, kind, &l.port), in_pos(b));
+            let (s, e) = (out_pos(a, l.from, &l.port), in_pos(b));
             let pts = bezier(s, e, z);
             let selected = self.sel == Some(Sel::Link(i));
             let color = if selected { p.accent } else { p.muted };
@@ -512,8 +535,8 @@ impl FlowsPage {
         }
         // ligação sendo puxada
         if let (Some((from, port)), Some(ptr)) = (&self.dragging, ui.input(|i| i.pointer.hover_pos())) {
-            if let (Some(a), Some(n)) = (rect_of(*from), flow.node(*from)) {
-                painter.add(egui::Shape::line(bezier(out_pos(a, &n.kind, port), ptr, z), Stroke::new(2.0f32, p.accent)));
+            if let Some(a) = rect_of(*from) {
+                painter.add(egui::Shape::line(bezier(out_pos(a, *from, port), ptr, z), Stroke::new(2.0f32, p.accent)));
             }
         }
 
@@ -558,7 +581,12 @@ impl FlowsPage {
             // resumo dos ajustes
             let mut y = head.bottom() + 6.0 * z;
             for line in self.node_lines(n) {
-                let g = fit_text(&painter, &line, FontId::proportional(12.0 * z), p.muted, r.width() - 2.0 * pad - if info.is_some_and(|k| k.outputs.len() > 1) { 30.0 * z } else { 0.0 });
+                let reserve = match outputs_of(n.id).len() {
+                    1 => 0.0,
+                    2 => 30.0,
+                    _ => 130.0,
+                };
+                let g = fit_text(&painter, &line, FontId::proportional(12.0 * z), p.muted, r.width() - 2.0 * pad - reserve * z);
                 painter.galley(pos2(r.left() + pad, y), g, p.muted);
                 y += 17.0 * z;
             }
@@ -583,11 +611,13 @@ impl FlowsPage {
             if info.is_some_and(|k| k.has_input) {
                 port(&painter, in_pos(r), z, p, false);
             }
-            for o in outputs_of(&n.kind) {
-                let pp = out_pos(r, &n.kind, o);
-                if outputs_of(&n.kind).len() > 1 {
-                    let label = crate::i18n::tr(if *o == "yes" { "sim" } else { "não" });
-                    painter.text(pp - vec2(12.0 * z, 0.0), Align2::RIGHT_CENTER, label, FontId::new(11.0 * z, bold()), if *o == "yes" { p.ok } else { p.accent });
+            let outs = outputs_of(n.id);
+            if outs.len() > 1 {
+                for o in &outs {
+                    let pp = out_pos(r, n.id, o);
+                    let (label, color) = port_label(o, p);
+                    let g = fit_text(&painter, &label, FontId::new(11.0 * z, bold()), color, 126.0 * z);
+                    painter.galley(pp - vec2(12.0 * z + g.size().x, g.size().y / 2.0), g, color);
                 }
             }
             let resp = match &status {
@@ -615,10 +645,10 @@ impl FlowsPage {
         let mut link_drop: Option<(u32, String, Pos2)> = None;
         for n in &flow.nodes {
             let Some(r) = rect_of(n.id) else { continue };
-            for o in outputs_of(&n.kind) {
-                let pp = out_pos(r, &n.kind, o);
+            for o in &outputs_of(n.id) {
+                let pp = out_pos(r, n.id, o);
                 let hit = Rect::from_center_size(pp, vec2(18.0, 18.0) * z.max(0.8));
-                let resp = ui.interact(hit, ui.id().with(("flow_port", n.id, *o)), Sense::drag()).on_hover_cursor(CursorIcon::Crosshair);
+                let resp = ui.interact(hit, ui.id().with(("flow_port", n.id, o.as_str())), Sense::drag()).on_hover_cursor(CursorIcon::Crosshair);
                 port(&painter, pp, z, p, resp.hovered() || self.dragging.as_ref().is_some_and(|(f, po)| *f == n.id && po == o));
                 if resp.drag_started() {
                     self.dragging = Some((n.id, o.to_string()));
@@ -799,7 +829,9 @@ impl FlowsPage {
                     let port = match l.port.as_str() {
                         "yes" => format!(" ({})", crate::i18n::tr("sim")),
                         "no" => format!(" ({})", crate::i18n::tr("não")),
-                        _ => String::new(),
+                        flow::UNCERTAIN => format!(" ({})", crate::i18n::tr("incerto")),
+                        "out" => String::new(),
+                        other => format!(" ({other})"),
                     };
                     ui.label(RichText::new(format!("{}{port}  →  {}", name(l.from), name(l.to))).color(p.muted));
                     ui.add_space(8.0);
@@ -1022,6 +1054,16 @@ impl FlowsPage {
 
 // ================================================================ ajudantes
 
+/// Nome e cor de uma saída: sim/não, "incerto" ou o nome da opção do classificador.
+fn port_label(o: &str, p: &Palette) -> (String, Color32) {
+    match o {
+        "yes" => (crate::i18n::tr("sim"), p.ok),
+        "no" => (crate::i18n::tr("não"), p.accent),
+        flow::UNCERTAIN => (crate::i18n::tr("incerto"), p.muted),
+        other => (other.to_string(), p.text),
+    }
+}
+
 fn port(painter: &egui::Painter, at: Pos2, z: f32, p: &Palette, hot: bool) {
     let r = 6.0 * z.max(0.7);
     painter.circle_filled(at, r, if hot { p.accent } else { p.card });
@@ -1149,7 +1191,7 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
         }
         _ => {
             let mut s = current.as_ref().map(|v| v.as_str().map(String::from).unwrap_or_else(|| v.to_string())).unwrap_or_default();
-            let long = matches!(key, "prompt" | "criteria" | "text");
+            let long = matches!(key, "prompt" | "criteria" | "text" | "options");
             let edit = if long {
                 egui::TextEdit::multiline(&mut s).desired_rows(4)
             } else {
@@ -1169,6 +1211,8 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
 /// Nomes em português dos argumentos das ferramentas (no esquema eles estão em inglês, para os agentes).
 fn arg_label(key: &str) -> &str {
     match key {
+        "options" => "Opções (uma por linha)",
+        "min_confidence" => "Confiança mínima (%)",
         "format" => "Formato",
         "quality" => "Qualidade",
         "level" => "Nível",
