@@ -610,6 +610,91 @@ fn t_denoise(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     batch("Remover ruído", &files, ctx, |f, p| media::denoise(f, out.as_deref(), level, p, ctx.cancelled))
 }
 
+fn t_watermark(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::watermark::{Mark, Opts, Pos};
+    let files: Vec<PathBuf> = a.files()?.into_iter().filter(|f| crate::watermark::accepts(f)).collect();
+    if files.is_empty() {
+        return Err("nenhuma imagem, vídeo ou PDF entre os arquivos.".into());
+    }
+    let mark = match (a.str("logo").filter(|l| !l.trim().is_empty()), a.str("text").filter(|t| !t.trim().is_empty())) {
+        (Some(l), _) => Mark::Logo { path: PathBuf::from(l) },
+        (None, Some(t)) => Mark::Text { text: t, color: color_arg(a, "color")?.unwrap_or([255, 255, 255]) },
+        (None, None) => return Err("informe \"text\" ou \"logo\".".into()),
+    };
+    let is_logo = matches!(mark, Mark::Logo { .. });
+    let pos = a.choice(
+        "position",
+        &[("top_left", Pos::TopLeft), ("top", Pos::Top), ("top_right", Pos::TopRight), ("left", Pos::Left), ("center", Pos::Center), ("right", Pos::Right),
+            ("bottom_left", Pos::BottomLeft), ("bottom", Pos::Bottom), ("bottom_right", Pos::BottomRight), ("diagonal", Pos::Diagonal)],
+        Pos::BottomRight,
+    )?;
+    let o = Opts {
+        mark,
+        pos,
+        opacity: a.num_or("opacity", 70.0)?.clamp(0.0, 100.0) as u8,
+        size: a.num_or("size", if is_logo { 18.0 } else { 5.0 })?.clamp(0.5, 90.0) as f32,
+        margin: a.num_or("margin", 3.0)?.clamp(0.0, 30.0) as f32,
+    };
+    let out = a.out_dir()?;
+    batch("Marca d'água", &files, ctx, |f, p| crate::watermark::apply(f, out.as_deref(), &o, p, ctx.cancelled))
+}
+
+fn t_subtitle_translate(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = a.files()?;
+    if files.is_empty() {
+        return Err("informe os arquivos (.srt, .vtt, vídeos ou áudios).".into());
+    }
+    let to = a.str("to").map(|t| t.trim().to_lowercase()).filter(|t| !t.is_empty() && t != "none");
+    if let Some(t) = &to {
+        crate::translate::lang(t).ok_or_else(|| format!("\"to\": idioma desconhecido ({t}); use {}.", crate::translate::LANGS.iter().map(|l| l.0).collect::<Vec<_>>().join(", ")))?;
+    }
+    let voice = if a.bool_or("dub", false)? {
+        let v = match a.str("voice") {
+            Some(id) => crate::tts::voice(&id).ok_or_else(|| format!("voz desconhecida: {id}"))?,
+            None => {
+                let code = to.clone().ok_or("para dublar sem traduzir, informe \"voice\".")?;
+                crate::translate::voice_for(&code).ok_or_else(|| format!("não há voz para dublar em {code}; vozes: pt, en, es, fr, de, it."))?
+            }
+        };
+        Some(v)
+    } else {
+        None
+    };
+    if to.is_none() && voice.is_none() {
+        return Err("informe \"to\" (traduzir) e/ou \"dub\": true (dublar).".into());
+    }
+    let o = crate::translate::Opts { to, voice, video: a.str("video").map(PathBuf::from), original: (a.num_or("original_volume", 20.0)? / 100.0).clamp(0.0, 1.0) as f32 };
+    let out = a.out_dir()?;
+    batch("Traduzir legendas e dublar", &files, ctx, |f, p| crate::translate::run(f, out.as_deref(), &o, p, ctx.cancelled))
+}
+
+fn t_pdf_tables(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = pdfs(a)?;
+    let fmt = a.choice("format", &[("xlsx", crate::pdf_tables::Out::Xlsx), ("csv", crate::pdf_tables::Out::Csv)], crate::pdf_tables::Out::Xlsx)?;
+    let only = a.bool_or("only_tables", true)?;
+    let lang = a.str_or("language", "");
+    let out = a.out_dir()?;
+    batch("Tabelas do PDF para Excel", &files, ctx, |f, p| crate::pdf_tables::export(f, out.as_deref(), fmt, only, &lang, p, ctx.cancelled))
+}
+
+fn t_hide_faces(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::faces::Style;
+    let exts: Vec<&str> = imaging::IMAGE_EXTS.iter().chain(video::VIDEO_EXTS.iter()).copied().collect();
+    let files = filter_ext(a.files()?, &exts)?;
+    let style = a.choice("style", &[("blur", Style::Desfoque), ("pixelate", Style::Pixelado), ("black", Style::Tarja)], Style::Desfoque)?;
+    let min = (a.num_or("sensitivity", 60.0)? / 100.0).clamp(0.2, 0.95) as f32;
+    let out = a.out_dir()?;
+    batch("Desfocar rostos", &files, ctx, |f, p| crate::faces::process(f, out.as_deref(), style, min, p, ctx.cancelled))
+}
+
+fn t_voice(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = media_files(a)?;
+    let lufs = a.choice("loudness", &[("podcast", -16), ("streaming", -14)], -16)?;
+    let clean = a.bool_or("denoise", true)?;
+    let out = a.out_dir()?;
+    batch("Melhorar voz", &files, ctx, |f, p| media::enhance_voice(f, out.as_deref(), clean, lufs, p, ctx.cancelled))
+}
+
 fn t_audio_compress(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let files = media_files(a)?;
     let codec = a.choice("codec", &[("mp3", ACodec::Mp3), ("aac", ACodec::Aac), ("opus", ACodec::Opus)], ACodec::Mp3)?;
@@ -857,11 +942,12 @@ fn t_captions(a: &Args, ctx: &Ctx) -> Result<Value, String> {
 }
 
 fn t_classify(a: &Args, ctx: &Ctx) -> Result<Value, String> {
-    let exts: Vec<&str> = imaging::IMAGE_EXTS.iter().chain(video::VIDEO_EXTS.iter()).copied().collect();
-    let files = filter_ext(a.files()?, &exts)?;
+    let files = a.files()?;
+    if files.is_empty() {
+        return Err("informe os arquivos.".into());
+    }
     let options_text = match a.get("options") {
-        Some(Value::Array(v)) => v.iter().filter_map(Value::as_str).collect::<Vec<_>>().join("
-"),
+        Some(Value::Array(v)) => v.iter().filter_map(Value::as_str).collect::<Vec<_>>().join("\n"),
         _ => a.str_or("options", ""),
     };
     let options = crate::classify::parse_options(&options_text);
@@ -871,10 +957,9 @@ fn t_classify(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let min = (a.num_or("min_confidence", 50.0)? / 100.0).clamp(0.0, 1.0) as f32;
     let sort = a.bool_or("sort_into_folders", false)?;
     let out = a.out_dir()?;
-    if !crate::classify::installed() {
-        (ctx.log)("Baixando o modelo SigLIP 2…");
-        crate::classify::ensure(&|p| (ctx.progress)(p * 0.4), ctx.cancelled)?;
-    }
+    use crate::classify::Look;
+    let look = a.choice("look_at", &[("auto", Look::Auto), ("image", Look::Image), ("sound", Look::Sound), ("text", Look::Text)], Look::Auto)?;
+    let mut classifier = crate::classify::Classifier::new(options.clone(), look);
     let n = files.len();
     let mut results = Vec::new();
     let mut counts: Map<String, Value> = Map::new();
@@ -882,7 +967,12 @@ fn t_classify(a: &Args, ctx: &Ctx) -> Result<Value, String> {
         if (ctx.cancelled)() {
             return Err("Cancelado.".into());
         }
-        let item = match crate::classify::classify_file(f, &options) {
+        let progress = |p: f32| (ctx.progress)((i as f32 + p * 0.5) / n as f32);
+        let r = classifier.classify(Some(f), None, &progress, ctx.cancelled).unwrap_or_else(|| Err("este arquivo não é do tipo escolhido em look_at.".into()));
+        if r.as_ref().is_err_and(|e| e == "Cancelado.") {
+            return Err("Cancelado.".into());
+        }
+        let item = match r {
             Ok(c) => {
                 let best = crate::classify::decide(&c, min).map(|b| b.label.clone());
                 let folder_name = best.clone().unwrap_or_else(|| "incerto".into());
@@ -911,7 +1001,7 @@ fn t_classify(a: &Args, ctx: &Ctx) -> Result<Value, String> {
             Err(e) => json!({ "file": f.display().to_string(), "error": e }),
         };
         results.push(item);
-        (ctx.progress)(0.4 + 0.6 * (i + 1) as f32 / n as f32);
+        (ctx.progress)((i + 1) as f32 / n as f32);
     }
     Ok(json!({ "results": results, "counts": counts }))
 }
@@ -1171,12 +1261,16 @@ fn t_flow_save(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
             n.pos = [40.0 + i as f32 * 260.0, 120.0];
         }
     }
-    let replaced = crate::flow::find(&f.name).is_some();
+    let previous = crate::flow::find(&f.name);
+    let replaced = previous.is_some();
     if let Some(old) = a.str("rename_from").filter(|s| !s.trim().is_empty() && !s.eq_ignore_ascii_case(&f.name)) {
         let _ = crate::flow::remove(&old);
     }
     crate::flow::save(&f)?;
-    Ok(json!({ "saved": f.name, "replaced": replaced, "nodes": f.nodes.len(), "links": f.links.len() }))
+    // horário agendado: cria, troca ou remove a tarefa do Windows conforme o gatilho
+    let had_time = previous.is_some_and(|p| !p.trigger.time.trim().is_empty());
+    let schedule = if had_time || !f.trigger.time.trim().is_empty() { Some(crate::triggers::sync_schedule(&f.name, &f.trigger)?) } else { None };
+    Ok(json!({ "saved": f.name, "replaced": replaced, "nodes": f.nodes.len(), "links": f.links.len(), "schedule": schedule }))
 }
 
 fn t_flow_delete(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
@@ -1186,15 +1280,59 @@ fn t_flow_delete(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
     Ok(json!({ "deleted": f.name }))
 }
 
+fn t_flow_history(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    let name = a.str("name").ok_or("informe \"name\".")?;
+    let limit = a.num_or("limit", 10.0)?.clamp(1.0, 15.0) as usize;
+    let runs: Vec<Value> = crate::flow::history(&name)
+        .into_iter()
+        .take(limit)
+        .map(|r| {
+            let outputs = r["results"].as_array().map(Vec::len).unwrap_or(0);
+            json!({ "started": r["started"], "seconds": r["seconds"], "work_dir": r["work_dir"], "inputs": r["inputs"], "outputs": outputs,
+                "failed_nodes": r["failed_nodes"], "failed_inputs": r["failed_inputs"] })
+        })
+        .collect();
+    Ok(json!({ "flow": name, "runs": runs }))
+}
+
 fn t_flow_run(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let name = a.str("name").ok_or("informe \"name\".")?;
     let f = crate::flow::find(&name).ok_or_else(|| format!("fluxo não encontrado: {name}"))?;
-    let files = if a.get("files").is_some() || a.get("file").is_some() { a.files()? } else { Vec::new() };
+    let files = if a.bool_or("retry_failed", false)? {
+        let f = crate::flow::last_failures(&name);
+        if f.is_empty() {
+            return Err("a última execução deste fluxo não teve arquivos com erro.".into());
+        }
+        f
+    } else if a.get("files").is_some() || a.get("file").is_some() {
+        a.files()?
+    } else {
+        Vec::new()
+    };
     let inputs = crate::flow::Inputs { files, texts: a.strings("texts") };
     let out = a.out_dir()?;
     let state = std::sync::Mutex::new(crate::flow::RunState::default());
     let ai = crate::ai_api::Settings::load().config();
-    crate::flow::run(&f, &inputs, out.as_deref(), &state, ctx, &ai)
+    let r = crate::flow::run(&f, &inputs, out.as_deref(), &state, ctx, &ai);
+    // aviso do Windows (usado pelo horário agendado, que roda sem janela)
+    if a.bool_or("notify", false)? {
+        let (title, text) = match &r {
+            Ok(v) => {
+                let outs = v["results"].as_array().map(Vec::len).unwrap_or(0);
+                let fails = v["failed_inputs"].as_array().map(Vec::len).unwrap_or(0) + v["failed_nodes"].as_u64().unwrap_or(0) as usize;
+                if fails > 0 {
+                    ("Conver — fluxo com erro", format!("{}: {outs} resultado(s), {fails} erro(s)", f.name))
+                } else {
+                    ("Conver — fluxo concluído", format!("{}: {outs} resultado(s)", f.name))
+                }
+            }
+            Err(e) => ("Conver — fluxo com erro", format!("{}: {e}", f.name)),
+        };
+        crate::notify::toast(title, &text);
+        // a notificação é mostrada por outra thread: dá tempo de ela sair antes de o processo terminar
+        std::thread::sleep(std::time::Duration::from_millis(1500));
+    }
+    r
 }
 
 // ================================================================ tabela
@@ -1280,6 +1418,29 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("audios or videos"), "lufs": int_prop("Target loudness (-14 streaming, -16 podcast, -23 TV).", -30, -5, -14) }), &["files"]), t_normalize),
     tool!("audio_denoise", "Remover ruído", "Remove background noise (hiss, fan, street, keyboard) from voice recordings in audios and videos. medium/strong use the RNNoise neural network, offline.",
         schema(json!({ "files": files_prop("audios or videos"), "strength": enum_prop("light (only hiss), medium (AI, recommended for voice) or strong.", &["light", "medium", "strong"], "medium") }), &["files"]), t_denoise),
+    tool!("watermark", "Marca d'água", "Add a text or logo watermark to images, videos and PDFs in batch (PDF pages keep their quality; videos are re-encoded, audio copied).",
+        schema(json!({ "files": files_prop("images, videos or PDFs"), "text": str_prop("Watermark text (or use logo)."), "logo": str_prop("Logo image path (PNG with transparency works best)."),
+            "color": str_prop("Text color: \"#RRGGBB\" or white, black, yellow, red, green, blue."),
+            "position": enum_prop("Where it goes; diagonal crosses the middle.", &["top_left", "top", "top_right", "left", "center", "right", "bottom_left", "bottom", "bottom_right", "diagonal"], "bottom_right"),
+            "opacity": int_prop("Opacity, 0-100.", 0, 100, 70), "size": num_prop("Text: letter height in % of the shorter side (default 5). Logo: width in % of the width (default 18)."),
+            "margin": num_prop("Distance from the edge in % of the shorter side (default 3).") }), &["files"]), t_watermark),
+    tool!("subtitle_translate", "Traduzir legendas e dublar", "Translate subtitles (.srt/.vtt, or videos/audios, which are transcribed first) with a local language model (Qwen 3.5 2B, 1.3 GB, offline) and optionally dub them with a local voice (Piper): each line is spoken at its subtitle time (sped up when needed) and mixed into the video (original audio kept low) or saved as MP3.",
+        schema(json!({ "files": files_prop("subtitles, videos or audios"),
+            "to": enum_prop("Target language (\"none\" = keep the text, only dub).", &["none", "pt", "en", "es", "fr", "de", "it", "ru", "ja", "zh", "ko", "ar", "hi"], "none"),
+            "dub": bool_prop("Also create the dubbed audio/video.", false),
+            "voice": str_prop("Voice id for dubbing (default: the first voice of the target language)."),
+            "video": str_prop("Video to receive the dubbing (default: the file itself, or a video with the same name next to the subtitle)."),
+            "original_volume": int_prop("Volume of the original audio under the dubbing, 0-100.", 0, 100, 20) }), &["files"]), t_subtitle_translate),
+    tool!("pdf_tables", "Tabelas do PDF para Excel", "Extract tables from PDFs (digital or scanned; pages are read with the Windows OCR) to an Excel .xlsx (one sheet per page; numbers like 1.234,56 or 1,234.56 become numbers) or a CSV separated by semicolons.",
+        schema(json!({ "files": files_prop("PDFs"), "format": enum_prop("Output.", &["xlsx", "csv"], "xlsx"),
+            "only_tables": bool_prop("Only rows with 2+ cells (false: the whole page in columns).", true),
+            "language": str_prop("OCR language tag like \"pt-BR\" (default: the Windows languages).") }), &["files"]), t_pdf_tables),
+    tool!("image_hide_faces", "Desfocar rostos", "Find faces in photos and videos with a local AI (YuNet, offline) and blur, pixelate or cover them with a black bar, for privacy. Videos are processed frame by frame (audio copied).",
+        schema(json!({ "files": files_prop("images or videos"), "style": enum_prop("How to hide each face.", &["blur", "pixelate", "black"], "blur"),
+            "sensitivity": int_prop("Minimum detection confidence in % (lower finds more faces, with more false alarms).", 20, 95, 60) }), &["files"]), t_hide_faces),
+    tool!("audio_enhance_voice", "Melhorar voz", "Make voice recordings sound like a podcast in one step (audios and videos): optional AI noise removal (RNNoise), low-cut, de-mud and presence EQ, de-esser, compressor and loudness normalization.",
+        schema(json!({ "files": files_prop("audios or videos"), "loudness": enum_prop("Target loudness: podcast (-16 LUFS) or streaming (-14 LUFS, YouTube/Reels).", &["podcast", "streaming"], "podcast"),
+            "denoise": bool_prop("Also remove background noise with AI.", true) }), &["files"]), t_voice),
     tool!("audio_compress", "Comprimir áudio", "Make audio files smaller (MP3/AAC/OPUS at a bitrate, optional mono).",
         schema(json!({ "files": files_prop("audios"), "codec": enum_prop("Codec.", &["mp3", "aac", "opus"], "mp3"), "kbps": int_prop("Bitrate.", 16, 320, 96),
             "mono": bool_prop("Convert to mono.", false) }), &["files"]), t_audio_compress),
@@ -1335,11 +1496,12 @@ pub static TOOLS: &[Tool] = &[
             "model": enum_prop("Whisper model: fast, balanced or accurate.", &["fast", "balanced", "accurate"], "fast"),
             "language": str_prop("Spoken language code like \"pt\" or \"auto\" (default)."),
             "keep_ass": bool_prop("Also keep the .ass subtitle file next to the video.", false) }), &["files"]), t_captions),
-    tool!("image_classify", "Classificar imagens", "Classify images (or a frame of each video) among the options you give, offline, with a local AI (SigLIP 2, 412 MB downloaded on first use). Options can be in Portuguese, English and 100+ languages. Returns, for each file, the chosen option (or null below min_confidence), its confidence and the probability of every option (in %, adding up to 100). With sort_into_folders, copies each file into out_dir/<option>/ (\"incerto\" for the uncertain ones; default out_dir: a \"Classificadas\" folder next to the files).",
+    tool!("classify", "Classificar com IA local", "Classify files among the options you give, offline, with local AIs: images and video frames (SigLIP 2), sounds of audios/videos (CLAP: speech, music, silence, applause…) and texts of .txt/.srt/.md/PDF files (local language model). Options can be in Portuguese, English and 100+ languages. Returns, for each file, the chosen option (or null below min_confidence), its confidence and the probability of every option (in %, adding up to 100). With sort_into_folders, copies each file into out_dir/<option>/ (\"incerto\" for the uncertain ones; default out_dir: a \"Classificadas\" folder next to the files).",
         schema(json!({ "files": files_prop("images or videos"),
             "options": json!({ "type": ["array", "string"], "items": { "type": "string" }, "description": "The options (at least 2): a list, or a text with one per line or separated by commas." }),
             "min_confidence": num_prop("Minimum confidence in % (0-100) for the best option (default 50)."),
-            "sort_into_folders": bool_prop("Copy each file into a folder named after its option.", false) }), &["files", "options"]), t_classify),
+            "sort_into_folders": bool_prop("Copy each file into a folder named after its option.", false),
+            "look_at": enum_prop("What to judge: auto (by file type), image, sound or text.", &["auto", "image", "sound", "text"], "auto") }), &["files", "options"]), t_classify),
     tool!("pdf_organize", "Organizar páginas", "Reorder, rotate and delete PDF pages. \"order\" lists the pages of the new PDF (e.g. \"3, 1, 2, 5-8\"; pages left out are deleted, a page may repeat); \"rotate\" maps original page numbers to extra degrees (e.g. {\"2\": 90}).",
         schema(json!({ "files": files_prop("PDF (only the first is used)"), "order": str_prop("New page order, e.g. \"3, 1, 2-5\" (default: all, unchanged)."),
             "rotate": json!({ "type": "object", "description": "Extra rotation per original page number, e.g. {\"1\": 90, \"4\": 180}." }) }), &["files"]), t_pdf_organize),
@@ -1388,12 +1550,16 @@ pub static TOOLS: &[Tool] = &[
     tool!("flow_node_types", "Tipos de node", "Describe every node kind a flow can use (inputs/outputs, tools with their args, AI steps, filters) plus an example flow. Read this before flow_save.",
         json!({ "type": "object", "properties": {} }), t_flow_node_types),
     tool!("flow_save", "Salvar fluxo", "Create or replace (by name) an automation flow. It is validated (kinds, tool names, links, no cycles) and shows up in the app's Automation screen.",
-        json!({ "type": "object", "properties": { "flow": json!({ "type": "object", "description": "The flow: {name, description, nodes: [{id, kind, title, args, pos: [x, y]}], links: [{from, port, to}]}." }),
+        json!({ "type": "object", "properties": { "flow": json!({ "type": "object", "description": "The flow: {name, description, nodes: [{id, kind, title, args, pos: [x, y]}], links: [{from, port, to}], trigger}. Optional trigger runs it by itself: {\"folder\": path watched while Conver is open (new files become the input), \"time\": \"HH:MM\" daily via Windows Task Scheduler (works with Conver closed), \"days\": [0-6, 0 = Sunday; empty = every day], \"notify\": true for a Windows notification}." }),
             "rename_from": str_prop("Old name, when renaming an existing flow.") }, "required": ["flow"] }), t_flow_save),
     tool!("flow_delete", "Apagar fluxo", "Delete a saved flow.",
         json!({ "type": "object", "properties": { "name": str_prop("Flow name.") }, "required": ["name"] }), t_flow_delete),
-    tool!("flow_run", "Executar fluxo", "Run a saved flow. \"files\" replace the files saved in its input nodes; \"texts\" are extra texts for them. Returns what each node did and the final files/texts.",
+    tool!("flow_history", "Histórico do fluxo", "The last runs of a flow (newest first): when, how long, input files, number of outputs, failed nodes and the input files that failed somewhere (retry them with flow_run retry_failed).",
+        json!({ "type": "object", "properties": { "name": str_prop("Flow name."), "limit": int_prop("How many runs.", 1, 15, 10) }, "required": ["name"] }), t_flow_history),
+    tool!("flow_run", "Executar fluxo", "Run a saved flow. \"files\" replace the files saved in its input nodes; \"texts\" are extra texts for them; retry_failed runs again only the input files that failed in the last run. Returns what each node did, the final files/texts and failed_inputs.",
         json!({ "type": "object", "properties": { "name": str_prop("Flow name."), "files": files_prop("input files"),
+            "retry_failed": bool_prop("Use as input only the files that failed in the last run.", false),
+            "notify": bool_prop("Show a Windows notification when it finishes.", false),
             "texts": json!({ "type": "array", "items": { "type": "string" }, "description": "Extra input texts (e.g. links)." }),
             "out_dir": str_prop("Folder for output nodes that have no folder set.") }, "required": ["name"] }), t_flow_run),
     tool!("preset_save", "Salvar predefinição", "Save (or replace) a preset: a tool name plus its arguments (without files).",
@@ -1405,7 +1571,11 @@ pub static TOOLS: &[Tool] = &[
 pub fn find(name: &str) -> Option<&'static Tool> {
     let n = name.trim().to_lowercase().replace('-', "_");
     // nomes antigos continuam valendo (fluxos e predefinições salvos)
-    let n = if n == "video_animated_captions" { "video_captions".to_string() } else { n };
+    let n = match n.as_str() {
+        "video_animated_captions" => "video_captions".to_string(),
+        "image_classify" => "classify".to_string(),
+        _ => n,
+    };
     TOOLS.iter().find(|t| t.name == n)
 }
 

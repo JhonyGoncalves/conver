@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use eframe::egui::{
-    self, Align, Color32, ColorImage, Frame, Layout, Margin, RichText, Stroke, TextureHandle, TextureOptions, Ui, vec2,
+    self, Align, Color32, ColorImage, Frame, Margin, RichText, Stroke, TextureHandle, TextureOptions, Ui, vec2,
 };
 
 use crate::history;
@@ -41,10 +41,10 @@ impl RenamePage {
         let height = 260.0;
         ui.horizontal_top(|ui| {
             let left = (ui.available_width() * 0.42).max(300.0);
-            ui.allocate_ui_with_layout(vec2(left, height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(left, height + 80.0), crate::widgets::down(), |ui| {
                 widgets::file_list(ui, p, &mut self.queue, None, None, height);
             });
-            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), crate::widgets::down(), |ui| {
                 card(ui, p, |ui| {
                     ui.label(RichText::new(crate::i18n::tr("Novos nomes")).family(bold()).color(p.text));
                     ui.add_space(4.0);
@@ -95,7 +95,7 @@ impl RenamePage {
                 ui.add(egui::TextEdit::singleline(&mut r.suffix).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("depois (sufixo)")).desired_width(150.0));
             });
             row(ui, p, "Numeração:", |ui| {
-                ui.checkbox(&mut r.numbering, crate::i18n::tr("Numerar"));
+                crate::widgets::check(ui, &mut r.numbering, crate::i18n::tr("Numerar"));
                 ui.add_enabled_ui(r.numbering, |ui| {
                     ui.label(crate::i18n::tr("começando em"));
                     ui.add(egui::DragValue::new(&mut r.start).range(0..=999_999));
@@ -120,7 +120,7 @@ impl RenamePage {
             } else if changed > 0 {
                 ui.label(RichText::new(crate::i18n::tr(format!("{changed} arquivo(s) serão renomeados."))).color(p.muted));
             }
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            ui.with_layout(crate::widgets::back(Align::Center), |ui| {
                 if widgets::primary(ui, p, "Renomear", ok) {
                     match rename::apply(&self.queue.files, &names) {
                         Ok(undo) => {
@@ -195,7 +195,7 @@ impl QrPage {
 
         ui.horizontal_top(|ui| {
             let left = (ui.available_width() * 0.55).max(320.0);
-            ui.allocate_ui_with_layout(vec2(left, 420.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(left, 420.0), crate::widgets::down(), |ui| {
                 card(ui, p, |ui| {
                     ui.label(RichText::new(crate::i18n::tr("Conteúdo")).family(bold()).color(p.text));
                     ui.add(
@@ -234,7 +234,7 @@ impl QrPage {
                     hint(ui, p, "Correção alta deixa o código mais denso, mas ele continua lendo mesmo se estiver sujo ou amassado.");
                 });
             });
-            ui.allocate_ui_with_layout(vec2(ui.available_width(), 420.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(ui.available_width(), 420.0), crate::widgets::down(), |ui| {
                 card(ui, p, |ui| {
                     ui.label(RichText::new(crate::i18n::tr("Prévia")).family(bold()).color(p.text));
                     let side = (ui.available_width() - 20.0).min(300.0);
@@ -318,8 +318,8 @@ impl HistoryPage {
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
         let entries = history::entries();
         ui.horizontal(|ui| {
-            ui.vertical(|ui| widgets::header(ui, p, "Histórico", "As últimas conversões e downloads feitos no Conver."));
-            ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
+            crate::widgets::vt(ui, |ui| widgets::header(ui, p, "Histórico", "As últimas conversões e downloads feitos no Conver."));
+            ui.with_layout(crate::widgets::back(Align::Min), |ui| {
                 if self.confirm_clear {
                     if widgets::primary(ui, p, "Sim, limpar", true) {
                         history::clear();
@@ -353,10 +353,10 @@ impl HistoryPage {
                 .show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.horizontal(|ui| {
-                        ui.vertical(|ui| {
+                        crate::widgets::vt(ui, |ui| {
                             ui.set_width((ui.available_width() - 210.0).max(200.0));
                             ui.horizontal(|ui| {
-                                ui.label(RichText::new(crate::i18n::tr(&e.tool)).family(bold()).color(p.accent));
+                                ui.label(RichText::new(crate::i18n::tr(&e.tool)).family(bold()).color(p.text));
                                 ui.label(RichText::new(crate::i18n::tr(&e.time)).size(12.5).color(p.muted));
                             });
                             let out = tools::file_name(&e.output);
@@ -365,7 +365,7 @@ impl HistoryPage {
                                 ui.add(egui::Label::new(RichText::new(crate::i18n::tr(&e.info)).size(12.5).color(p.muted)).truncate());
                             }
                         });
-                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        ui.with_layout(crate::widgets::back(Align::Center), |ui| {
                             let exists = e.output.exists();
                             if !exists {
                                 ui.label(RichText::new(crate::i18n::tr("arquivo não existe mais")).size(12.5).color(p.muted));

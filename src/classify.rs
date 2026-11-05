@@ -314,3 +314,114 @@ pub fn parse_options(text: &str) -> Vec<String> {
 pub fn decide(choices: &[Choice], min_confidence: f32) -> Option<&Choice> {
     choices.first().filter(|c| c.prob >= min_confidence)
 }
+
+// ------------------------------------------------------------------ imagem, som ou texto
+
+/// O que o classificador olha em cada item.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Look {
+    /// Pela extensão: imagem → imagem, áudio → som, vídeo → um quadro, texto/PDF → texto.
+    Auto,
+    Image,
+    Sound,
+    Text,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum What {
+    Image,
+    Sound,
+    Text,
+}
+
+// i18n: fora
+pub const TEXT_EXTS: &[&str] = &["txt", "md", "srt", "vtt", "csv", "json", "html", "htm", "log"];
+// i18n: dentro
+
+fn what(path: Option<&Path>, has_text: bool, look: Look) -> Option<What> {
+    let ext = path.map(crate::tools::ext_lower).unwrap_or_default();
+    let image = crate::imaging::IMAGE_EXTS.contains(&ext.as_str());
+    let video = crate::video::VIDEO_EXTS.contains(&ext.as_str());
+    let audio = crate::media::AUDIO_EXTS.contains(&ext.as_str());
+    let text = has_text || TEXT_EXTS.contains(&ext.as_str()) || ext == "pdf";
+    match look {
+        Look::Image => (image || video).then_some(What::Image),
+        Look::Sound => (audio || video).then_some(What::Sound),
+        Look::Text => text.then_some(What::Text),
+        Look::Auto if image || video => Some(What::Image),
+        Look::Auto if audio => Some(What::Sound),
+        Look::Auto if text => Some(What::Text),
+        Look::Auto => None,
+    }
+}
+
+/// O texto de um item: o que veio pelo fluxo, o conteúdo de um arquivo de texto ou o texto de um PDF.
+fn text_of(path: Option<&Path>, text: Option<&str>) -> Option<String> {
+    if let Some(t) = text.filter(|t| !t.trim().is_empty()) {
+        return Some(t.to_string());
+    }
+    let p = path?;
+    if crate::tools::ext_lower(p) == "pdf" {
+        let doc = lopdf::Document::load(p).ok()?;
+        let pages: Vec<u32> = doc.get_pages().keys().copied().take(10).collect();
+        return doc.extract_text(&pages).ok().filter(|t| !t.trim().is_empty());
+    }
+    std::fs::read(p).ok().map(|b| String::from_utf8_lossy(&b).into_owned())
+}
+
+/// Classifica imagens, sons e textos, carregando cada IA só quando aparece um item dela.
+pub struct Classifier {
+    look: Look,
+    options: Vec<String>,
+    llm: Option<crate::llm::Llm>,
+    english: std::collections::HashMap<String, String>,
+}
+
+impl Classifier {
+    pub fn new(options: Vec<String>, look: Look) -> Self {
+        Classifier { look, options, llm: None, english: Default::default() }
+    }
+
+    fn llm(&mut self, on_progress: &dyn Fn(f32), cancelled: &dyn Fn() -> bool) -> Result<&crate::llm::Llm, String> {
+        if self.llm.is_none() {
+            self.llm = Some(crate::llm::Llm::start(on_progress, cancelled)?);
+        }
+        Ok(self.llm.as_ref().unwrap())
+    }
+
+    /// `None` = o item não é do tipo que este classificador olha (vai para "incerto").
+    pub fn classify(&mut self, path: Option<&Path>, text: Option<&str>, on_progress: &dyn Fn(f32), cancelled: &dyn Fn() -> bool) -> Option<Result<Vec<Choice>, String>> {
+        let w = what(path, text.is_some_and(|t| !t.trim().is_empty()) && path.is_none(), self.look)?;
+        Some(match w {
+            What::Image => {
+                let r = if installed() { Ok(()) } else { ensure(on_progress, cancelled) };
+                r.and_then(|_| classify_file(path.ok_or("sem arquivo")?, &self.options))
+            }
+            What::Sound => {
+                let r = if crate::audioclass::installed() { Ok(()) } else { crate::audioclass::ensure(on_progress, cancelled) };
+                // opções fora do dicionário de sons, em outro idioma: a IA local traduz (quando está instalada)
+                let need: Vec<String> = self
+                    .options
+                    .iter()
+                    .filter(|o| !self.english.contains_key(*o) && crate::audioclass::english(o, None) == o.trim().to_lowercase() && !o.is_ascii())
+                    .cloned()
+                    .collect();
+                if !need.is_empty() && crate::llm::installed() {
+                    if let Ok(llm) = self.llm(on_progress, cancelled) {
+                        if let Ok(v) = llm.translate(&need, "English", &|_| {}, cancelled) {
+                            self.english.extend(need.into_iter().zip(v));
+                        }
+                    }
+                }
+                let map = self.english.clone();
+                let tr = move |l: &str| map.iter().find(|(k, _)| k.to_lowercase() == l).map(|(_, v)| v.clone());
+                r.and_then(|_| crate::audioclass::classify_file(path.ok_or("sem arquivo")?, &self.options, Some(&tr)))
+            }
+            What::Text => {
+                let Some(t) = text_of(path, text) else { return Some(Err("o item não tem texto.".into())) };
+                let options = self.options.clone();
+                self.llm(on_progress, cancelled).and_then(|llm| llm.classify(&t, &options))
+            }
+        })
+    }
+}

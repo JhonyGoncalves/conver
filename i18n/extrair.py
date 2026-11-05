@@ -34,6 +34,9 @@ def unescape(s):
 
 # textos usados só por dentro (leitura da saída do ffmpeg, registro do Windows, PDF, nomes de marcas…)
 INTERNAL = {
+    "sem arquivo", "English", " fps", "{opção}", "Qwen3.5-2B-Q4_K_M.gguf", '"choice":"', '"choice": "', "highpass=f=80",
+    "afftdn=nr=12:nf=-35:tn=1", "[out]", "format=yuv420p", ",format=yuv420p", "Fonts", "{d:02}/{mo:02}/{y} {h:02}:{mi:02}",
+    "{}: {msg}", "saída {name} ausente",
     "Conver", "Music", "Duration:", "Duration: ", "bitrate: ", "Metadata:", "  Metadata", "Stream #", "Video", "Audio",
     "Subtitle", "(default)", "attached pic", "Icon", "Player", "Accept", "Content-Length", "Parent", "Type", "Pages",
     "Kids", "Count", "Catalog", "Root", "ERROR: ", "sign in", "pipe:1", "out_time_us=", "(audio)", "Audio:", "Video:",

@@ -30,6 +30,7 @@ pub enum MTool {
     Music,
     AMerge,
     Denoise,
+    Voice,
 }
 
 impl MTool {
@@ -95,18 +96,23 @@ impl MTool {
                 "Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.",
                 "Limpar",
             ),
+            MTool::Voice => (
+                "Melhorar voz",
+                "Deixe a voz com som de podcast num clique: menos ruído, mais clara e presente, sem picos e no volume certo.",
+                "Melhorar",
+            ),
         }
     }
 
     fn exts(self) -> &'static [&'static str] {
         match self {
-            MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise => media::MEDIA_EXTS,
+            MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise | MTool::Voice => media::MEDIA_EXTS,
             _ => video::VIDEO_EXTS,
         }
     }
 
     fn is_audio(self) -> bool {
-        matches!(self, MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise)
+        matches!(self, MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise | MTool::Voice)
     }
 }
 
@@ -142,6 +148,8 @@ pub struct MediaPage {
     aq: VQuality,
     lufs: i32,
     denoise: media::Denoise,
+    voice_clean: bool,
+    voice_lufs: i32,
     acodec: ACodec,
     akbps: u32,
     mono: bool,
@@ -195,6 +203,8 @@ impl MediaPage {
             aq: VQuality::Alta,
             lufs: -16,
             denoise: media::Denoise::Media,
+            voice_clean: true,
+            voice_lufs: -16,
             acodec: ACodec::Mp3,
             akbps: 96,
             mono: false,
@@ -282,12 +292,12 @@ impl MediaPage {
             MTool::VTrim | MTool::ATrim => {
                 row(ui, p, "Início:", |ui| {
                     ui.add(egui::TextEdit::singleline(&mut self.start).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
-                    ui.add_space(16.0);
-                    ui.label(crate::i18n::tr("Fim:"));
-                    ui.add(egui::TextEdit::singleline(&mut self.end).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("até o fim")).desired_width(110.0));
                     if let Some(d) = self.queue.selected_path().and_then(|f| durs.get(f)) {
                         hint(ui, p, &format!("duração do arquivo selecionado: {}", video::fmt_time(d)));
                     }
+                });
+                row(ui, p, "Fim:", |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.end).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("até o fim")).desired_width(110.0));
                 });
                 row(ui, p, "Modo:", |ui| {
                     segmented(ui, p, &mut self.precise, &[(false, "Rápido (sem perda)"), (true, "Preciso (recodifica)")]);
@@ -333,7 +343,7 @@ impl MediaPage {
                     ui.add(egui::Slider::new(&mut self.factor, 0.25..=4.0).step_by(0.05).suffix("×"));
                 });
                 row(ui, p, "Áudio:", |ui| {
-                    ui.checkbox(&mut self.keep_audio, crate::i18n::tr("Manter o áudio (acelerado/desacelerado junto)"));
+                    crate::widgets::check(ui, &mut self.keep_audio, crate::i18n::tr("Manter o áudio (acelerado/desacelerado junto)"));
                 });
             }
             MTool::AudioFrames => {
@@ -389,6 +399,15 @@ impl MediaPage {
                 hint(ui, p, "A opção com IA (RNNoise) foi treinada para voz: limpa bem falas, podcasts e aulas, mas pode abafar música.");
                 hint(ui, p, "Em vídeos, a imagem é copiada sem perda; só o áudio é regravado.");
             }
+            MTool::Voice => {
+                row(ui, p, "Volume final:", |ui| {
+                    segmented(ui, p, &mut self.voice_lufs, &[(-16, "Podcast (−16 LUFS)"), (-14, "Reels e YouTube (−14 LUFS)")]);
+                });
+                row(ui, p, "Ruído:", |ui| {
+                    crate::widgets::check(ui, &mut self.voice_clean, crate::i18n::tr("Tirar o ruído de fundo também (IA)"));
+                });
+                hint(ui, p, "Corta graves que embolam a voz, realça a fala, suaviza os \"s\", segura os picos e acerta o volume. Em vídeos, a imagem é copiada sem perda.");
+            }
             MTool::ACompress => {
                 row(ui, p, "Formato:", |ui| {
                     segmented(
@@ -407,19 +426,19 @@ impl MediaPage {
                     );
                 });
                 row(ui, p, "Canais:", |ui| {
-                    ui.checkbox(&mut self.mono, crate::i18n::tr("Converter para mono (metade do tamanho; bom para voz)"));
+                    crate::widgets::check(ui, &mut self.mono, crate::i18n::tr("Converter para mono (metade do tamanho; bom para voz)"));
                 });
                 hint(ui, p, "64–96 kbps é ótimo para voz e podcasts; 128–160 kbps para música.");
             }
             MTool::Gif => {
                 row(ui, p, "Início:", |ui| {
                     ui.add(egui::TextEdit::singleline(&mut self.gif_start).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
-                    ui.add_space(16.0);
-                    ui.label(crate::i18n::tr("Duração:"));
-                    ui.add(egui::DragValue::new(&mut self.gif_len).range(0.5..=60.0).speed(0.1).suffix(" s"));
                     if let Some(d) = self.queue.selected_path().and_then(|f| durs.get(f)) {
                         hint(ui, p, &format!("vídeo selecionado: {}", video::fmt_time(d)));
                     }
+                });
+                row(ui, p, "Duração:", |ui| {
+                    ui.add(egui::DragValue::new(&mut self.gif_len).range(0.5..=60.0).speed(0.1).suffix(" s"));
                 });
                 row(ui, p, "Largura:", |ui| {
                     segmented(ui, p, &mut self.gif_width, &[(320, "320 px"), (480, "480 px"), (640, "640 px"), (800, "800 px")]);
@@ -437,7 +456,7 @@ impl MediaPage {
                     segmented(ui, p, &mut self.vrotate, &[(0, "Não girar"), (90, "90° ↻"), (180, "180°"), (270, "90° ↺")]);
                 });
                 row(ui, p, "Espelhar:", |ui| {
-                    ui.checkbox(&mut self.vflip, crate::i18n::tr("Na horizontal ↔"));
+                    crate::widgets::check(ui, &mut self.vflip, crate::i18n::tr("Na horizontal ↔"));
                 });
                 row(ui, p, "Recortar:", |ui| {
                     let opts: Vec<(VAspect, &str)> = VAspect::ALL.iter().map(|a| (*a, a.label())).collect();
@@ -506,7 +525,7 @@ impl MediaPage {
                     ui.add(egui::Slider::new(&mut self.music_vol, 0..=200).suffix("%"));
                 });
                 row(ui, p, "Repetir:", |ui| {
-                    ui.checkbox(&mut self.music_loop, crate::i18n::tr("Repetir a música se ela for mais curta que o vídeo"));
+                    crate::widgets::check(ui, &mut self.music_loop, crate::i18n::tr("Repetir a música se ela for mais curta que o vídeo"));
                 });
                 hint(ui, p, "Para música de fundo com fala, 20–40% costuma ficar bom. A imagem é copiada sem perda.");
             }
@@ -582,6 +601,7 @@ impl MediaPage {
         let (frames, every, png) = (self.frames, self.every, self.png);
         let (afmt, aq, lufs, acodec, akbps, mono) = (self.afmt, self.aq, self.lufs, self.acodec, self.akbps, self.mono);
         let denoise = self.denoise;
+        let (voice_clean, voice_lufs) = (self.voice_clean, self.voice_lufs);
         let gif_start = video::parse_timecode(&self.gif_start).unwrap_or(0.0);
         let (gif_len, gif_width, gif_fps) = (self.gif_len, self.gif_width, self.gif_fps);
         let (vrotate, vflip, vaspect) = (self.vrotate, self.vflip, self.vaspect);
@@ -602,6 +622,7 @@ impl MediaPage {
                     MTool::Normalize => media::normalize(src, out, lufs, progress, &cancelled),
                     MTool::ACompress => media::audio_compress(src, out, acodec, akbps, mono, progress, &cancelled),
                     MTool::Denoise => media::denoise(src, out, denoise, progress, &cancelled),
+                    MTool::Voice => media::enhance_voice(src, out, voice_clean, voice_lufs, progress, &cancelled),
                     MTool::Gif => media_extra::video_gif(src, out, gif_start, gif_len, gif_width, gif_fps, progress, &cancelled),
                     MTool::VTransform => media_extra::video_transform(src, out, vrotate, vflip, vaspect, progress, &cancelled),
                     MTool::Subtitles => {

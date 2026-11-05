@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime};
 
 use eframe::egui::{
-    self, Align, Align2, Color32, CursorIcon, FontId, Frame, Layout, Margin, Pos2, Rect, RichText, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2,
+    self, Align, Align2, Color32, CursorIcon, FontId, Frame, Margin, Pos2, Rect, RichText, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2,
 };
 use serde_json::{Map, Value, json};
 
@@ -50,6 +50,11 @@ pub struct FlowsPage {
     go_settings: bool,
     /// Configuração da IA lida de `ia.json` (relida a cada 2 s, não a cada quadro: abrir a chave usa o DPAPI).
     ai_cache: Option<(Instant, Result<ai_api::Config, String>)>,
+    /// Últimas execuções do fluxo aberto (relidas do disco a cada poucos segundos).
+    history: Option<(String, Instant, Vec<Value>)>,
+    /// Gatilho de horário já enviado ao Agendador do Windows, por fluxo (para só sincronizar quando muda).
+    sched_synced: std::collections::HashMap<String, (String, Vec<u8>, bool)>,
+    sched_msg: Arc<Mutex<Option<(bool, String)>>>,
 }
 
 impl FlowsPage {
@@ -74,6 +79,9 @@ impl FlowsPage {
             run: Arc::default(),
             go_settings: false,
             ai_cache: None,
+            history: None,
+            sched_synced: Default::default(),
+            sched_msg: Arc::default(),
         }
     }
 
@@ -86,7 +94,8 @@ impl FlowsPage {
         // CONVER_FLUXO=<nome>: abre esse fluxo com o node 2 escolhido
         if let Some(name) = std::env::var("CONVER_FLUXO").ok().filter(|n| self.names.contains(n)) {
             self.open(&name);
-            self.sel = Some(Sel::Node(2));
+            // CONVER_FLUXO_PAINEL: sem node escolhido, para mostrar o painel do fluxo (gatilhos e histórico)
+            self.sel = if std::env::var_os("CONVER_FLUXO_PAINEL").is_some() { None } else { Some(Sel::Node(2)) };
             return;
         }
         let name = flow::examples()[0].name.clone();
@@ -164,6 +173,8 @@ impl FlowsPage {
         self.save_now();
         if let Some(f) = flow::find(name) {
             self.mtime = std::fs::metadata(flow::path_of(&f.name)).and_then(|m| m.modified()).ok();
+            self.sched_synced.insert(f.name.clone(), (f.trigger.time.clone(), f.trigger.days.clone(), f.trigger.notify));
+            *self.sched_msg.lock().unwrap() = None;
             self.flow = Some(f);
             self.sel = None;
             self.fit_pending = true;
@@ -180,6 +191,20 @@ impl FlowsPage {
                 self.notice = Some((false, format!("✖ {e}")));
             }
             self.mtime = std::fs::metadata(flow::path_of(&f.name)).and_then(|m| m.modified()).ok();
+            let now = (f.trigger.time.clone(), f.trigger.days.clone(), f.trigger.notify);
+            let before = self.sched_synced.get(&f.name).cloned().unwrap_or_default();
+            let valid = f.trigger.time.trim().is_empty() || crate::triggers::parse_time(&f.trigger.time).is_some();
+            if now != before && valid {
+                self.sched_synced.insert(f.name.clone(), now);
+                let (name, trigger, msg) = (f.name.clone(), f.trigger.clone(), self.sched_msg.clone());
+                std::thread::spawn(move || {
+                    let r = crate::triggers::sync_schedule(&name, &trigger);
+                    *msg.lock().unwrap() = Some(match r {
+                        Ok(m) => (true, m),
+                        Err(e) => (false, e),
+                    });
+                });
+            }
         }
     }
 
@@ -228,7 +253,7 @@ impl FlowsPage {
         self.save_now();
         let name = self.unique_name(&crate::i18n::tr("Novo fluxo"));
         let mk = |id: u32, kind: &str, x: f32| Node { id, kind: kind.into(), title: String::new(), args: Map::new(), pos: [x, 140.0] };
-        let f = Flow { name: name.clone(), description: String::new(), nodes: vec![mk(1, "input", 40.0), mk(2, "output", 560.0)], links: Vec::new() };
+        let f = Flow { name: name.clone(), description: String::new(), nodes: vec![mk(1, "input", 40.0), mk(2, "output", 560.0)], links: Vec::new(), ..Default::default() };
         self.flow = Some(f);
         self.dirty = Some(Instant::now() - Duration::from_secs(1));
         self.save_now();
@@ -254,12 +279,12 @@ impl FlowsPage {
         drop(st);
         let h = (ui.available_height() - bottom).max(260.0);
         let w = ui.available_width();
-        ui.allocate_ui_with_layout(vec2(w, h), Layout::left_to_right(Align::Min), |ui| {
+        ui.allocate_ui_with_layout(vec2(w, h), crate::widgets::fwd(Align::Min), |ui| {
             ui.spacing_mut().item_spacing.x = 8.0;
             let insp = 300.0;
             let cw = (w - insp - 8.0).max(260.0);
             self.canvas(ui, p, vec2(cw, h));
-            ui.allocate_ui_with_layout(vec2(insp, h), Layout::top_down(Align::Min), |ui| self.inspector(ui, p, h));
+            ui.allocate_ui_with_layout(vec2(insp, h), crate::widgets::down(), |ui| self.inspector(ui, p, h));
         });
         self.run_bar(ui, p);
         if self.job.state().running {
@@ -425,6 +450,7 @@ impl FlowsPage {
             "text" => vec![s("text").unwrap_or_else(|| crate::i18n::tr("(vazio)"))],
             "ai_prompt" => vec![s("prompt").unwrap_or_else(|| crate::i18n::tr("escreva a instrução"))],
             "ai_gate" => vec![s("criteria").unwrap_or_else(|| crate::i18n::tr("escreva o critério"))],
+            "rename" => vec![s("pattern").unwrap_or_else(|| "{name}_{n}".into())],
             "classify" => {
                 let n = crate::classify::parse_options(&s("options").unwrap_or_default()).len();
                 let min = a.get("min_confidence").and_then(Value::as_f64).unwrap_or(50.0);
@@ -724,17 +750,20 @@ impl FlowsPage {
             }
         }
         // botões do quadro
-        let add_bar = Rect::from_min_size(pos2(rect.left() + 10.0, rect.top() + 10.0), vec2(220.0, 30.0));
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(add_bar).layout(Layout::left_to_right(Align::Center)), |ui| {
+        // (filhos soltos: não empurram o cursor do layout, que em árabe, urdu e persa corre da direita para a esquerda)
+        let add_bar = crate::widgets::mirror(Rect::from_min_size(pos2(rect.left() + 10.0, rect.top() + 10.0), vec2(220.0, 30.0)), rect);
+        {
+            let ui = &mut ui.new_child(egui::UiBuilder::new().max_rect(add_bar).layout(crate::widgets::fwd(Align::Center)));
             let b = egui::Button::new(RichText::new(crate::i18n::tr("+  Adicionar node")).family(bold()).color(p.text))
                 .fill(p.card)
                 .stroke(Stroke::new(1.0f32, p.border))
                 .corner_radius(8)
                 .min_size(vec2(0.0, 30.0));
             egui::menu::menu_custom_button(ui, b, |ui| self.palette(ui, p));
-        });
-        let bar = Rect::from_min_size(pos2(rect.right() - 136.0, rect.top() + 10.0), vec2(126.0, 30.0));
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(bar).layout(Layout::right_to_left(Align::Center)), |ui| {
+        }
+        let bar = crate::widgets::mirror(Rect::from_min_size(pos2(rect.right() - 136.0, rect.top() + 10.0), vec2(126.0, 30.0)), rect);
+        {
+            let ui = &mut ui.new_child(egui::UiBuilder::new().max_rect(bar).layout(crate::widgets::back(Align::Center)));
             ui.spacing_mut().item_spacing.x = 4.0;
             if ui.add(egui::Button::new(crate::i18n::tr("Ajustar")).min_size(vec2(0.0, 28.0))).on_hover_text(crate::i18n::tr("Mostrar o fluxo inteiro")).clicked() {
                 self.fit_pending = true;
@@ -745,7 +774,7 @@ impl FlowsPage {
             if ui.add(egui::Button::new("−").min_size(vec2(28.0, 28.0))).clicked() {
                 self.zoom_at(rect, 1.0 / 1.15);
             }
-        });
+        }
         if flow.nodes.is_empty() {
             painter.text(rect.center(), Align2::CENTER_CENTER, crate::i18n::tr("Adicione nodes pelo botão \"+ Adicionar node\"."), FontId::proportional(14.0), p.muted);
         } else if flow.links.is_empty() {
@@ -855,6 +884,83 @@ impl FlowsPage {
         if ui.add(egui::TextEdit::multiline(&mut f.description).desired_rows(3).desired_width(f32::INFINITY)).changed() {
             self.dirty = Some(Instant::now());
         }
+        // rodar sozinho: pasta vigiada, horário e aviso
+        ui.add_space(10.0);
+        ui.label(RichText::new(crate::i18n::tr("Rodar sozinho")).family(bold()).color(p.text));
+        let mut changed = false;
+        let t = &mut f.trigger;
+        let mut on_folder = !t.folder.trim().is_empty();
+        if crate::widgets::check(ui, &mut on_folder, crate::i18n::tr("Quando chegar arquivo novo numa pasta")).changed() {
+            if on_folder {
+                if let Some(d) = rfd::FileDialog::new().pick_folder() {
+                    t.folder = d.display().to_string();
+                }
+            } else {
+                t.folder.clear();
+            }
+            changed = true;
+        }
+        if !t.folder.trim().is_empty() {
+            ui.horizontal(|ui| {
+                ui.add_space(22.0);
+                let folder = std::path::Path::new(&t.folder);
+                ui.label(RichText::new(crate::tools::file_name(folder)).color(p.text)).on_hover_text(&t.folder);
+                if ui.small_button(crate::i18n::tr("Trocar")).clicked() {
+                    if let Some(d) = rfd::FileDialog::new().set_directory(folder).pick_folder() {
+                        t.folder = d.display().to_string();
+                        changed = true;
+                    }
+                }
+            });
+            if let Some(st) = crate::triggers::folder_status(&f.name) {
+                ui.horizontal(|ui| {
+                    ui.add_space(22.0);
+                    ui.label(RichText::new(crate::i18n::tr(&st)).color(p.muted).size(12.0));
+                });
+            }
+            widgets::hint(ui, p, "Funciona com o Conver aberto (pode ficar minimizado). O que já estava na pasta não conta.");
+        }
+        let mut on_time = !t.time.trim().is_empty();
+        if crate::widgets::check(ui, &mut on_time, crate::i18n::tr("Num horário")).changed() {
+            t.time = if on_time { "08:00".into() } else { String::new() };
+            changed = true;
+        }
+        if on_time {
+            ui.horizontal(|ui| {
+                ui.add_space(22.0);
+                let ok = crate::triggers::parse_time(&t.time).is_some();
+                let edit = egui::TextEdit::singleline(&mut t.time).desired_width(56.0).margin(widgets::FIELD_MARGIN).text_color(if ok { p.text } else { p.accent });
+                if ui.add(edit).on_hover_text(crate::i18n::tr("HH:MM, por exemplo 08:30")).changed() {
+                    changed = true;
+                }
+                // dias da semana: nenhum marcado = todos os dias
+                for (i, d) in ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].iter().enumerate() {
+                    let on = t.days.contains(&(i as u8));
+                    if ui.selectable_label(on, crate::i18n::tr(d)).clicked() {
+                        if on {
+                            t.days.retain(|x| *x != i as u8);
+                        } else {
+                            t.days.push(i as u8);
+                        }
+                        changed = true;
+                    }
+                }
+            });
+            if let Some((good, m)) = self.sched_msg.lock().unwrap().clone() {
+                ui.horizontal(|ui| {
+                    ui.add_space(22.0);
+                    ui.label(RichText::new(crate::i18n::tr(&m)).color(if good { p.ok } else { p.accent }).size(12.0));
+                });
+            }
+            widgets::hint(ui, p, "Usa o Agendador de Tarefas do Windows: roda mesmo com o Conver fechado. Sem dias marcados, roda todo dia.");
+        }
+        if crate::widgets::check(ui, &mut t.notify, crate::i18n::tr("Avisar quando terminar (notificação do Windows)")).changed() {
+            changed = true;
+        }
+        if changed {
+            self.dirty = Some(Instant::now());
+        }
+        self.history_ui(ui, p);
         ui.add_space(10.0);
         ui.label(RichText::new(crate::i18n::tr("Como funciona")).family(bold()).color(p.text));
         for t in [
@@ -996,58 +1102,121 @@ impl FlowsPage {
     fn run_bar(&mut self, ui: &mut Ui, p: &Palette) {
         let can = self.flow.as_ref().is_some_and(|f| !f.nodes.is_empty());
         match widgets::action_bar(ui, p, &self.job, "▶  Executar fluxo", can) {
-            Act::Start => {
-                self.save_now();
-                let Some(f) = self.flow.clone() else { return };
-                if let Err(e) = f.validate() {
-                    self.notice = Some((false, format!("✖ {e}")));
-                    return;
-                }
-                self.notice = None;
-                let run = self.run.clone();
-                // na hora de executar, lê de novo (a chave pode ter acabado de ser salva)
-                self.ai_cache = None;
-                let ai = self.ai();
-                self.job.start(ui.ctx(), move |ctl| {
-                    ctl.status(format!("Executando “{}”…", f.name));
-                    let progress = |x: f32| ctl.progress(x);
-                    let cancelled = || ctl.cancelled();
-                    let log = |s: &str| {
-                        let kind = if s.starts_with('✔') || s.trim_start().starts_with('✔') {
-                            LogKind::Ok
-                        } else if s.trim_start().starts_with('✖') {
-                            LogKind::Err
-                        } else {
-                            LogKind::Info
-                        };
-                        ctl.log(kind, s);
-                    };
-                    let ctx = ops::Ctx { progress: &progress, cancelled: &cancelled, log: &log };
-                    match flow::run(&f, &flow::Inputs::default(), None, &run, &ctx, &ai) {
-                        Ok(report) => {
-                            let failed = report["failed_nodes"].as_u64().unwrap_or(0);
-                            let n = report["results"].as_array().map(Vec::len).unwrap_or(0);
-                            ctl.status(if failed > 0 { format!("Concluído com {failed} node(s) com erro.") } else { format!("Concluído: {n} resultado(s).") });
-                            // "Abrir pasta": a pasta do primeiro resultado final, ou a pasta de trabalho
-                            let folder = report["results"]
-                                .as_array()
-                                .and_then(|r| r.iter().find_map(|i| i["file"].as_str()))
-                                .and_then(|f| std::path::Path::new(f).parent().map(|d| d.to_path_buf()))
-                                .or_else(|| report["work_dir"].as_str().map(PathBuf::from));
-                            if let Some(d) = folder {
-                                ctl.done_folder(d);
-                            }
-                        }
-                        Err(e) => {
-                            ctl.log(LogKind::Err, format!("✖ {e}"));
-                            ctl.status(if e == "Cancelado." { "Cancelado.".to_string() } else { "Erro.".to_string() });
-                        }
-                    }
-                    ctl.progress(1.0);
-                });
-            }
+            Act::Start => self.start(ui.ctx(), flow::Inputs::default()),
             Act::Cancel => self.job.cancel(),
             Act::None => {}
+        }
+    }
+
+    /// Executa o fluxo aberto (com `inputs` no lugar das entradas salvas, se houver).
+    fn start(&mut self, ctx: &egui::Context, inputs: flow::Inputs) {
+        self.save_now();
+        let Some(f) = self.flow.clone() else { return };
+        if let Err(e) = f.validate() {
+            self.notice = Some((false, format!("✖ {e}")));
+            return;
+        }
+        self.notice = None;
+        self.history = None;
+        let run = self.run.clone();
+        // na hora de executar, lê de novo (a chave pode ter acabado de ser salva)
+        self.ai_cache = None;
+        let ai = self.ai();
+        self.job.start(ctx, move |ctl| {
+            ctl.status(format!("Executando “{}”…", f.name));
+            let progress = |x: f32| ctl.progress(x);
+            let cancelled = || ctl.cancelled();
+            let log = |s: &str| {
+                let kind = if s.starts_with('✔') || s.trim_start().starts_with('✔') {
+                    LogKind::Ok
+                } else if s.trim_start().starts_with('✖') {
+                    LogKind::Err
+                } else {
+                    LogKind::Info
+                };
+                ctl.log(kind, s);
+            };
+            let ctx = ops::Ctx { progress: &progress, cancelled: &cancelled, log: &log };
+            match flow::run(&f, &inputs, None, &run, &ctx, &ai) {
+                Ok(report) => {
+                    let failed = report["failed_nodes"].as_u64().unwrap_or(0);
+                    let n = report["results"].as_array().map(Vec::len).unwrap_or(0);
+                    ctl.status(if failed > 0 { format!("Concluído com {failed} node(s) com erro.") } else { format!("Concluído: {n} resultado(s).") });
+                    // "Abrir pasta": a pasta do primeiro resultado final, ou a pasta de trabalho
+                    let folder = report["results"]
+                        .as_array()
+                        .and_then(|r| r.iter().find_map(|i| i["file"].as_str()))
+                        .and_then(|f| std::path::Path::new(f).parent().map(|d| d.to_path_buf()))
+                        .or_else(|| report["work_dir"].as_str().map(PathBuf::from));
+                    if let Some(d) = folder {
+                        ctl.done_folder(d);
+                    }
+                }
+                Err(e) => {
+                    ctl.log(LogKind::Err, format!("✖ {e}"));
+                    ctl.status(if e == "Cancelado." { "Cancelado.".to_string() } else { "Erro.".to_string() });
+                }
+            }
+            ctl.progress(1.0);
+        });
+    }
+
+    /// Histórico no painel do fluxo: as últimas execuções, com "Repetir falhas" e a pasta de cada uma.
+    fn history_ui(&mut self, ui: &mut Ui, p: &Palette) {
+        let Some(name) = self.flow.as_ref().map(|f| f.name.clone()) else { return };
+        let stale = self.history.as_ref().is_none_or(|(n, t, _)| *n != name || t.elapsed() > Duration::from_secs(3));
+        if stale {
+            self.history = Some((name.clone(), Instant::now(), flow::history(&name)));
+        }
+        let runs = self.history.as_ref().map(|(_, _, r)| r.clone()).unwrap_or_default();
+        ui.add_space(12.0);
+        ui.label(RichText::new(crate::i18n::tr("Últimas execuções")).family(bold()).color(p.text));
+        if runs.is_empty() {
+            widgets::hint(ui, p, "O fluxo ainda não foi executado.");
+            return;
+        }
+        let running = self.job.state().running;
+        let mut retry: Option<Vec<PathBuf>> = None;
+        for (i, r) in runs.iter().take(8).enumerate() {
+            let outs = r["results"].as_array().map(Vec::len).unwrap_or(0);
+            let failed: Vec<PathBuf> = r["failed_inputs"].as_array().map(|a| a.iter().filter_map(|v| v.as_str().map(PathBuf::from)).collect()).unwrap_or_default();
+            let bad_nodes = r["failed_nodes"].as_u64().unwrap_or(0);
+            let ok = failed.is_empty() && bad_nodes == 0;
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(if ok { "✔" } else { "✖" }).color(if ok { p.ok } else { p.accent }));
+                let when = r["started"].as_str().unwrap_or_default();
+                let secs = r["seconds"].as_f64().unwrap_or(0.0);
+                ui.label(RichText::new(format!("{when}  •  {secs:.0} s")).color(p.text).size(12.5));
+            });
+            ui.horizontal(|ui| {
+                ui.add_space(18.0);
+                let detail = if ok {
+                    crate::i18n::tr(format!("{outs} resultado(s)"))
+                } else if failed.is_empty() {
+                    crate::i18n::tr(format!("{outs} resultado(s), {bad_nodes} node(s) com erro"))
+                } else {
+                    crate::i18n::tr(format!("{outs} resultado(s), {} arquivo(s) com erro", failed.len()))
+                };
+                ui.label(RichText::new(detail).color(p.muted).size(12.0));
+            });
+            ui.horizontal(|ui| {
+                ui.add_space(18.0);
+                if let Some(d) = r["work_dir"].as_str() {
+                    if ui.small_button(crate::i18n::tr("Pasta")).clicked() {
+                        crate::tools::open_file(std::path::Path::new(d));
+                    }
+                }
+                let alive: Vec<PathBuf> = failed.iter().filter(|f| f.exists()).cloned().collect();
+                if !alive.is_empty() && ui.add_enabled(!running, egui::Button::new(crate::i18n::tr("Repetir falhas")).small()).clicked() {
+                    retry = Some(alive);
+                }
+            });
+            if i + 1 < runs.len().min(8) {
+                ui.add_space(4.0);
+            }
+        }
+        if let Some(files) = retry {
+            self.start(ui.ctx(), flow::Inputs { files, texts: Vec::new() });
         }
     }
 }
@@ -1115,7 +1284,7 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
     ui.add_space(4.0);
     if ty == "boolean" {
         let mut b = current.as_ref().and_then(Value::as_bool).or(default.as_ref().and_then(Value::as_bool)).unwrap_or(false);
-        if ui.checkbox(&mut b, label).on_hover_text(desc).changed() {
+        if crate::widgets::check(ui, &mut b, label).on_hover_text(desc).changed() {
             args.insert(key.into(), json!(b));
         }
         return;
@@ -1161,7 +1330,7 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
                 ui.horizontal_wrapped(|ui| {
                     for v in items.iter().filter_map(Value::as_str) {
                         let mut on = chosen.iter().any(|c| c == v);
-                        if ui.checkbox(&mut on, crate::i18n::tr(enum_label(v))).changed() {
+                        if crate::widgets::check(ui, &mut on, crate::i18n::tr(enum_label(v))).changed() {
                             if on {
                                 chosen.push(v.to_string());
                             } else {
@@ -1212,7 +1381,11 @@ fn arg_editor(ui: &mut Ui, p: &Palette, key: &str, prop: &Value, args: &mut Map<
 fn arg_label(key: &str) -> &str {
     match key {
         "options" => "Opções (uma por linha)",
+        "pattern" => "Padrão do nome",
+        "digits" => "Dígitos do número",
+        "count_per_option" => "Contar separado por opção",
         "min_confidence" => "Confiança mínima (%)",
+        "look_at" => "O que olhar",
         "format" => "Formato",
         "quality" => "Qualidade",
         "level" => "Nível",
@@ -1330,6 +1503,8 @@ fn enum_label(v: &str) -> &str {
         "audio" => "Áudios",
         "pdf" => "PDFs",
         "text" => "Textos",
+        "sound" => "Som",
+        "auto" => "Automático",
         "a4_portrait" => "A4 em pé",
         "a4_landscape" => "A4 deitado",
         other => other,

@@ -79,6 +79,26 @@ O Conver não é derivado do FFmpeg: ele apenas executa o `ffmpeg.exe` como um p
 
 - Não vem no download: o SigLIP 2 base (patch16, 224) do Google ([google/siglip2-base-patch16-224](https://huggingface.co/google/siglip2-base-patch16-224), licença Apache 2.0), na conversão ONNX de <https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX> (revisão `ba1f3b0`), é baixado no primeiro uso, conferindo o SHA-256: `vision_model_q4.onnx` (`03e61be2…`), `text_model_int8.onnx` (`3a0603d3…`) e `tokenizer.json` (`cb9140fa…`).
 
+## llama.cpp — MIT (IA local de linguagem: traduzir legendas, classificar textos)
+
+- Arquivos: `bin\llm\` (`llama-server.exe`, `llama-server-impl.dll`, `llama.dll`, `llama-common.dll`, `mtmd.dll`, `ggml*.dll` com Vulkan, `libomp.dll`)
+- Versão: b12121, compilação oficial Vulkan (<https://github.com/ggml-org/llama.cpp/releases/tag/b12121>), sem as outras ferramentas do pacote
+- Licenças: MIT — `licencas\llama.cpp-LICENSE.txt`; LLVM OpenMP (`libomp.dll`) — Apache 2.0 com exceções LLVM, `licencas\llvm-openmp-LICENSE.txt`.
+- O Conver só executa o `llama-server.exe` como programa separado, em 127.0.0.1, enquanto um trabalho precisa dele.
+
+## Modelo Qwen 3.5 2B (IA local de linguagem)
+
+- Não vem no download: `Qwen3.5-2B-Q4_K_M.gguf`, conversão GGUF de <https://huggingface.co/unsloth/Qwen3.5-2B-GGUF> (revisão `f6d5376`) do [Qwen/Qwen3.5-2B](https://huggingface.co/Qwen/Qwen3.5-2B) (licença Apache 2.0), é baixado no primeiro uso, conferindo o SHA-256 (`aaf42c8b…`).
+
+## Modelo YuNet (desfocar rostos) — MIT
+
+- Arquivo: `modelos\face_detection_yunet_2023mar.onnx` (SHA-256 `8f2383e4…`), do [OpenCV Zoo](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) (<https://huggingface.co/opencv/face_detection_yunet>, revisão `3cc26e7`).
+- Licença: MIT — `licencas\yunet-LICENSE.txt`.
+
+## Modelo CLAP (classificar sons)
+
+- Não vem no download: o CLAP HTSAT "unfused" do LAION ([laion/clap-htsat-unfused](https://huggingface.co/laion/clap-htsat-unfused), licença Apache 2.0), na conversão ONNX de <https://huggingface.co/Xenova/clap-htsat-unfused> (revisão `c28f288`), é baixado no primeiro uso, conferindo o SHA-256: `audio_model.onnx` (`a1c2b43c…`), `text_model_quantized.onnx` (`1a3df8b1…`) e `tokenizer.json` (`dc239041…`).
+
 ## Bibliotecas Rust
 
-O Conver usa bibliotecas Rust de código aberto (egui/eframe, image, lopdf, ort, realfft, sha2, ar-reshaper, unicode-bidi, rfd, serde, ureq, windows-rs e outras), quase todas sob MIT e/ou Apache 2.0. A lista completa, com versões, está no arquivo `Cargo.lock` do repositório.
+O Conver usa bibliotecas Rust de código aberto (egui/eframe, image, lopdf, ort, realfft, rust_xlsxwriter, sha2, ar-reshaper, unicode-bidi, rfd, serde, ureq, windows-rs e outras), quase todas sob MIT e/ou Apache 2.0. A lista completa, com versões, está no arquivo `Cargo.lock` do repositório.

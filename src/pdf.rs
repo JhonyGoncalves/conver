@@ -7,7 +7,7 @@ use lopdf::{Dictionary, Document, Object, ObjectId};
 
 use crate::tools;
 
-fn open(path: &Path) -> Result<Document, String> {
+pub(crate) fn open(path: &Path) -> Result<Document, String> {
     let doc = Document::load(path).map_err(|e| format!("{}: não foi possível abrir o PDF ({e})", tools::file_name(path)))?;
     if doc.is_encrypted() {
         return Err(format!("{} está protegido por senha.", tools::file_name(path)));
@@ -23,7 +23,7 @@ pub fn page_count(path: &Path) -> Option<usize> {
 /// antes de ela mudar de "pai".
 const INHERITED: [&[u8]; 4] = [b"MediaBox", b"CropBox", b"Resources", b"Rotate"];
 
-fn with_inherited(doc: &Document, page: ObjectId) -> Option<Dictionary> {
+pub(crate) fn with_inherited(doc: &Document, page: ObjectId) -> Option<Dictionary> {
     let mut dict = doc.get_dictionary(page).ok()?.clone();
     let mut parent = dict.get(b"Parent").and_then(Object::as_reference).ok();
     let mut guard = 0;

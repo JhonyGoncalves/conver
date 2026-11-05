@@ -259,6 +259,48 @@ pub fn thumbnails(src: &Path, dpi: f32, mut each: impl FnMut(u32, Vec<u8>) -> bo
     Ok(total)
 }
 
+/// Palavras de cada página (com a caixa em pixels da página desenhada), pelo OCR do Windows: serve para PDFs com
+/// texto e para os escaneados. Chama `each(página, linhas, (largura, altura) em pixels)`; `false` para.
+pub fn ocr_words(
+    src: &Path,
+    lang: &str,
+    mut each: impl FnMut(u32, Vec<Vec<crate::ocr::Word>>, (u32, u32)) -> bool,
+    cancelled: &dyn Fn() -> bool,
+) -> Result<u32, String> {
+    let engine = crate::ocr::engine(lang)?;
+    let doc = open_winrt(src, "")?;
+    let total = doc.PageCount().map_err(werr)?;
+    let max_dim = crate::ocr::max_dimension() as f32;
+    for i in 0..total {
+        if cancelled() {
+            return Err("Cancelado.".into());
+        }
+        // ~300 dpi deixa números miúdos legíveis; o tamanho fica no limite do OCR
+        let size = doc.GetPage(i).and_then(|p| p.Size()).map_err(werr)?;
+        let longest = size.Width.max(size.Height) / 96.0;
+        let dpi = (300.0f32).min(max_dim / longest.max(0.1)).max(72.0);
+        let (png, _) = render_page(&doc, i, dpi)?;
+        let (lines, dims) = (|| -> windows::core::Result<_> {
+            let stream = InMemoryRandomAccessStream::new()?;
+            let writer = windows::Storage::Streams::DataWriter::CreateDataWriter(&stream)?;
+            writer.WriteBytes(&png)?;
+            writer.StoreAsync()?.join()?;
+            writer.FlushAsync()?.join()?;
+            writer.DetachStream()?;
+            stream.Seek(0)?;
+            let decoder = BitmapDecoder::CreateAsync(&stream)?.join()?;
+            let bmp = decoder.GetSoftwareBitmapAsync()?.join()?;
+            Ok((bmp, (decoder.PixelWidth()?, decoder.PixelHeight()?)))
+        })()
+        .map_err(werr)
+        .and_then(|(bmp, dims)| Ok((crate::ocr::words(&engine, &bmp)?, dims)))?;
+        if !each(i + 1, lines, dims) {
+            break;
+        }
+    }
+    Ok(total)
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PageFmt {
     Png,

@@ -83,6 +83,7 @@ fn classify_node_ports() {
     let c = node(2, "classify", serde_json::json!({ "options": "documento\nselfie" }));
     assert_eq!(node_outputs(&c), vec!["documento", "selfie", "uncertain"]);
     let mut f = Flow {
+        trigger: Default::default(),
         name: "t".into(),
         description: String::new(),
         nodes: vec![node(1, "input", serde_json::json!({})), c, node(3, "output", serde_json::json!({}))],

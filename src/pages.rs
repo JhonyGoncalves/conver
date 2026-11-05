@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use eframe::egui::{self, Align, ColorImage, Layout, RichText, TextureHandle, TextureOptions, Ui, vec2};
+use eframe::egui::{self, Align, ColorImage, RichText, TextureHandle, TextureOptions, Ui, vec2};
 
 use crate::download::{self, Kind};
 use crate::history;
@@ -333,7 +333,7 @@ impl ImagePage {
                         ui.label(crate::i18n::tr("Altura"));
                         ui.add(egui::TextEdit::singleline(&mut self.h).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("px")).desired_width(70.0));
                         ui.add_space(8.0);
-                        ui.checkbox(&mut self.keep, crate::i18n::tr("Manter proporção"));
+                        crate::widgets::check(ui, &mut self.keep, crate::i18n::tr("Manter proporção"));
                     });
                     hint(ui, p, "Com a proporção mantida, a imagem cabe dentro da largura/altura informada.");
                 } else {
@@ -368,9 +368,9 @@ impl ImagePage {
                     segmented(ui, p, &mut self.rotate, &[(0, "Não girar"), (90, "90° ↻"), (180, "180°"), (270, "90° ↺")]);
                 });
                 row(ui, p, "Espelhar:", |ui| {
-                    ui.checkbox(&mut self.flip_h, crate::i18n::tr("Na horizontal ↔"));
+                    crate::widgets::check(ui, &mut self.flip_h, crate::i18n::tr("Na horizontal ↔"));
                     ui.add_space(8.0);
-                    ui.checkbox(&mut self.flip_v, crate::i18n::tr("Na vertical ↕"));
+                    crate::widgets::check(ui, &mut self.flip_v, crate::i18n::tr("Na vertical ↕"));
                 });
                 row(ui, p, "Recortar:", |ui| {
                     let opts: Vec<(Aspect, &str)> = Aspect::ALL.iter().map(|a| (*a, a.label())).collect();
@@ -453,7 +453,7 @@ impl ImagePage {
             ui.horizontal(|ui| {
                 ui.label(RichText::new(crate::i18n::tr("Prévia")).family(bold()).color(p.text));
                 if self.tool != ImgTool::Pdf {
-                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    ui.with_layout(crate::widgets::back(Align::Center), |ui| {
                         segmented(ui, p, &mut self.show_result, &[(false, "Original"), (true, "Resultado")]);
                     });
                 }
@@ -546,10 +546,10 @@ impl ImagePage {
         ui.horizontal_top(|ui| {
             let total = ui.available_width();
             let left = (total * 0.42).max(300.0);
-            ui.allocate_ui_with_layout(vec2(left, height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(left, height + 80.0), crate::widgets::down(), |ui| {
                 widgets::file_list(ui, p, &mut self.queue, Some(thumbs), None, height);
             });
-            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), crate::widgets::down(), |ui| {
                 self.preview_ui(ui, p, thumbs, height);
             });
         });
@@ -696,11 +696,11 @@ impl DownloadPage {
                 hint(ui, p, "para sites que pedem conta (Instagram, Facebook). Feche o navegador antes de baixar.");
             });
             row(ui, p, "Baixar junto:", |ui| {
-                ui.checkbox(&mut self.subtitles, crate::i18n::tr("Legendas (.srt, português e inglês)"));
+                crate::widgets::check(ui, &mut self.subtitles, crate::i18n::tr("Legendas (.srt, português e inglês)"));
                 ui.add_space(8.0);
-                ui.checkbox(&mut self.cover, crate::i18n::tr("Imagem de capa (.jpg)"));
+                crate::widgets::check(ui, &mut self.cover, crate::i18n::tr("Imagem de capa (.jpg)"));
             });
-            ui.checkbox(&mut self.playlist, crate::i18n::tr("Baixar a playlist inteira (se o link for de uma playlist)"));
+            crate::widgets::check(ui, &mut self.playlist, crate::i18n::tr("Baixar a playlist inteira (se o link for de uma playlist)"));
         });
         ui.add_space(4.0);
         self.out.ui(ui, p);

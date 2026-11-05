@@ -35,6 +35,8 @@ foreach ($tool in "ffmpeg", "yt-dlp") {
 $extras = @{
     "Conver\bin\onnxruntime.dll"  = "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-win-x64-1.22.0.zip (lib\onnxruntime.dll)"
     "Conver\modelos\silueta.onnx" = "https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx"
+    # desfocar rostos: detector YuNet (OpenCV Zoo, MIT)
+    "Conver\modelos\face_detection_yunet_2023mar.onnx" = "https://huggingface.co/opencv/face_detection_yunet/resolve/3cc26e7f1014a5ee5d74a42acee58bafc9d0a310/face_detection_yunet_2023mar.onnx"
     # remover ruído: modelo do RNNoise (GregorR/rnnoise-models, somnolent-hogwash, sem direitos autorais)
     "Conver\modelos\rnnoise-sh.rnnn" = "https://raw.githubusercontent.com/GregorR/rnnoise-models/3eee541a283fd3b8f81b85b1748e3b9ccbefa04d/somnolent-hogwash-2018-09-01/sh.rnnn"
     # ampliar com IA: realesr-general-x4v3.pth oficial (xinntao/Real-ESRGAN v0.2.5.0) exportado para ONNX
@@ -45,6 +47,7 @@ $extras = @{
     "Conver\bin\whisper\whisper-server.exe" = "https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.2/whisper-bin-x64.zip (Release\whisper-server.exe)"
     # texto para voz: pasta piper do piper_windows_amd64.zip (as vozes são baixadas pelo app)
     "Conver\bin\piper\piper.exe" = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip (pasta piper, sem pkgconfig)"
+    # IA local de linguagem: llama-server do llama.cpp com Vulkan (o modelo Qwen é baixado pelo app)
     # gerar imagem: stable-diffusion.cpp com Vulkan (o modelo é baixado pelo app)
     "Conver\bin\sd\sd-cli.exe" = "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-1050-58bb3c1/sd-master-58bb3c1-bin-win-vulkan-x64.zip (sem sd-server.exe e start-server.*)"
 }
@@ -56,13 +59,21 @@ Copy-Item THIRD-PARTY.md Conver\licencas\TERCEIROS.md -Force
 Copy-Item licenses\* Conver\licencas -Force -Recurse
 Remove-Item Conver\portatil.txt, Conver\dados -Recurse -Force -ErrorAction SilentlyContinue
 
+# o que vai no download: a pasta Conver sem o llama.cpp (bin\llm), que o app baixa só para quem usa a IA de
+# linguagem (llm::ensure_runtime); a cópia em Conver\bin\llm fica só para o desenvolvimento e os testes
+$stage = Join-Path $env:TEMP "conver-pacote"
+Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force "$stage\Conver" | Out-Null
+Copy-Item Conver\* "$stage\Conver" -Recurse
+Remove-Item "$stage\Conver\bin\llm" -Recurse -Force -ErrorAction SilentlyContinue
+
 # 3. versão portátil
 New-Item -ItemType Directory -Force dist | Out-Null
 $zip = "dist\Conver-$versao-portatil.zip"
 $tmp = Join-Path $env:TEMP "conver-portatil"
 Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force "$tmp\Conver" | Out-Null
-Copy-Item Conver\* "$tmp\Conver" -Recurse
+Copy-Item "$stage\Conver\*" "$tmp\Conver" -Recurse
 Set-Content -Encoding utf8 "$tmp\Conver\portatil.txt" "Versão portátil do Conver: as configurações e o histórico ficam na pasta 'dados', ao lado do Conver.exe.`r`nApague este arquivo para usar a pasta do Windows (%APPDATA%\Conver)."
 Remove-Item $zip -ErrorAction SilentlyContinue
 Compress-Archive -Path "$tmp\Conver" -DestinationPath $zip -CompressionLevel Optimal
@@ -71,11 +82,13 @@ Remove-Item $tmp -Recurse -Force
 # 4. instalador
 $iscc = @("$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
 if ($iscc) {
-    & $iscc /Q "/DVersao=$versao" "/DOrigem=$PSScriptRoot\Conver" "/DRepo=https://github.com/$Repo" installer\conver.iss
+    & $iscc /Q "/DVersao=$versao" "/DOrigem=$stage\Conver" "/DRepo=https://github.com/$Repo" installer\conver.iss
     if ($LASTEXITCODE -ne 0) { throw "falha ao gerar o instalador" }
 } else {
     Write-Warning "Inno Setup 6 não encontrado: o instalador não foi gerado."
 }
+
+Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 
 # 5. somas de verificação
 Get-ChildItem dist -File | Where-Object { $_.Name -like "Conver-$versao-*" -and $_.Extension -ne ".txt" } | ForEach-Object {

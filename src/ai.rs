@@ -11,6 +11,7 @@ use sha2::{Digest, Sha256};
 use crate::tools;
 
 /// Um modelo que o Conver sabe onde baixar.
+#[derive(Clone, Copy)]
 pub struct ModelSpec {
     pub file: &'static str,
     pub url: &'static str,

@@ -20,6 +20,64 @@ use crate::tools;
 /// Margem dos campos de texto: com ela o campo tem a mesma altura (30px) que botões e menus.
 pub const FIELD_MARGIN: Margin = Margin::symmetric(8, 6);
 
+// ------------------------------------------------- direção (árabe, urdu, persa)
+//
+// Nos idiomas da direita para a esquerda o layout inteiro é espelhado: menu à direita, rótulos à direita dos
+// controles, ação principal à esquerda. As colunas usam `top_down(Align::Max)`, e o egui já faz os
+// `ui.horizontal` dentro delas correrem da direita para a esquerda. Layouts explícitos usam os ajudantes abaixo.
+
+pub fn rtl() -> bool {
+    crate::i18n::current().rtl
+}
+
+/// Linha no sentido da leitura (o `Layout::left_to_right` de sempre).
+pub fn fwd(align: Align) -> Layout {
+    if rtl() { Layout::right_to_left(align) } else { Layout::left_to_right(align) }
+}
+
+/// Linha a partir do fim (o `Layout::right_to_left` de sempre: barras de ação, botões no canto).
+pub fn back(align: Align) -> Layout {
+    if rtl() { Layout::left_to_right(align) } else { Layout::right_to_left(align) }
+}
+
+/// Coluna alinhada pelo começo da leitura.
+pub fn down() -> Layout {
+    Layout::top_down(if rtl() { Align::Max } else { Align::Min })
+}
+
+/// `ui.vertical` que respeita a direção.
+pub fn vt<R>(ui: &mut Ui, add: impl FnOnce(&mut Ui) -> R) -> egui::InnerResponse<R> {
+    ui.allocate_new_ui(egui::UiBuilder::new().layout(down()), add)
+}
+
+/// Caixa de seleção com o texto do lado certo (a caixa fica à direita do texto em árabe, urdu e persa).
+pub fn check(ui: &mut Ui, value: &mut bool, text: impl Into<egui::WidgetText>) -> egui::Response {
+    if !rtl() {
+        return ui.checkbox(value, text);
+    }
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 6.0;
+        let mut r = ui.add(egui::Checkbox::without_text(value));
+        let l = ui.add(egui::Label::new(text).sense(Sense::click())).on_hover_cursor(CursorIcon::PointingHand);
+        if l.clicked() && ui.is_enabled() {
+            *value = !*value;
+            r.mark_changed();
+        }
+        r.union(l)
+    })
+    .inner
+}
+
+/// `check` só ativo quando `enabled`.
+pub fn check_enabled(ui: &mut Ui, enabled: bool, value: &mut bool, text: impl Into<egui::WidgetText>) -> egui::Response {
+    ui.add_enabled_ui(enabled, |ui| check(ui, value, text)).inner
+}
+
+/// Retângulo espelhado dentro de `outer` (para o que é desenhado à mão).
+pub fn mirror(r: Rect, outer: Rect) -> Rect {
+    if rtl() { Rect::from_x_y_ranges((outer.left() + outer.right() - r.right())..=(outer.left() + outer.right() - r.left()), r.y_range()) } else { r }
+}
+
 pub fn card<R>(ui: &mut Ui, p: &Palette, add: impl FnOnce(&mut Ui) -> R) -> R {
     Frame::default()
         .fill(p.card)
@@ -40,7 +98,7 @@ pub fn header(ui: &mut Ui, p: &Palette, title: &str, subtitle: &str) {
 }
 
 pub fn primary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
-    let (fill, color) = if enabled { (p.accent, p.on_accent) } else { (p.border, p.muted) };
+    let (fill, color) = if enabled { (p.action, p.on_accent) } else { (p.border, p.muted) };
     let b = Button::new(RichText::new(crate::i18n::tr(text)).family(bold()).size(15.0).color(color))
         .fill(fill)
         .stroke(Stroke::NONE)
@@ -67,21 +125,42 @@ pub fn secondary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
 /// Botões lado a lado em que só um fica selecionado.
 pub fn segmented<T: PartialEq + Copy>(ui: &mut Ui, p: &Palette, value: &mut T, opts: &[(T, &str)]) -> bool {
     let mut changed = false;
+    // quando as opções não cabem na linha (muitas opções, ou textos longos em outro idioma), vira um menu suspenso
+    let labels: Vec<String> = opts.iter().map(|(_, l)| crate::i18n::tr(*l)).collect();
+    let font = egui::TextStyle::Button.resolve(ui.style());
+    let needed: f32 = labels
+        .iter()
+        .map(|l| ui.fonts(|f| f.layout_no_wrap(l.clone(), font.clone(), p.text).size().x) + 2.0 * ui.spacing().button_padding.x + 2.0)
+        .sum::<f32>()
+        + 10.0;
+    if needed > ui.available_width() {
+        let current = opts.iter().position(|(v, _)| *v == *value).map(|i| labels[i].clone()).unwrap_or_default();
+        let id = ui.id().with(("segmentado", opts.first().map(|o| o.1).unwrap_or_default()));
+        egui::ComboBox::from_id_salt(id).selected_text(current).width(ui.available_width().clamp(120.0, 300.0)).show_ui(ui, |ui| {
+            for ((v, _), label) in opts.iter().zip(&labels) {
+                if ui.selectable_label(*value == *v, label).clicked() && *value != *v {
+                    *value = *v;
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
     Frame::default()
         .fill(p.input)
         .stroke(Stroke::new(1.0f32, p.border))
         .corner_radius(9)
         .inner_margin(Margin::same(3))
         .show(ui, |ui| {
-            // dentro de layouts da direita para a esquerda, inverte para manter a ordem visual
-            let rtl = ui.layout().prefer_right_to_left();
+            // a primeira opção fica no começo da leitura (à direita em árabe, urdu e persa)
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = 2.0;
-                let ordered: Vec<&(T, &str)> = if rtl { opts.iter().rev().collect() } else { opts.iter().collect() };
-                for (v, label) in ordered {
+                for (v, label) in opts {
                     let sel = *value == *v;
-                    let b = Button::new(RichText::new(crate::i18n::tr(*label)).color(if sel { p.on_accent } else { p.text }))
-                        .fill(if sel { p.accent } else { Color32::TRANSPARENT })
+                    // a escolhida fica em cinábrio suave: o vermelho cheio é só da ação (botão, menu, progresso)
+                    let text = RichText::new(crate::i18n::tr(*label)).color(p.text);
+                    let b = Button::new(if sel { text.family(bold()) } else { text })
+                        .fill(if sel { p.accent_soft } else { Color32::TRANSPARENT })
                         .stroke(Stroke::NONE)
                         .corner_radius(6)
                         .min_size(vec2(0.0, 28.0));
@@ -98,7 +177,7 @@ pub fn segmented<T: PartialEq + Copy>(ui: &mut Ui, p: &Palette, value: &mut T, o
 /// Linha "rótulo: controle" com largura de rótulo fixa.
 pub fn row<R>(ui: &mut Ui, p: &Palette, label: &str, add: impl FnOnce(&mut Ui) -> R) -> R {
     ui.horizontal(|ui| {
-        ui.allocate_ui_with_layout(vec2(150.0, 30.0), Layout::left_to_right(Align::Center), |ui| {
+        ui.allocate_ui_with_layout(vec2(150.0, 30.0), fwd(Align::Center), |ui| {
             ui.set_min_size(vec2(150.0, 30.0));
             ui.label(RichText::new(crate::i18n::tr(label)).color(p.text));
         });
@@ -281,7 +360,7 @@ pub fn file_list(
                 n => format!("{n} arquivos"),
             };
             ui.label(RichText::new(crate::i18n::tr(text)).family(bold()).color(p.text));
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            ui.with_layout(back(Align::Center), |ui| {
                 if secondary(ui, p, "Limpar", n > 0) {
                     q.files.clear();
                     q.selected = 0;
@@ -299,7 +378,9 @@ pub fn file_list(
                         q.files.swap(i, i - 1);
                         q.selected -= 1;
                     }
-                    ui.label(RichText::new(crate::i18n::tr("ordem:")).size(12.5).color(p.muted));
+                    if ui.available_width() > 70.0 {
+                        ui.label(RichText::new(crate::i18n::tr("ordem:")).size(12.5).color(p.muted));
+                    }
                 }
             });
         });
@@ -355,7 +436,7 @@ pub fn file_list(
                     let mut x = rect.left() + 8.0;
                     let mut dims = None;
                     if let Some(thumbs) = thumbs {
-                        let slot = Rect::from_min_size(egui::pos2(x, rect.center().y - 20.0), vec2(40.0, 40.0));
+                        let slot = mirror(Rect::from_min_size(egui::pos2(x, rect.center().y - 20.0), vec2(40.0, 40.0)), rect);
                         ui.painter().rect_filled(slot, 6, p.input);
                         if let Thumb::Ready { tex, dims: d } = thumbs.get(path) {
                             let s = tex.size_vec2();
@@ -372,19 +453,22 @@ pub fn file_list(
                         x += 50.0;
                     } else {
                         // etiqueta com a extensão do arquivo
-                        let slot = Rect::from_min_size(egui::pos2(x, rect.center().y - 14.0), vec2(42.0, 28.0));
-                        ui.painter().rect_filled(slot, 6, p.accent);
+                        let slot = mirror(Rect::from_min_size(egui::pos2(x, rect.center().y - 14.0), vec2(42.0, 28.0)), rect);
+                        ui.painter().rect_filled(slot, 6, p.action);
                         let ext: String = tools::ext_lower(path).to_uppercase().chars().take(4).collect();
                         ui.painter().text(slot.center(), Align2::CENTER_CENTER, crate::i18n::tr(ext), FontId::new(11.0, bold()), p.on_accent);
                         x += 52.0;
                     }
 
-                    let close = Rect::from_center_size(egui::pos2(rect.right() - 20.0, rect.center().y), vec2(26.0, 26.0));
-                    let text_clip = Rect::from_min_max(egui::pos2(x, rect.top()), egui::pos2(close.left() - 6.0, rect.bottom()));
+                    let close_ltr = Rect::from_center_size(egui::pos2(rect.right() - 20.0, rect.center().y), vec2(26.0, 26.0));
+                    let close = mirror(close_ltr, rect);
+                    let text_clip = mirror(Rect::from_min_max(egui::pos2(x, rect.top()), egui::pos2(close_ltr.left() - 6.0, rect.bottom())), rect);
                     let painter = ui.painter().with_clip_rect(text_clip);
+                    // o texto começa no início da leitura (à direita em árabe, urdu e persa)
+                    let (tx, anchor) = if rtl() { (text_clip.right(), Align2::RIGHT_CENTER) } else { (x, Align2::LEFT_CENTER) };
                     painter.text(
-                        egui::pos2(x, rect.center().y - 9.0),
-                        Align2::LEFT_CENTER,
+                        egui::pos2(tx, rect.center().y - 9.0),
+                        anchor,
                         crate::i18n::tr(tools::file_name(path)),
                         FontId::proportional(14.0),
                         p.text,
@@ -398,8 +482,8 @@ pub fn file_list(
                     };
                     let sub = if q.reorder { format!("{}º  •  {sub}", i + 1) } else { sub };
                     painter.text(
-                        egui::pos2(x, rect.center().y + 10.0),
-                        Align2::LEFT_CENTER,
+                        egui::pos2(tx, rect.center().y + 10.0),
+                        anchor,
                         crate::i18n::tr(sub),
                         FontId::proportional(12.0),
                         p.muted,
@@ -408,7 +492,7 @@ pub fn file_list(
                     let close_resp = ui.interact(close, ui.id().with(("rm", i)), Sense::click());
                     if resp.hovered() || close_resp.hovered() || selected {
                         if close_resp.hovered() {
-                            ui.painter().rect_filled(close, 6, p.accent);
+                            ui.painter().rect_filled(close, 6, p.action);
                         }
                         ui.painter().text(
                             close.center(),
@@ -529,7 +613,7 @@ pub fn level_meter(ui: &mut Ui, p: &Palette, lv: &crate::recorder::Levels) {
             painter.text(egui::pos2(x, bar.bottom() + 3.0), align, crate::i18n::tr(label), FontId::proportional(10.5), p.muted);
         }
         let text = if lv.blocks.is_empty() || d <= -90.0 { "—".to_string() } else { format!("{d:.1} dB") };
-        ui.allocate_ui_with_layout(vec2(80.0, 30.0), Layout::right_to_left(Align::Min), |ui| {
+        ui.allocate_ui_with_layout(vec2(80.0, 30.0), back(Align::Min), |ui| {
             ui.label(RichText::new(crate::i18n::tr(text)).monospace().color(p.text));
         });
     });
@@ -615,7 +699,7 @@ pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: b
     ui.add_space(4.0);
     ui.label(RichText::new(crate::i18n::tr(&st.status)).color(p.muted));
     let bar = vec2(ui.available_width(), 40.0);
-    ui.allocate_ui_with_layout(bar, Layout::right_to_left(Align::Center), |ui| {
+    ui.allocate_ui_with_layout(bar, back(Align::Center), |ui| {
         if primary(ui, p, label, can_start && !running) {
             act = Act::Start;
         }

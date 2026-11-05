@@ -18,6 +18,14 @@ não foi possível falar com a IA em {url}: {e}
 resposta inválida da IA.
 a IA não devolveu texto.
 sim
+CLAP — sons (118 MB)
+CLAP — textos (127 MB)
+CLAP — vocabulário (2 MB)
+vocabulário inválido.
+ffmpeg não encontrado.
+o arquivo não tem áudio.
+falha na IA: {e}
+informe pelo menos duas opções.
 o modelo de remoção de fundo não foi encontrado (pasta modelos).
 resposta inesperada do modelo.
 Reels
@@ -30,7 +38,6 @@ o arquivo não tem vídeo.
 nenhuma fala encontrada no vídeo.
 não foi possível salvar a legenda: {e}
 {} palavras • {}
-ffmpeg não encontrado.
 ffmpeg falhou
 Vídeos
 Assim fica a legenda no seu vídeo
@@ -99,12 +106,10 @@ Salvar também a legenda (.ass)
 Gravar no vídeo
 Legendar
 vocabulário inválido: {e}
-vocabulário inválido.
 a IA não devolveu o vetor esperado.
-falha na IA: {e}
-informe pelo menos duas opções.
 não foi possível ler um quadro do vídeo.
 não foi possível abrir a imagem: {e}
+o item não tem texto.
 o reconhecimento de fala não respondeu: {e}
 Preparando o modelo…
 Baixando o modelo… {:.0}%
@@ -218,6 +223,9 @@ Reconhecer texto
 Organizar páginas
 Mude a ordem, gire e apague páginas de um PDF vendo as miniaturas.
 Salvar PDF
+Tabelas do PDF para Excel
+Tire as tabelas de PDFs (inclusive escaneados) para uma planilha do Excel ou um CSV, com os números prontos para somar.
+Extrair tabelas
 Nome do PDF:
 O PDF final terá {total_pages} páginas. Use ↑ e ↓ para mudar a ordem.
 Extrair páginas
@@ -249,6 +257,13 @@ libera tudo para quem souber
 Guarde a senha: sem ela não há como abrir o PDF.
 Senha atual:
 Use só em PDFs seus ou que você tem autorização para alterar.
+Salvar como:
+Excel (.xlsx)
+O que tirar:
+Só as tabelas
+A página toda, em colunas
+Cada página é lida pelo OCR do Windows, então funciona também com PDFs escaneados. No Excel, cada página vira uma aba e os números (1.234,56 ou 1,234.56) viram números de verdade.
+Tabelas com células mescladas ou texto quebrado em várias linhas podem precisar de um ajuste na planilha.
 Idioma do texto:
 Automático (idiomas do Windows)
 Páginas com texto:
@@ -328,7 +343,6 @@ Ver no mapa
 Transcrever / legendar
 Transforme a fala de áudios e vídeos em texto e legendas (SRT/VTT) com o Whisper, no seu PC e sem internet.
 Traduzir para o inglês
-Salvar como:
 Texto (.txt)
 Legenda (.srt)
 Legenda web (.vtt)
@@ -454,6 +468,57 @@ Parado
 O texto ditado aparece aqui. Você pode editar à vontade.
 … {partial}
 ✔ Copiado.
+não foi possível ler a primeira página.
+Imagens, vídeos e PDFs
+Marca d'água
+Coloque seu logo ou um texto em várias imagens, vídeos e PDFs de uma vez, com posição e transparência.
+Marca:
+Logo (imagem)
+Logo:
+Escolher imagem…
+PNG, JPG, WEBP
+Um PNG com fundo transparente fica melhor.
+Texto:
+ex.: © Seu nome 2026
+Diagonal, no meio
+Opacidade:
+Margem:
+Adicione arquivos para ver a prévia.
+Imagens e PDFs ficam com a mesma qualidade; vídeos são regravados com a marca (o áudio é copiado).
+Aplicar
+Fotos e vídeos
+Desfocar rostos
+Ache e esconda os rostos de fotos e vídeos para preservar a privacidade, no seu PC e sem internet.
+Esconder com:
+Desfoque
+Pixelado
+Tarja preta
+Sensibilidade:
+Mais sensível acha rostos pequenos, de lado ou no escuro, mas pode marcar o que não é rosto.
+{n} rosto(s) na prévia
+Vídeos são analisados quadro a quadro (o som é copiado); um vídeo de 1 minuto em 1080p leva cerca de 1 a 2 minutos.
+Adicione fotos ou vídeos para ver a prévia.
+Esconder rostos
+Legendas, vídeos e áudios
+Traduzir e dublar
+Traduza legendas para outra língua e, se quiser, duble o vídeo com uma voz natural, tudo no seu PC e sem internet.
+Traduzir para:
+Não traduzir (só dublar)
+Dublar:
+Gerar a fala com uma voz natural
+Ainda não há voz para dublar neste idioma; a legenda traduzida é salva normalmente.
+Som original:
+Cada fala entra na hora da legenda; quando não cabe no tempo, ela é acelerada (no máximo 1,5×). O vídeo com o mesmo nome da legenda recebe a dublagem; sem vídeo, sai um MP3.
+Vídeos e áudios sem legenda são transcritos antes (Whisper). A tradução é feita por uma IA local pequena: revise nomes e termos técnicos.
+Traduzir
+não foi possível salvar: {e}
+{} rosto(s)
+não foi possível iniciar o ffmpeg: {e}
+quadro inválido
+o ffmpeg parou de receber os quadros.
+falha no ffmpeg: {}
+nenhum quadro
+{n} quadros • até {most} rosto(s) por quadro
 o fluxo tem um ciclo (um node volta para um anterior).
 o fluxo precisa de um nome.
 há dois nodes com o id {}.
@@ -472,6 +537,7 @@ IA: instrução
 IA: avaliar
 Filtrar arquivos
 IA local: classificar
+Renomear com padrão
 não foi possível salvar o fluxo: {e}
 fluxo não encontrado: {name}
 não foi possível criar a pasta de trabalho: {e}
@@ -486,7 +552,6 @@ nenhum arquivo de entrada (adicione arquivos ao node ou passe "files").
 o texto está vazio.
 {} sim, {} não
 escreva pelo menos duas opções.
-Baixando o modelo SigLIP 2…
 não foi possível criar {}: {e}
 {n} salvo(s) em {}
 escreva a instrução para a IA.
@@ -540,6 +605,21 @@ Remover ligação
 Dica: a tecla Delete também remove.
 Fluxo
 Descrição
+Rodar sozinho
+Quando chegar arquivo novo numa pasta
+Trocar
+Funciona com o Conver aberto (pode ficar minimizado). O que já estava na pasta não conta.
+Num horário
+HH:MM, por exemplo 08:30
+Dom
+Seg
+Ter
+Qua
+Qui
+Sex
+Sáb
+Usa o Agendador de Tarefas do Windows: roda mesmo com o Conver fechado. Sem dias marcados, roda todo dia.
+Avisar quando terminar (notificação do Windows)
 Como funciona
 1. Adicione nodes pelo botão "+ Adicionar node" (ferramentas, IA, filtros).
 2. Puxe da bolinha à direita de um node até outro para ligar: o resultado de um vai para o próximo.
@@ -564,12 +644,24 @@ Pela linha de comando ou pelo MCP, os arquivos passados em flow_run substituem e
 Executando “{}”…
 Concluído com {failed} node(s) com erro.
 Concluído: {n} resultado(s).
+Últimas execuções
+O fluxo ainda não foi executado.
+{when}  •  {secs:.0} s
+{outs} resultado(s)
+{outs} resultado(s), {bad_nodes} node(s) com erro
+{outs} resultado(s), {} arquivo(s) com erro
+Pasta
+Repetir falhas
 Voltar ao padrão
 (padrão)
 (automático)
 um por linha
 Opções (uma por linha)
+Padrão do nome
+Dígitos do número
+Contar separado por opção
 Confiança mínima (%)
+O que olhar
 Formato
 Qualidade
 Nível
@@ -662,6 +754,7 @@ Definida
 Áudios
 PDFs
 Textos
+Som
 A4 em pé
 A4 deitado
 descreva a imagem.
@@ -692,7 +785,6 @@ saturação
 Tamanho da imagem
 A4 retrato
 A4 paisagem
-não foi possível salvar: {e}
 há {d} dias
 há {} meses
 há {} anos
@@ -716,7 +808,6 @@ Legenda
 Mídia
 Faixas
 Etiquetas
-Pasta
 {} ({} bytes)
 Modificado
 Criado
@@ -738,6 +829,16 @@ a versão baixada não funcionou; a anterior foi mantida.
 Cancelando…
 Iniciando…
 Erro inesperado.
+Qwen 3.5 2B (1,3 GB)
+não foi possível extrair o llama.cpp.
+o processo fechou
+a IA local demorou demais para começar.
+não foi possível iniciar a IA local: {last}
+a IA local não respondeu: {e}
+a IA local não devolveu texto.
+a IA local não escolheu uma opção.
+a IA local não devolveu a tradução no formato esperado.
+a tradução veio com um número diferente de frases.
 Downloads
 AUTOMAÇÃO
 Fluxos de automação
@@ -761,7 +862,9 @@ Cortar áudio
 Juntar áudios
 Normalizar volume
 Remover ruído
+Melhorar voz
 PDF → imagens
+Tabelas para Excel
 Proteger com senha
 Vídeos e músicas
 Inteligência artificial (fluxos de automação)
@@ -778,6 +881,16 @@ Salvar chave
 Testar conexão
 Testando…
 ✔ A IA respondeu.
+Modelos de IA
+Cada ferramenta baixa o modelo que falta na primeira vez que você usa. Aqui dá para baixar antes ou apagar para liberar espaço.
+Apagar {}?
+✔ Baixado • {}
+Baixando… {:.0}%
+Na fila
+Baixar
+Espaço usado: {}
+Abrir pasta
+Cancelar downloads
 conversor universal
 🔍  Buscar ferramenta…
 Ctrl+F
@@ -787,9 +900,12 @@ Gravar a tela  ●
 Ditado ao vivo  ●
 Nenhuma ferramenta encontrada.
 ⚙  Configurações
+Baixando modelos de IA… {:.0}%
 🕘  Histórico
 Configurações
 Personalize o Conver.
+({here})  {native}
+{native}  ({here})
 Os 20 idiomas mais falados do mundo. Nomes de arquivos e mensagens do FFmpeg e do yt-dlp não são traduzidos.
 Aparência
 Clara
@@ -837,7 +953,6 @@ Atualizado: {before} → {after}.
 Erro ao atualizar.
 Baixando o Conver {}…
 Instalando… o Conver vai fechar e abrir de novo sozinho.
-Baixar
 Atualizar agora
 Nova versão do Conver disponível: {}
 O que mudou
@@ -852,11 +967,11 @@ adicione pelo menos 2 vídeos.
 {label}×{d}
 áudio removido • {}
 {n} imagens na pasta {}
-o arquivo não tem áudio.
 volume ajustado para {lufs} LUFS
 ruído removido (IA)
 ruído removido (forte)
 chiado removido
+voz melhorada • {lufs} LUFS
 o início passa do fim do vídeo.
 {} → {} • {} fps • {}
 9:16 (Reels/TikTok)
@@ -882,7 +997,6 @@ Escolha o início e o fim e salve só aquele pedaço do vídeo.
 Cortar
 Una vários vídeos num só, na ordem da lista.
 Acelere ou deixe em câmera lenta (0,25× a 4×). O áudio acompanha sem ficar com voz fina ou grossa.
-Aplicar
 Remover áudio / extrair frames
 Deixe o vídeo mudo ou salve imagens do vídeo a cada intervalo de tempo.
 Converter formato de áudio
@@ -901,6 +1015,8 @@ Grave uma legenda (.srt, .ass ou .vtt) dentro do vídeo, para aparecer em qualqu
 Coloque uma música no vídeo, misturada com o som original ou no lugar dele.
 Una várias músicas ou gravações num arquivo só, na ordem da lista.
 Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.
+Deixe a voz com som de podcast num clique: menos ruído, mais clara e presente, sem picos e no volume certo.
+Melhorar
 Início inválido. Use o formato 00:01:30 (ou só segundos).
 Fim inválido. Use o formato 00:02:45 (ou só segundos).
 O fim precisa ser depois do início.
@@ -917,9 +1033,9 @@ H.265 (menor, mais lento)
 96 kbps
 O resultado é salvo em MP4 com o sufixo _comprimido.
 Início:
+duração do arquivo selecionado: {}
 Fim:
 até o fim
-duração do arquivo selecionado: {}
 Rápido (sem perda)
 Preciso (recodifica)
 Corta exatamente nos tempos informados; demora mais porque regrava o arquivo.
@@ -947,6 +1063,12 @@ Força:
 Leve (só chiado)
 Média (IA)
 A opção com IA (RNNoise) foi treinada para voz: limpa bem falas, podcasts e aulas, mas pode abafar música.
+Volume final:
+Podcast (−16 LUFS)
+Reels e YouTube (−14 LUFS)
+Ruído:
+Tirar o ruído de fundo também (IA)
+Corta graves que embolam a voz, realça a fala, suaviza os "s", segura os picos e acerta o volume. Em vídeos, a imagem é copiada sem perda.
 MP3 (compatível)
 OPUS (menor)
 Taxa de bits:
@@ -954,8 +1076,8 @@ Taxa de bits:
 Canais:
 Converter para mono (metade do tamanho; bom para voz)
 64–96 kbps é ótimo para voz e podcasts; 128–160 kbps para música.
-Duração:
 vídeo selecionado: {}
+Duração:
 Largura:
 320 px
 480 px
@@ -980,7 +1102,6 @@ Médio
 Música:
 Todos os arquivos
 Escolha a música
-Som original:
 Misturar com a música
 Substituir pela música
 Volume da música:
@@ -992,6 +1113,41 @@ Use ↑ e ↓ na lista para mudar a ordem. Também aceita vídeos (usa o som del
 {} vídeos
 nenhuma legenda com o mesmo nome do vídeo; escolha o arquivo de legenda.
 escolha a música.
+Transcrição (Whisper)
+Separar voz e instrumental (UVR)
+Apagar objeto (LaMa)
+Gerar imagem (DreamShaper 8)
+Classificar imagens (SigLIP 2)
+Classificar sons (CLAP)
+IA de linguagem (Qwen 3.5 2B)
+Voz natural (Piper)
+Legendas, Transcrever, Ditado ao vivo e Traduzir e dublar
+Gerar imagem (precisa de uma placa de vídeo razoável)
+Node "IA local: classificar" dos fluxos, com imagens e vídeos
+Node "IA local: classificar" dos fluxos, com áudios
+Traduzir legendas e classificar textos nos fluxos
+Texto para voz e dublagem, na voz do idioma do Conver
+não foi possível apagar {} (está em uso?).
+Converter e comprimir
+Vídeos para redes sociais
+Podcast e áudio
+Documentos e PDF
+Automação com fluxos
+Criar com IA
+Imagens, vídeos e áudios em outro formato ou menores
+Legendas, cortes, vídeo vertical, tradução
+Melhorar voz, transcrever, separar voz e música
+Juntar e dividir PDFs, OCR, tabelas para Excel
+Separar fotos, sons e textos por assunto sozinho
+Gerar imagem, apagar objeto, narrar um texto
+Já vêm com o Conver, sem baixar nada: remover fundo, ampliar com IA, remover ruído, desfocar rostos e OCR.
+{} {name}…
+Baixando
+✔ {name}
+✖ {name}: {}
+{ok} pacote(s) baixado(s).
+✔ {} pronto neste computador.
+{} ({}) é baixado uma vez, na primeira vez que você usar, ou agora em Configurações → Modelos de IA.
 Conver — pronto
 Conver — erro
 o idioma {lang} não está instalado para OCR no Windows.
@@ -1004,7 +1160,8 @@ Converter vídeo
 Velocidade
 Legendas no vídeo
 Converter áudio
-Classificar imagens
+Traduzir legendas e dublar
+Classificar com IA local
 Download
 Microfones e janelas
 Listar predefinições
@@ -1013,6 +1170,7 @@ Ver fluxo
 Tipos de node
 Salvar fluxo
 Apagar fluxo
+Histórico do fluxo
 Executar fluxo
 Cancelado pelo usuário.
 [{}/{n}] {name}
@@ -1120,8 +1278,10 @@ não foi possível abrir o PDF ({})
 {} imagem(ns) na pasta {}
 {done} página(s) com texto reconhecido • {words_total} palavras
  • {skipped} já tinham texto
+nenhuma tabela encontrada no PDF.
+nenhum texto encontrado no PDF.
+{rows} linha(s) em {} página(s)
 texto grande demais para um QR Code.
-não foi possível iniciar o ffmpeg: {e}
 a gravação parou.
 nenhum som chegou deste microfone. Escolha outra entrada na lista (ex.: "Microfone (…)").
 o microfone parou de responder.
@@ -1166,6 +1326,30 @@ falha no Whisper: {}
 o Whisper não gerou nenhum arquivo.
 {words} palavras • {}
 o Whisper não gerou o resultado.
+WAV inválido
+WAV sem dados
+Piper não encontrado (pasta bin\piper).
+o Piper não gerou o áudio.
+nenhuma frase para traduzir.
+idioma desconhecido: {code}
+não foi possível juntar a dublagem.
+ • {faster} fala(s) acelerada(s) para caber
+{} frase(s) dublada(s){extra}
+nada para fazer: escolha traduzir e/ou dublar.
+{} frase(s) traduzida(s)
+Sem agendamento.
+horário inválido; use HH:MM, como 08:30.
+não foi possível usar o Agendador de Tarefas: {e}
+o Agendador de Tarefas recusou: {msg}
+Agendado para {h:02}:{m:02}.
+A pasta vigiada não existe.
+Vigiando a pasta.
+Rodando com {n} arquivo(s) novo(s)…
+{when}: {n} arquivo(s), {outs} resultado(s){}
+, {fails} erro(s)
+{when}: erro — {e}
+Conver — fluxo concluído
+Conver — fluxo com erro
 Português (Brasil) — Faber, masculina
 Português (Brasil) — Cadu, masculina
 Português (Brasil) — Jeff, masculina
@@ -1177,7 +1361,6 @@ Francês — Siwis, feminina
 Alemão — Thorsten, masculina
 Italiano — Paola, feminina
 não foi possível iniciar o Piper: {e}
-o Piper não gerou o áudio.
 não foi possível converter para MP3.
 esta cópia do Conver não foi instalada pelo instalador nem é a portátil; baixe pelo site.
 a versão nova não tem o arquivo para esta cópia do Conver; baixe pelo site.
@@ -1192,7 +1375,6 @@ Não foi possível terminar a atualização: {e}
 o modelo de ampliação não foi encontrado (pasta modelos).
 a imagem ficaria com mais de {MAX_SIDE} pixels de lado; diminua-a antes ou use 2×.
 MP3 (só áudio)
-falha no ffmpeg: {}
 {mb} MB é pequeno demais para {:.0}s de vídeo (mínimo ≈ {:.1} MB).
 Comprimir imagens
 Converter imagens
@@ -1207,6 +1389,22 @@ Processando {name}…
 {name}: {info}
 {name}: {e}
 Parado. {count} arquivo(s) processado(s).
+escreva o texto da marca d'água.
+escolha a imagem do logo.
+não foi possível ler {}: {e}
+marca d'água no vídeo
+marca d'água
+{label} • {}
+Boas-vindas ao Conver
+Para que você vai usar o Conver? Marque quantas quiser: com isso o Conver sugere os modelos de IA que valem a pena baixar. Nada muda nas ferramentas, todas continuam no menu.
+Continuar
+Sem nada marcado, o Conver mostra todos os modelos.
+Algumas ferramentas usam modelos que não vêm no download do Conver. Baixe agora o que vai usar, ou deixe para a primeira vez que abrir a ferramenta: ela avisa o tamanho antes.
+Voltar
+Começar
+Baixar {} e começar
+Começar sem baixar
+O download continua em segundo plano enquanto você usa o Conver.
 Selecione os arquivos
 Nenhum arquivo
 1 arquivo
@@ -1227,6 +1425,5 @@ Um pouco baixo: fale mais perto do microfone.
 ✔ Nível bom.
 Mesma pasta do arquivo original
 Escolha a pasta de saída
-Abrir pasta
 Solte para adicionar
 Imagens e vídeos vão para a ferramenta certa

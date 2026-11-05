@@ -438,6 +438,45 @@ pub fn denoise(
     Ok((label.to_string(), dst))
 }
 
+/// Voz pronta para podcast: limpa o ruído (opcional, com a IA do RNNoise), tira graves que embolam, dá presença,
+/// suaviza os "s", comprime e deixa no volume padrão (`lufs`). Em vídeos, a imagem é copiada sem perda.
+pub fn enhance_voice(
+    src: &Path,
+    out_dir: Option<&Path>,
+    clean: bool,
+    lufs: i32,
+    on_progress: &dyn Fn(f32),
+    cancelled: &dyn Fn() -> bool,
+) -> Result<(String, PathBuf), String> {
+    let info = require_audio(src)?;
+    let (ext, mut out) = if info.has_video {
+        (keep_or_mp4(src), s(&["-map", "0:v:0", "-map", "0:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k"]))
+    } else {
+        reencode_for(src, false)
+    };
+    let mut chain = vec!["highpass=f=80".to_string()];
+    if clean {
+        match crate::ai::find_model(RNNOISE_MODEL) {
+            Some(m) => chain.push(format!("arnndn=m='{}'", m.display().to_string().replace('\\', "/").replace(':', "\\:").replace('\'', "\\'"))),
+            None => chain.push("afftdn=nr=12:nf=-35:tn=1".into()),
+        }
+    }
+    // i18n: fora
+    chain.extend([
+        "equalizer=f=250:t=q:w=1.2:g=-3".to_string(),   // menos "embolado"
+        "equalizer=f=3200:t=q:w=1.4:g=3".to_string(),   // presença: a voz vem para a frente
+        "deesser=i=0.4".to_string(),                     // "s" menos chiados
+        "acompressor=threshold=-21dB:ratio=3:attack=8:release=120:makeup=3".to_string(),
+        format!("loudnorm=I={lufs}:TP=-1.5:LRA=9"),
+        "aresample=48000".to_string(),
+    ]);
+    // i18n: dentro
+    out.extend(s(&["-af", &chain.join(",")]));
+    let dst = tools::out_path(src, out_dir, "_voz", &ext);
+    encode_to(s(&["-i", &path_s(src)]), out, &dst, info.duration, on_progress, cancelled)?;
+    Ok((format!("voz melhorada • {lufs} LUFS"), dst))
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ACodec {
     Mp3,

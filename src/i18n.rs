@@ -209,6 +209,21 @@ fn translate(t: &Table, s: &str, depth: u8) -> String {
     if depth > 3 {
         return s.to_string();
     }
+    // moldes que começam com o próprio prefixo ("✔ Baixado • {}") valem antes de separar o prefixo
+    let apply = |tpl: &Template, values: Vec<(String, String)>| {
+        let mut out = tpl.translated.clone();
+        for (name, value) in values {
+            out = out.replacen(&name, &translate(t, &value, depth + 1), 1);
+        }
+        out
+    };
+    for tpl in &t.templates {
+        if matches!(tpl.parts.first(), Some(Part::Text(x)) if PREFIXES.iter().any(|p| x.starts_with(p))) {
+            if let Some(values) = tpl.capture(s) {
+                return apply(tpl, values);
+            }
+        }
+    }
     for p in PREFIXES {
         if let Some(rest) = s.strip_prefix(p) {
             return format!("{p}{}", translate(t, rest, depth + 1));
@@ -216,11 +231,7 @@ fn translate(t: &Table, s: &str, depth: u8) -> String {
     }
     for tpl in &t.templates {
         if let Some(values) = tpl.capture(s) {
-            let mut out = tpl.translated.clone();
-            for (name, value) in values {
-                out = out.replacen(&name, &translate(t, &value, depth + 1), 1);
-            }
-            return out;
+            return apply(tpl, values);
         }
     }
     for sep in SEPARATORS {
@@ -276,6 +287,12 @@ fn visual_rtl(s: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+/// Nome de um idioma na própria escrita, pronto para a tela (árabe, urdu e persa com as letras juntas e na ordem
+/// de exibição, qualquer que seja o idioma da interface).
+pub fn native_name(l: &Lang) -> String {
+    if l.rtl { visual_rtl(l.name) } else { l.name.to_string() }
 }
 
 /// Traduz um texto da interface para o idioma escolhido.

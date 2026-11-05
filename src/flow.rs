@@ -27,6 +27,9 @@ pub struct Flow {
     pub nodes: Vec<Node>,
     #[serde(default)]
     pub links: Vec<Link>,
+    /// Rodar sozinho: pasta vigiada e/ou horário.
+    #[serde(default, skip_serializing_if = "crate::triggers::Trigger::is_empty")]
+    pub trigger: crate::triggers::Trigger,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -220,6 +223,7 @@ const T_AI_PROMPT: &str = "IA: instrução";
 const T_AI_GATE: &str = "IA: avaliar";
 const T_FILTER: &str = "Filtrar arquivos";
 const T_CLASSIFY: &str = "IA local: classificar";
+const T_RENAME: &str = "Renomear com padrão";
 
 /// Saída do classificador para o que ficou abaixo da confiança mínima (ou não é imagem nem vídeo).
 pub const UNCERTAIN: &str = "uncertain";
@@ -270,11 +274,19 @@ pub fn kinds() -> Vec<KindInfo> {
             s(json!({ "types": { "type": "array", "items": { "type": "string", "enum": ["image", "video", "audio", "pdf", "text"] }, "description": "Accepted kinds (empty = any)." },
                 "extensions": { "type": "string", "description": "Accepted extensions, e.g. \"png, jpg\" (empty = any)." },
                 "min_mb": { "type": "number", "description": "Minimum size in MB." }, "max_mb": { "type": "number", "description": "Maximum size in MB." } }), &[])),
+        special("rename", T_RENAME, "FERRAMENTAS",
+            "Copy each file that arrives with a new name from a pattern (the originals are not touched). Tokens: {name} original name, {n} counter, {option} option chosen by the local classifier, {date} today (YYYY-MM-DD), {time} (HH-MM), {file_date} date the file was modified, {folder} name of its folder. Portuguese aliases also work: {nome}, {opcao}, {data}, {hora}, {data_arquivo}, {pasta}. The extension is kept.",
+            &["out"], true,
+            s(json!({ "pattern": { "type": "string", "default": "{name}_{n}", "description": "Name pattern without extension, e.g. \"{option}_{date}_{n}\"." },
+                "start": { "type": "integer", "default": 1, "description": "First number of {n}." },
+                "digits": { "type": "integer", "default": 3, "description": "Digits of {n} (zeros on the left)." },
+                "count_per_option": { "type": "boolean", "default": true, "description": "{n} restarts for each option of the classifier (cat_001, cat_002, dog_001…)." } }), &[])),
         special("classify", T_CLASSIFY, "IA",
-            "Local AI, offline (SigLIP 2, 412 MB downloaded on first use): compares each image (or a frame of each video) with the options and sends it to the output named after the most likely option. Items below min_confidence, and texts or other files, go to \"uncertain\". The outputs are one per option (link with \"port\": \"<option>\") plus \"uncertain\". Options can be written in Portuguese, English and 100+ other languages. Short, concrete options work best (\"cat\", \"receipt\", \"beach\"); an option like \"person or animal\" scores lower than separate options linked to the same next node.",
+            "Local AI, offline: compares each item with the options and sends it to the output named after the most likely option. Images and video frames use SigLIP 2 (380 MB), sounds use CLAP (246 MB) and texts (text files, PDFs, texts from previous nodes) use a local language model (Qwen 3.5 2B, 1.3 GB); each is downloaded on first use. Items below min_confidence, or that the chosen look_at does not cover, go to \"uncertain\". The outputs are one per option (link with \"port\": \"<option>\") plus \"uncertain\". Options can be written in Portuguese, English and 100+ other languages. Short, concrete options work best (\"cat\", \"receipt\", \"beach\"); an option like \"person or animal\" scores lower than separate options linked to the same next node.",
             &[UNCERTAIN], true,
             s(json!({ "options": { "type": "string", "description": "The options, one per line or separated by commas, e.g. \"documento, selfie, paisagem, comida\"." },
-                "min_confidence": { "type": "number", "default": 50, "description": "Minimum confidence in % (0-100) for the best option; below it the item goes to \"uncertain\"." } }), &["options"])),
+                "min_confidence": { "type": "number", "default": 50, "description": "Minimum confidence in % (0-100) for the best option; below it the item goes to \"uncertain\"." },
+                "look_at": { "type": "string", "enum": ["auto", "image", "sound", "text"], "default": "auto", "description": "What to judge: auto (by file type: image, audio → sound, video → a frame, text/PDF → text), image, sound (audio of audios and videos) or text." } }), &["options"])),
     ];
     for t in ops::TOOLS.iter().filter(|t| !HIDDEN_TOOLS.contains(&t.name) && !t.name.starts_with("flow_")) {
         let schema = (t.schema)();
@@ -354,6 +366,10 @@ pub fn remove(name: &str) -> Result<(), String> {
     if !p.is_file() {
         return Err(format!("fluxo não encontrado: {name}"));
     }
+    // a tarefa agendada (se houver) vai junto
+    if find(name).is_some_and(|f| !f.trigger.time.trim().is_empty()) {
+        crate::triggers::unschedule(name);
+    }
     std::fs::remove_file(p).map_err(|e| e.to_string())
 }
 
@@ -380,6 +396,7 @@ pub fn examples() -> Vec<Flow> {
                 n(5, "output", "Para revisar", json!({}), 750.0, 190.0),
             ],
             links: vec![l(1, "out", 2), l(2, "out", 3), l(3, "yes", 4), l(3, "no", 5)],
+            ..Default::default()
         },
         Flow {
             name: "Exemplo - transcrever e resumir com IA".into(),
@@ -391,6 +408,7 @@ pub fn examples() -> Vec<Flow> {
                 n(4, "output", "", json!({}), 750.0, 100.0),
             ],
             links: vec![l(1, "out", 2), l(2, "out", 3), l(3, "out", 4)],
+            ..Default::default()
         },
     ]
 }
@@ -408,22 +426,26 @@ pub fn ensure_examples() {
 // ================================================================== execução
 
 /// O que passa de um node para outro: um arquivo ou um texto (ou os dois: um texto ligado a um arquivo).
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct Item {
     pub path: Option<PathBuf>,
     pub text: Option<String>,
+    /// A opção escolhida pelo classificador (segue com o arquivo pelos nodes seguintes; usada pelo renomear).
+    pub tag: Option<String>,
+    /// O arquivo de entrada de onde este item veio (para "repetir só o que falhou").
+    pub origin: Option<PathBuf>,
 }
 
 impl Item {
     fn file(p: PathBuf) -> Self {
-        Item { path: Some(p), text: None }
+        Item { path: Some(p), ..Default::default() }
     }
 
     fn text(t: String) -> Self {
-        Item { path: None, text: Some(t) }
+        Item { text: Some(t), ..Default::default() }
     }
 
-    fn label(&self) -> String {
+    pub fn label(&self) -> String {
         match (&self.path, &self.text) {
             (Some(p), _) => tools::file_name(p),
             (None, Some(t)) => {
@@ -496,16 +518,57 @@ fn template(s: &str, item: Option<&Item>, all_text: &str) -> String {
     s.replace("{text}", &text).replace("{texto}", &text).replace("{file}", &file).replace("{arquivo}", &file)
 }
 
-/// Pasta da execução: `fluxos/execucoes/<fluxo>_<data>`. Guarda só as 15 mais recentes.
+/// Registro de cada execução, dentro da pasta dela.
+pub const RUN_RECORD: &str = "execucao.json";
+
+/// Pastas de execução de um fluxo, da mais nova para a mais antiga.
+fn run_dirs(name: &str) -> Vec<PathBuf> {
+    let prefix = format!("{}_", slug(name));
+    let root = dir().join("execucoes");
+    let mut v: Vec<PathBuf> = std::fs::read_dir(&root)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.is_dir() && p.file_name().is_some_and(|n| n.to_string_lossy().starts_with(&prefix)))
+        .collect();
+    v.sort_by_key(|p| std::cmp::Reverse(std::fs::metadata(p).and_then(|m| m.modified()).ok()));
+    v
+}
+
+/// As últimas execuções de um fluxo (o registro de cada uma, com "work_dir").
+pub fn history(name: &str) -> Vec<Value> {
+    run_dirs(name)
+        .into_iter()
+        .filter_map(|d| {
+            let text = std::fs::read_to_string(d.join(RUN_RECORD)).ok()?;
+            let mut v: Value = serde_json::from_str(&text).ok()?;
+            v["work_dir"] = json!(d.display().to_string());
+            Some(v)
+        })
+        .collect()
+}
+
+/// As entradas que falharam na última execução (e que ainda existem).
+pub fn last_failures(name: &str) -> Vec<PathBuf> {
+    history(name)
+        .first()
+        .and_then(|r| r["failed_inputs"].as_array().cloned())
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|v| v.as_str().map(PathBuf::from))
+        .filter(|p| p.exists())
+        .collect()
+}
+
+/// Pasta da execução: `fluxos/execucoes/<fluxo>_<data>`. Guarda as 15 mais recentes de cada fluxo.
 fn new_work_dir(flow: &Flow) -> Result<PathBuf, String> {
     let root = dir().join("execucoes");
     let stamp: String = tools::now_string().chars().map(|c| if c.is_ascii_digit() { c } else { '-' }).collect();
     let d = tools::unique_path(root.join(format!("{}_{stamp}", slug(&flow.name))));
     std::fs::create_dir_all(&d).map_err(|e| format!("não foi possível criar a pasta de trabalho: {e}"))?;
-    let mut old: Vec<PathBuf> = std::fs::read_dir(&root).into_iter().flatten().flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect();
-    old.sort_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok());
-    while old.len() > 15 {
-        let _ = std::fs::remove_dir_all(old.remove(0));
+    for old in run_dirs(&flow.name).into_iter().skip(15) {
+        let _ = std::fs::remove_dir_all(old);
     }
     Ok(d)
 }
@@ -562,6 +625,9 @@ pub fn run(flow: &Flow, inputs: &Inputs, out_dir: Option<&Path>, state: &Mutex<R
         return Err("o fluxo está vazio.".into());
     }
     let work = new_work_dir(flow)?;
+    let started = (tools::now_string(), std::time::Instant::now());
+    let mut failed_inputs: Vec<PathBuf> = Vec::new();
+    let mut used_inputs: Vec<PathBuf> = Vec::new();
     {
         let mut s = state.lock().unwrap();
         s.status = flow.nodes.iter().map(|n| (n.id, Status::Waiting)).collect();
@@ -606,9 +672,12 @@ pub fn run(flow: &Flow, inputs: &Inputs, out_dir: Option<&Path>, state: &Mutex<R
         };
         let sub = ops::Ctx { progress: &node_progress, cancelled: ctx.cancelled, log: ctx.log };
         let node_dir = work.join(format!("{:02}_{}", id, slug(&title)));
-        let result = run_node(flow, node, &title, &incoming, inputs, out_dir, &node_dir, &sub, ai);
+        let result = run_node(flow, node, &title, &incoming, inputs, out_dir, &node_dir, &sub, ai, &mut failed_inputs);
         match result {
             Ok((ports, note)) => {
+                if node.kind == "input" {
+                    used_inputs.extend(ports.values().flatten().filter_map(|i| i.origin.clone()));
+                }
                 let n: usize = ports.values().map(Vec::len).sum();
                 let note = if note.is_empty() { format!("{n} item(ns)") } else { note };
                 (ctx.log)(&format!("✔ {title}: {note}"));
@@ -624,6 +693,8 @@ pub fn run(flow: &Flow, inputs: &Inputs, out_dir: Option<&Path>, state: &Mutex<R
             }
             Err(e) => {
                 (ctx.log)(&format!("✖ {title}: {e}"));
+                // o node inteiro falhou: tudo o que chegou nele conta como falha
+                failed_inputs.extend(incoming.iter().filter_map(|i| i.origin.clone()));
                 set(*id, Status::Failed(e.clone()));
                 report.push(json!({ "id": id, "title": title, "status": "failed", "error": e }));
             }
@@ -642,7 +713,17 @@ pub fn run(flow: &Flow, inputs: &Inputs, out_dir: Option<&Path>, state: &Mutex<R
         }
     }
     let failed = report.iter().filter(|r| r["status"] == "failed").count();
-    Ok(json!({ "flow": flow.name, "work_dir": work.display().to_string(), "failed_nodes": failed, "nodes": report, "results": finals }))
+    let mut seen = std::collections::HashSet::new();
+    failed_inputs.retain(|p| seen.insert(p.clone()));
+    let paths = |v: &[PathBuf]| v.iter().map(|p| p.display().to_string()).collect::<Vec<_>>();
+    let result = json!({ "flow": flow.name, "work_dir": work.display().to_string(), "failed_nodes": failed, "failed_inputs": paths(&failed_inputs), "nodes": report, "results": finals });
+    // registro da execução, para o histórico (o mesmo JSON, com data, duração e entradas)
+    let mut record = result.clone();
+    record["started"] = json!(started.0);
+    record["seconds"] = json!((started.1.elapsed().as_secs_f64() * 10.0).round() / 10.0);
+    record["inputs"] = json!(paths(&used_inputs));
+    let _ = std::fs::write(work.join(RUN_RECORD), serde_json::to_string_pretty(&record).unwrap_or_default());
+    Ok(result)
 }
 
 fn item_json(i: &Item) -> Value {
@@ -652,6 +733,9 @@ fn item_json(i: &Item) -> Value {
     }
     if let Some(t) = &i.text {
         v["text"] = json!(t);
+    }
+    if let Some(t) = &i.tag {
+        v["tag"] = json!(t);
     }
     v
 }
@@ -673,6 +757,7 @@ fn run_node(
     node_dir: &Path,
     ctx: &ops::Ctx,
     ai: &Result<ai_api::Config, String>,
+    failed: &mut Vec<PathBuf>,
 ) -> Result<(Ports, String), String> {
     let args = &node.args;
     let all_text: String = incoming.iter().filter_map(|i| i.text.clone()).collect::<Vec<_>>().join("\n\n");
@@ -687,7 +772,7 @@ fn run_node(
             if files.is_empty() {
                 return Err("nenhum arquivo de entrada (adicione arquivos ao node ou passe \"files\").".into());
             }
-            let mut items: Vec<Item> = files.into_iter().map(Item::file).collect();
+            let mut items: Vec<Item> = files.into_iter().map(|f| Item { path: Some(f.clone()), origin: Some(f), ..Default::default() }).collect();
             items.extend(inputs.texts.iter().cloned().map(Item::text));
             let n = items.len();
             Ok((one(items), format!("{n} arquivo(s)")))
@@ -722,38 +807,102 @@ fn run_node(
             let note = format!("{} sim, {} não", yes.len(), no.len());
             Ok((HashMap::from([("yes".to_string(), yes), ("no".to_string(), no)]), note))
         }
+        "rename" => {
+            let pattern = args.get("pattern").and_then(Value::as_str).map(str::trim).filter(|p| !p.is_empty()).unwrap_or("{name}_{n}").to_string();
+            let start = args.get("start").and_then(Value::as_i64).unwrap_or(1);
+            let digits = args.get("digits").and_then(Value::as_u64).unwrap_or(3).clamp(1, 8) as usize;
+            let per_option = args.get("count_per_option").and_then(Value::as_bool).unwrap_or(true);
+            std::fs::create_dir_all(node_dir).map_err(|e| e.to_string())?;
+            let (y, mo, d, h, mi, _) = tools::local_parts(std::time::SystemTime::now());
+            let (today, now) = (format!("{y:04}-{mo:02}-{d:02}"), format!("{h:02}-{mi:02}"));
+            let mut counters: HashMap<String, i64> = HashMap::new();
+            let mut out = Vec::new();
+            for it in incoming {
+                let Some(p) = &it.path else {
+                    out.push(it.clone());
+                    continue;
+                };
+                let key = if per_option { it.tag.clone().unwrap_or_default() } else { String::new() };
+                let n = counters.entry(key).or_insert(start);
+                let num = format!("{:0digits$}", *n);
+                *n += 1;
+                let file_date = std::fs::metadata(p)
+                    .and_then(|m| m.modified())
+                    .map(|t| {
+                        let (y, m, d, ..) = tools::local_parts(t);
+                        format!("{y:04}-{m:02}-{d:02}")
+                    })
+                    .unwrap_or_else(|_| today.clone());
+                let stem = p.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+                let folder = p.parent().and_then(|f| f.file_name()).map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+                let option = it.tag.clone().unwrap_or_else(|| "sem-opcao".into());
+                let mut name = pattern.clone();
+                let tokens: [(&[&str], &String); 7] = [
+                    (&["{name}", "{nome}"], &stem),
+                    (&["{n}"], &num),
+                    (&["{option}", "{opcao}", "{opção}"], &option),
+                    (&["{date}", "{data}"], &today),
+                    (&["{time}", "{hora}"], &now),
+                    (&["{file_date}", "{data_arquivo}"], &file_date),
+                    (&["{folder}", "{pasta}"], &folder),
+                ];
+                for (keys, value) in tokens {
+                    for k in keys {
+                        name = name.replace(k, value);
+                    }
+                }
+                // sem os caracteres que o Windows não aceita em nomes de arquivo
+                let name: String = name.chars().map(|c| if "<>:\"/\\|?*".contains(c) || c.is_control() { '_' } else { c }).collect();
+                let name = name.trim().trim_end_matches('.').to_string();
+                let name = if name.is_empty() { stem.clone() } else { name };
+                let ext = p.extension().map(|e| format!(".{}", e.to_string_lossy())).unwrap_or_default();
+                let dst = tools::unique_path(node_dir.join(format!("{name}{ext}")));
+                std::fs::copy(p, &dst).map_err(|e| format!("{}: {e}", tools::file_name(p)))?;
+                out.push(Item { path: Some(dst), text: it.text.clone(), tag: it.tag.clone(), origin: it.origin.clone() });
+            }
+            let n = out.len();
+            Ok((one(out), format!("{n} arquivo(s)")))
+        }
         "classify" => {
             let options = crate::classify::parse_options(args.get("options").and_then(Value::as_str).unwrap_or_default());
             if options.len() < 2 {
                 return Err("escreva pelo menos duas opções.".into());
             }
             let min = (args.get("min_confidence").and_then(Value::as_f64).unwrap_or(50.0) / 100.0).clamp(0.0, 1.0) as f32;
-            if !crate::classify::installed() {
-                (ctx.log)("Baixando o modelo SigLIP 2…");
-                crate::classify::ensure(&|p| (ctx.progress)(p * 0.5), ctx.cancelled)?;
-            }
+            use crate::classify::Look;
+            let look = match args.get("look_at").and_then(Value::as_str).unwrap_or("auto") {
+                "image" => Look::Image,
+                "sound" => Look::Sound,
+                "text" => Look::Text,
+                _ => Look::Auto,
+            };
+            let mut classifier = crate::classify::Classifier::new(options.clone(), look);
             let mut ports: Ports = options.iter().chain(std::iter::once(&UNCERTAIN.to_string())).map(|o| (o.clone(), Vec::new())).collect();
+            let n = incoming.len().max(1) as f32;
             for (i, it) in incoming.iter().enumerate() {
                 if (ctx.cancelled)() {
                     return Err("Cancelado.".into());
                 }
-                let usable = it.path.as_ref().filter(|p| kind_matches(p, &["image".into(), "video".into()]));
-                let port = match usable {
-                    Some(p) => match crate::classify::classify_file(p, &options) {
-                        Ok(c) => {
-                            let best = crate::classify::decide(&c, min).map(|b| b.label.clone());
-                            (ctx.log)(&format!("{} → {} ({:.0}%)", tools::file_name(p), best.clone().unwrap_or_else(|| "?".into()), c[0].prob * 100.0));
-                            best.unwrap_or_else(|| UNCERTAIN.into())
-                        }
-                        Err(e) => {
-                            (ctx.log)(&format!("✖ {}: {e}", tools::file_name(p)));
-                            UNCERTAIN.into()
-                        }
-                    },
+                let progress = |p: f32| (ctx.progress)((i as f32 + p * 0.5) / n);
+                let port = match classifier.classify(it.path.as_deref(), it.text.as_deref(), &progress, ctx.cancelled) {
+                    Some(Ok(c)) => {
+                        let best = crate::classify::decide(&c, min).map(|b| b.label.clone());
+                        (ctx.log)(&format!("{} → {} ({:.0}%)", it.label(), best.clone().unwrap_or_else(|| "?".into()), c[0].prob * 100.0));
+                        best.unwrap_or_else(|| UNCERTAIN.into())
+                    }
+                    Some(Err(e)) if e == "Cancelado." => return Err(e),
+                    Some(Err(e)) => {
+                        (ctx.log)(&format!("✖ {}: {e}", it.label()));
+                        UNCERTAIN.into()
+                    }
                     None => UNCERTAIN.into(),
                 };
-                ports.get_mut(&port).unwrap().push(it.clone());
-                (ctx.progress)(0.5 + 0.5 * (i + 1) as f32 / incoming.len().max(1) as f32);
+                let mut item = it.clone();
+                if port != UNCERTAIN {
+                    item.tag = Some(port.clone());
+                }
+                ports.get_mut(&port).unwrap().push(item);
+                (ctx.progress)((i + 1) as f32 / n);
             }
             let note = ports
                 .iter()
@@ -781,11 +930,11 @@ fn run_node(
                     let dst = tools::unique_path(folder.join(tools::file_name(p)));
                     let r = if mv { std::fs::rename(p, &dst).or_else(|_| std::fs::copy(p, &dst).and_then(|_| std::fs::remove_file(p))) } else { std::fs::copy(p, &dst).map(|_| ()) };
                     r.map_err(|e| format!("{}: {e}", tools::file_name(p)))?;
-                    out.push(Item::file(dst));
+                    out.push(Item { path: Some(dst), tag: it.tag.clone(), origin: it.origin.clone(), ..Default::default() });
                 } else if let (true, Some(t)) = (texts, &it.text) {
                     let dst = tools::unique_path(folder.join(format!("texto_{:02}.txt", i + 1)));
                     std::fs::write(&dst, t).map_err(|e| e.to_string())?;
-                    out.push(Item { path: Some(dst), text: Some(t.clone()) });
+                    out.push(Item { path: Some(dst), text: Some(t.clone()), tag: it.tag.clone(), origin: it.origin.clone() });
                 }
                 (ctx.progress)((i + 1) as f32 / incoming.len().max(1) as f32);
             }
@@ -830,7 +979,7 @@ fn run_node(
                 }
                 out.push(item);
                 if keep {
-                    out.extend(group.iter().filter(|i| i.path.is_some()).map(|i| Item { path: i.path.clone(), text: None }));
+                    out.extend(group.iter().filter(|i| i.path.is_some()).map(|i| Item { path: i.path.clone(), tag: i.tag.clone(), origin: i.origin.clone(), ..Default::default() }));
                 }
                 (ctx.progress)((gi + 1) as f32 / n as f32);
             }
@@ -862,12 +1011,20 @@ fn run_node(
             let note = format!("{} sim, {} não", yes.len(), no.len());
             Ok((HashMap::from([("yes".to_string(), yes), ("no".to_string(), no)]), note))
         }
-        k if k.starts_with("tool:") => run_tool(&k[5..], args, incoming, &all_text, node_dir, ctx),
+        k if k.starts_with("tool:") => run_tool(&k[5..], args, incoming, &all_text, node_dir, ctx, failed),
         other => Err(format!("tipo desconhecido: {other}")),
     }
 }
 
-fn run_tool(name: &str, args: &Map<String, Value>, incoming: &[Item], all_text: &str, node_dir: &Path, ctx: &ops::Ctx) -> Result<(Ports, String), String> {
+fn run_tool(
+    name: &str,
+    args: &Map<String, Value>,
+    incoming: &[Item],
+    all_text: &str,
+    node_dir: &Path,
+    ctx: &ops::Ctx,
+    failed: &mut Vec<PathBuf>,
+) -> Result<(Ports, String), String> {
     let tool = ops::find(name).ok_or_else(|| format!("ferramenta desconhecida: {name}"))?;
     let schema = (tool.schema)();
     let props = schema["properties"].as_object().cloned().unwrap_or_default();
@@ -921,6 +1078,33 @@ fn run_tool(name: &str, args: &Map<String, Value>, incoming: &[Item], all_text: 
                     items.push(Item::text(t.to_string()));
                 }
             }
+        }
+    }
+    // a opção do classificador segue com o que foi criado a partir de cada arquivo: pelo par entrada → saída do
+    // resultado ou, para os arquivos extras (.srt, .txt…), pelo nome que começa com o do arquivo de entrada
+    let sources: Vec<&Item> = incoming.iter().filter(|i| i.path.is_some() && (i.tag.is_some() || i.origin.is_some())).collect();
+    if !sources.is_empty() {
+        let by_output: Vec<(PathBuf, PathBuf)> =
+            results.iter().filter_map(|r| Some((PathBuf::from(r["input"].as_str()?), PathBuf::from(r["output"].as_str()?)))).collect();
+        let stem = |x: &Path| x.file_stem().map(|s| s.to_string_lossy().to_lowercase()).unwrap_or_default();
+        for it in items.iter_mut().filter(|i| i.tag.is_none() && i.origin.is_none()) {
+            let Some(p) = it.path.clone() else { continue };
+            let from = by_output.iter().find(|(_, o)| *o == p).map(|(i, _)| i.clone());
+            let src = sources.iter().find(|s| {
+                let sp = s.path.as_ref().unwrap();
+                from.as_ref() == Some(sp) || (!stem(sp).is_empty() && stem(&p).starts_with(&stem(sp)))
+            });
+            if let Some(s) = src {
+                it.tag = s.tag.clone();
+                it.origin = s.origin.clone();
+            }
+        }
+    }
+    // arquivos que deram erro: a origem de cada um vai para "repetir só o que falhou"
+    for r in results.iter().filter(|r| r["error"].is_string()) {
+        if let Some(input) = r["input"].as_str().map(PathBuf::from) {
+            let origin = incoming.iter().find(|i| i.path.as_ref() == Some(&input)).and_then(|i| i.origin.clone()).unwrap_or(input);
+            failed.push(origin);
         }
     }
     let failed = v["failed"].as_u64().unwrap_or(0);

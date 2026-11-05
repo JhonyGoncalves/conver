@@ -160,6 +160,62 @@ pub fn now_string() -> String {
     }
 }
 
+#[cfg(windows)]
+unsafe extern "system" {
+    fn GetSystemTime(st: *mut SystemTime);
+}
+
+/// Dias desde 1970-01-01 para uma data do calendário (algoritmo de H. Hinnant).
+fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + doe - 719_468
+}
+
+/// Data do calendário para dias desde 1970-01-01.
+fn civil_from_days(z: i64) -> (i64, u32, u32) {
+    let z = z + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
+    (yoe + era * 400 + if m <= 2 { 1 } else { 0 }, m, d)
+}
+
+/// Diferença entre a hora local e a UTC, em segundos (arredondada a 15 minutos).
+fn utc_offset() -> i64 {
+    #[cfg(windows)]
+    {
+        let blank = || SystemTime { year: 0, month: 0, day_of_week: 0, day: 0, hour: 0, minute: 0, second: 0, millis: 0 };
+        let (mut l, mut u) = (blank(), blank());
+        // SAFETY: as duas funções só preenchem a estrutura passada.
+        unsafe {
+            GetLocalTime(&mut l);
+            GetSystemTime(&mut u);
+        }
+        let secs = |t: &SystemTime| days_from_civil(t.year as i64, t.month as i64, t.day as i64) * 86_400 + t.hour as i64 * 3600 + t.minute as i64 * 60;
+        ((secs(&l) - secs(&u)) as f64 / 900.0).round() as i64 * 900
+    }
+    #[cfg(not(windows))]
+    {
+        0
+    }
+}
+
+/// Data e hora locais (ano, mês, dia, hora, minuto, segundo) de um instante.
+pub fn local_parts(t: std::time::SystemTime) -> (i64, u32, u32, u32, u32, u32) {
+    let unix = t.duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0) + utc_offset();
+    let (y, m, d) = civil_from_days(unix.div_euclid(86_400));
+    let s = unix.rem_euclid(86_400);
+    (y, m, d, (s / 3600) as u32, (s / 60 % 60) as u32, (s % 60) as u32)
+}
+
 /// Abre o arquivo com o programa padrão.
 pub fn open_file(p: &Path) {
     let _ = Command::new("explorer").arg(p).spawn();

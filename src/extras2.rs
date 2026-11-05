@@ -27,11 +27,21 @@ pub enum PdfTool {
     Unlock,
     Ocr,
     Organize,
+    Tables,
 }
 
 impl PdfTool {
-    pub const ALL: [PdfTool; 8] =
-        [PdfTool::Merge, PdfTool::Split, PdfTool::Compress, PdfTool::ToImages, PdfTool::Protect, PdfTool::Unlock, PdfTool::Ocr, PdfTool::Organize];
+    pub const ALL: [PdfTool; 9] = [
+        PdfTool::Merge,
+        PdfTool::Split,
+        PdfTool::Compress,
+        PdfTool::ToImages,
+        PdfTool::Protect,
+        PdfTool::Unlock,
+        PdfTool::Ocr,
+        PdfTool::Organize,
+        PdfTool::Tables,
+    ];
 }
 
 /// Organizar páginas: a ordem atual (página original, rotação extra) e as miniaturas.
@@ -66,6 +76,8 @@ pub struct PdfPage {
     ocr_lang: usize,
     skip_text: bool,
     org: Organizer,
+    tables_xlsx: bool,
+    only_tables: bool,
 }
 
 impl PdfPage {
@@ -92,6 +104,8 @@ impl PdfPage {
             ocr_lang: 0,
             skip_text: true,
             org: Organizer::default(),
+            tables_xlsx: true,
+            only_tables: true,
         }
     }
 
@@ -123,7 +137,7 @@ impl PdfPage {
         }
         ui.horizontal(|ui| {
             hint(ui, p, "Arraste as páginas para mudar a ordem. ⟲ ⟳ giram e × apaga.");
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(crate::widgets::back(egui::Align::Center), |ui| {
                 if widgets::secondary(ui, p, "Desfazer tudo", true) {
                     o.order = (1..=total as u32).map(|n| (n, 0)).collect();
                 }
@@ -235,6 +249,11 @@ impl PdfPage {
                 "Reconhecer texto",
             ),
             PdfTool::Organize => ("Organizar páginas", "Mude a ordem, gire e apague páginas de um PDF vendo as miniaturas.", "Salvar PDF"),
+            PdfTool::Tables => (
+                "Tabelas do PDF para Excel",
+                "Tire as tabelas de PDFs (inclusive escaneados) para uma planilha do Excel ou um CSV, com os números prontos para somar.",
+                "Extrair tabelas",
+            ),
         };
         widgets::header(ui, p, title, subtitle);
         widgets::file_list(ui, p, &mut self.queue, None, None, 190.0);
@@ -307,9 +326,9 @@ impl PdfPage {
                     }
                 });
                 row(ui, p, "Permitir:", |ui| {
-                    ui.checkbox(&mut self.allow_print, crate::i18n::tr("Imprimir"));
+                    crate::widgets::check(ui, &mut self.allow_print, crate::i18n::tr("Imprimir"));
                     ui.add_space(8.0);
-                    ui.checkbox(&mut self.allow_copy, crate::i18n::tr("Copiar o texto"));
+                    crate::widgets::check(ui, &mut self.allow_copy, crate::i18n::tr("Copiar o texto"));
                 });
                 row(ui, p, "Senha do dono:", |ui| {
                     ui.add(egui::TextEdit::singleline(&mut self.owner).margin(crate::widgets::FIELD_MARGIN).password(true).hint_text(crate::i18n::tr("opcional")).desired_width(200.0));
@@ -322,6 +341,16 @@ impl PdfPage {
                     ui.add(egui::TextEdit::singleline(&mut self.password).margin(crate::widgets::FIELD_MARGIN).password(true).desired_width(200.0));
                 });
                 hint(ui, p, "Use só em PDFs seus ou que você tem autorização para alterar.");
+            }
+            PdfTool::Tables => {
+                row(ui, p, "Salvar como:", |ui| {
+                    segmented(ui, p, &mut self.tables_xlsx, &[(true, "Excel (.xlsx)"), (false, "CSV")]);
+                });
+                row(ui, p, "O que tirar:", |ui| {
+                    segmented(ui, p, &mut self.only_tables, &[(true, "Só as tabelas"), (false, "A página toda, em colunas")]);
+                });
+                hint(ui, p, "Cada página é lida pelo OCR do Windows, então funciona também com PDFs escaneados. No Excel, cada página vira uma aba e os números (1.234,56 ou 1,234.56) viram números de verdade.");
+                hint(ui, p, "Tabelas com células mescladas ou texto quebrado em várias linhas podem precisar de um ajuste na planilha.");
             }
             PdfTool::Ocr => {
                 if self.ocr_langs.is_none() {
@@ -418,6 +447,13 @@ impl PdfPage {
                         let (src, order) = (self.org.file.clone().unwrap_or_default(), self.org.order.clone());
                         self.job.start(ui.ctx(), move |ctl| {
                             run_single(ctl, title, &tools::file_name(&src), || pdf::organize(&src, out.as_deref(), &order));
+                        });
+                    }
+                    PdfTool::Tables => {
+                        let fmt = if self.tables_xlsx { crate::pdf_tables::Out::Xlsx } else { crate::pdf_tables::Out::Csv };
+                        let only = self.only_tables;
+                        self.job.start(ui.ctx(), move |ctl| {
+                            run_batch(ctl, title, &files, |src, progress| crate::pdf_tables::export(src, out.as_deref(), fmt, only, "", progress, &|| ctl.cancelled()));
                         });
                     }
                     PdfTool::Ocr => {
@@ -517,7 +553,7 @@ impl WatchPage {
                         segmented(ui, p, &mut o.aud_fmt, &opts);
                     }),
                 }
-                ui.checkbox(&mut self.existing, crate::i18n::tr("Processar também os arquivos que já estão na pasta"));
+                crate::widgets::check(ui, &mut self.existing, crate::i18n::tr("Processar também os arquivos que já estão na pasta"));
             });
             hint(
                 ui,

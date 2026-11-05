@@ -130,7 +130,7 @@ impl EraserPage {
                     self.strokes.clear();
                 }
                 ui.add_space(8.0);
-                ui.checkbox(&mut self.show_original, crate::i18n::tr("Ver o original"));
+                crate::widgets::check(ui, &mut self.show_original, crate::i18n::tr("Ver o original"));
             });
             let avail = vec2(ui.available_width(), 440.0);
             let (rect, resp) = ui.allocate_exact_size(avail, Sense::click_and_drag());
@@ -287,7 +287,7 @@ impl TtsPage {
         card(ui, p, |ui| {
             ui.horizontal(|ui| {
                 ui.label(RichText::new(crate::i18n::tr("Texto")).family(bold()).color(p.text));
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(crate::widgets::back(egui::Align::Center), |ui| {
                     if widgets::secondary(ui, p, "Limpar", !self.text.is_empty()) {
                         self.text.clear();
                     }
@@ -431,7 +431,7 @@ impl ImageGenPage {
                 // sem IA configurada, a opção aparece desmarcada (e desativada)
                 let mut off = false;
                 let value = if ai_ok { &mut self.translate } else { &mut off };
-                ui.add_enabled(ai_ok, egui::Checkbox::new(value, crate::i18n::tr("Traduzir o pedido para o inglês com a IA configurada")));
+                crate::widgets::check_enabled(ui, ai_ok, value, crate::i18n::tr("Traduzir o pedido para o inglês com a IA configurada"));
             });
             if !ai_ok {
                 hint(ui, p, "O modelo entende melhor pedidos em inglês. Com uma IA configurada em Configurações, o Conver traduz sozinho.");
@@ -600,7 +600,7 @@ impl DictationPage {
                 if !status.is_empty() && listening {
                     ui.label(RichText::new(crate::i18n::tr(&status)).size(12.5).color(p.muted));
                 }
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(crate::widgets::back(egui::Align::Center), |ui| {
                     if listening {
                         if widgets::primary(ui, p, "■  Parar", true) {
                             if let Some(r) = self.run.as_mut() {

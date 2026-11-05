@@ -1,5 +1,33 @@
 # Lista de mudanças
 
+## 1.7.0
+
+### Novidades
+- **Fluxos de automação:**
+  - **rodar sozinho:** quando chega um arquivo novo numa pasta (com o Conver aberto, mesmo minimizado) ou num horário marcado, com os dias da semana (pelo Agendador de Tarefas do Windows, que roda o fluxo mesmo com o Conver fechado), e aviso do Windows ao terminar;
+  - **histórico:** as últimas execuções de cada fluxo, com data, duração, resultados e erros, a pasta de cada uma e o botão **Repetir falhas**, que roda de novo só os arquivos que deram erro em algum node;
+  - **renomear com padrão:** um node que copia cada arquivo com um nome novo, como `{opção}_{data}_{n}`, usando o que a IA local escolheu, a data, um contador, a pasta ou o nome original;
+  - **o node "IA local: classificar" também ouve e lê:** além de imagens, classifica sons de áudios e vídeos (fala, música, silêncio, aplausos…, com o CLAP) e textos (arquivos .txt, .srt, PDF e textos de outros nodes, com uma IA de linguagem local).
+- **Traduzir e dublar:** traduz legendas (ou a transcrição de vídeos e áudios) para 12 idiomas com uma IA de linguagem que roda no PC (Qwen 3.5 2B, pelo llama.cpp) e, se você quiser, dubla o vídeo com as vozes do Piper: cada fala entra no tempo da legenda, acelerada quando não cabe, com o som original baixinho por baixo.
+- **Desfocar rostos:** acha os rostos de fotos e vídeos (detector YuNet, que vai junto no download) e os esconde com desfoque, pixelado ou tarja preta.
+- **Marca d'água em lote:** logo ou texto em imagens, vídeos e PDFs, em 9 posições ou na diagonal, com tamanho, opacidade e margem, com prévia.
+- **Melhorar voz:** som de podcast num clique: tira o ruído (IA), corta graves que embolam, dá presença, suaviza os "s", comprime e deixa em −16 LUFS (podcast) ou −14 LUFS (Reels e YouTube).
+- **Tabelas do PDF para Excel:** tira as tabelas de PDFs, inclusive escaneados (pelo OCR do Windows), para .xlsx (uma aba por página, números de verdade) ou .csv.
+- **Boas-vindas:** na primeira vez que o Conver abre, ele pergunta para que você vai usá-lo (vídeos para redes, podcast, documentos, automação, criar com IA…) e sugere os modelos de IA que valem a pena baixar, com o tamanho de cada um. Nada é baixado sem você escolher; dá para pular, e o download segue em segundo plano.
+- **Configurações → Modelos de IA:** o que cada modelo faz, quais ferramentas usam, o que já está no computador e quanto ocupa, com botões para baixar antes ou apagar para liberar espaço.
+- **Interface renovada:**
+  - a opção escolhida nos seletores agora fica em vermelho suave, e o vermelho cheio fica só para a ação (botão principal, menu e progresso), então telas com muitas opções ficam mais calmas;
+  - o vermelho dos botões ficou um tom mais fundo, para o texto branco ficar mais legível;
+  - em árabe, urdu e persa o layout inteiro é espelhado: menu à direita, rótulos à direita dos controles e botão de ação à esquerda;
+  - seletores com opções demais para a largura (ou com textos longos em outros idiomas) viram um menu suspenso;
+  - o menu lateral rola até a ferramenta aberta;
+  - "Fim" e "Duração" ganharam linha própria em Cortar e em Vídeo para GIF, e as pastas de destino do gravador, da gravação de tela e de Configurações aparecem numa caixa, como nas outras telas;
+  - o japonês usa a fonte japonesa do Windows (antes os kanji e os kana saíam desalinhados), e os nomes dos idiomas aparecem certos no menu de idiomas.
+- **MCP e linha de comando:** `subtitle_translate`, `image_hide_faces`, `watermark`, `audio_enhance_voice`, `pdf_tables` e `flow_history`; `flow_run` ganhou `retry_failed` e `notify`; `flow_save` aceita o gatilho (`trigger`) do fluxo; `image_classify` virou `classify` (o nome antigo continua valendo) e aceita `look_at`.
+
+### Mudanças
+- O llama.cpp (a IA de linguagem) não vai mais no download do Conver: é baixado do GitHub oficial, conferido pela assinatura, só por quem usa a tradução ou a classificação de textos.
+
 ## 1.6.0
 
 ### Novidades

@@ -69,12 +69,12 @@ impl TranscribePage {
                         ui.selectable_value(&mut self.lang, i, crate::i18n::tr(*n));
                     }
                 });
-                ui.checkbox(&mut self.translate, crate::i18n::tr("Traduzir para o inglês"));
+                crate::widgets::check(ui, &mut self.translate, crate::i18n::tr("Traduzir para o inglês"));
             });
             row(ui, p, "Salvar como:", |ui| {
-                ui.checkbox(&mut self.outputs.txt, crate::i18n::tr("Texto (.txt)"));
-                ui.checkbox(&mut self.outputs.srt, crate::i18n::tr("Legenda (.srt)"));
-                ui.checkbox(&mut self.outputs.vtt, crate::i18n::tr("Legenda web (.vtt)"));
+                crate::widgets::check(ui, &mut self.outputs.txt, crate::i18n::tr("Texto (.txt)"));
+                crate::widgets::check(ui, &mut self.outputs.srt, crate::i18n::tr("Legenda (.srt)"));
+                crate::widgets::check(ui, &mut self.outputs.vtt, crate::i18n::tr("Legenda web (.vtt)"));
             });
             hint(ui, p, "A legenda .srt fica com o mesmo nome do vídeo: o Queimar legenda e os players a encontram sozinhos.");
             model_note(ui, p, &self.model.spec());
@@ -265,7 +265,7 @@ impl ScreenPage {
                     painter.galley(pill.min + vec2(6.0, 3.0), galley, p.on_accent);
                 }
                 if recording {
-                    let (color, label, w) = if paused { (p.muted, crate::i18n::tr("❚❚  PAUSADO"), 96.0) } else { (p.accent, crate::i18n::tr("●  REC"), 64.0) };
+                    let (color, label, w) = if paused { (p.muted, crate::i18n::tr("❚❚  PAUSADO"), 96.0) } else { (p.action, crate::i18n::tr("●  REC"), 64.0) };
                     painter.rect_stroke(r, 0, Stroke::new(2.0f32, color), StrokeKind::Outside);
                     let pill = egui::Rect::from_min_size(r.left_top() + vec2(8.0, 8.0), vec2(w, 22.0));
                     painter.rect_filled(pill, 6, color);
@@ -398,12 +398,13 @@ impl ScreenPage {
                     });
                 });
                 row(ui, p, "Opções:", |ui| {
-                    ui.checkbox(&mut self.cursor, crate::i18n::tr("Mostrar o cursor"));
+                    crate::widgets::check(ui, &mut self.cursor, crate::i18n::tr("Mostrar o cursor"));
                     ui.add_space(8.0);
-                    ui.checkbox(&mut self.minimize, crate::i18n::tr("Minimizar o Conver ao começar"));
+                    crate::widgets::check(ui, &mut self.minimize, crate::i18n::tr("Minimizar o Conver ao começar"));
                 });
                 row(ui, p, "Salvar em:", |ui| {
-                    ui.label(RichText::new(self.folder.display().to_string()).color(p.text));
+                    let dir = self.folder.display().to_string();
+                    ui.add(egui::TextEdit::singleline(&mut dir.as_str()).margin(widgets::FIELD_MARGIN).desired_width((ui.available_width() - 110.0).clamp(160.0, 460.0)));
                     if widgets::secondary(ui, p, "Escolher…", true) {
                         if let Some(d) = rfd::FileDialog::new().set_title(crate::i18n::tr("Pasta das gravações")).pick_folder() {
                             self.folder = d;
@@ -568,7 +569,7 @@ impl PresetsPage {
                     }
                     "boolean" => {
                         let mut b = cur.as_bool().unwrap_or(false);
-                        ui.checkbox(&mut b, "");
+                        crate::widgets::check(ui, &mut b, "");
                         args.insert(k.clone(), Value::Bool(b));
                     }
                     "integer" | "number" => {
@@ -627,7 +628,7 @@ impl PresetsPage {
                     let tool_title = ops::find(&pr.tool).map(|t| t.title).unwrap_or("?");
                     ui.label(RichText::new(crate::i18n::tr(tool_title)).color(p.accent));
                     ui.label(RichText::new(&pr.description).size(12.5).color(p.muted));
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(crate::widgets::back(egui::Align::Center), |ui| {
                         if widgets::secondary(ui, p, "Apagar", true) {
                             remove = Some(i);
                         }

@@ -237,13 +237,13 @@ impl CaptionsPage {
         ui.add_space(6.0);
         let st = &mut self.saved.style;
         row(ui, p, "Animação:", |ui| {
-            ui.checkbox(&mut st.animated, tr("Destacar palavra por palavra"));
+            crate::widgets::check(ui, &mut st.animated, tr("Destacar palavra por palavra"));
         });
         if st.animated {
             row(ui, p, "Efeito:", |ui| {
                 segmented(ui, p, &mut st.effect, &[(Effect::Cor, "Palavra colorida"), (Effect::Caixa, "Caixa"), (Effect::Revelar, "Aparecendo")]);
                 ui.add_space(8.0);
-                ui.checkbox(&mut st.pop, tr("Pulinho"));
+                crate::widgets::check(ui, &mut st.pop, tr("Pulinho"));
             });
         }
         row(ui, p, "Cores:", |ui| {
@@ -267,7 +267,7 @@ impl CaptionsPage {
         row(ui, p, "Palavras juntas:", |ui| {
             ui.add(egui::Slider::new(&mut st.words_per_line, 1..=10));
             ui.add_space(8.0);
-            ui.checkbox(&mut st.uppercase, tr("Em maiúsculas"));
+            crate::widgets::check(ui, &mut st.uppercase, tr("Em maiúsculas"));
         });
         egui::CollapsingHeader::new(RichText::new(tr("Mais ajustes")).color(p.text)).id_salt("caps_more").default_open(demo()).show(ui, |ui| {
             row(ui, p, "Fonte:", |ui| {
@@ -276,8 +276,8 @@ impl CaptionsPage {
                         ui.selectable_value(&mut st.font, f.to_string(), *f);
                     }
                 });
-                ui.checkbox(&mut st.bold, tr("Negrito"));
-                ui.checkbox(&mut st.italic, tr("Itálico"));
+                crate::widgets::check(ui, &mut st.bold, tr("Negrito"));
+                crate::widgets::check(ui, &mut st.italic, tr("Itálico"));
             });
             row(ui, p, "Tamanho:", |ui| {
                 ui.add(egui::Slider::new(&mut st.size, 2.0..=14.0).step_by(0.1).suffix(" %"));
@@ -289,7 +289,7 @@ impl CaptionsPage {
                 ui.add_enabled(!st.background, egui::Slider::new(&mut st.shadow, 0.0..=30.0).step_by(1.0).suffix(" %"));
             });
             row(ui, p, "Faixa atrás:", |ui| {
-                ui.checkbox(&mut st.background, "");
+                crate::widgets::check(ui, &mut st.background, "");
                 if st.background {
                     color(ui, p, "Cor", &mut st.back_color);
                     ui.add(egui::Slider::new(&mut st.back_opacity, 0..=100).suffix(" %"));
@@ -398,7 +398,7 @@ impl CaptionsPage {
                         c.end = c.start + 0.1;
                     }
                     // botões à direita; o texto ocupa o que sobra
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(crate::widgets::back(egui::Align::Center), |ui| {
                         if ui.small_button("×").on_hover_text(tr("Apagar a frase")).clicked() {
                             action = Some((i, false));
                         }
@@ -498,12 +498,12 @@ impl CaptionsPage {
         ui.add_space(4.0);
         card(ui, p, |ui| {
             ui.horizontal_top(|ui| {
-                ui.vertical(|ui| {
+                crate::widgets::vt(ui, |ui| {
                     ui.set_width((ui.available_width() - 250.0).max(320.0));
                     self.style_controls(ui, p);
                 });
                 ui.add_space(8.0);
-                ui.vertical(|ui| {
+                crate::widgets::vt(ui, |ui| {
                     ui.set_width(220.0);
                     self.preview(ui, p, file.as_ref(), durs);
                     ui.add(egui::Label::new(RichText::new(tr("Clique ou arraste na prévia para mudar a posição.")).color(p.muted).small()).wrap());
@@ -515,7 +515,7 @@ impl CaptionsPage {
         }
         ui.add_space(4.0);
         self.out.ui(ui, p);
-        ui.checkbox(&mut self.saved.keep_ass, tr("Salvar também a legenda (.ass)"));
+        crate::widgets::check(ui, &mut self.saved.keep_ass, tr("Salvar também a legenda (.ass)"));
         let manual = self.saved.manual;
         let can = if manual { file.as_ref().and_then(|f| self.cues.get(f)).is_some_and(|c| !c.is_empty()) } else { !self.queue.files.is_empty() };
         let label = if manual { "Gravar no vídeo" } else { "Legendar" };

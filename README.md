@@ -36,6 +36,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - **Remover fundo** com IA, no próprio computador e sem internet: fundo transparente (PNG) ou de uma cor, borda definida ou suave
 - **Gerar imagem** com IA a partir de uma descrição, usando a placa de vídeo, sem internet e sem limite (Stable Diffusion)
 - **Apagar objeto**: pinte por cima de uma pessoa, um texto ou uma marca d'água e a IA preenche o fundo
+- **Desfocar rostos** em fotos e vídeos (desfoque, pixelado ou tarja), sem internet
 - Redimensionar (porcentagem ou pixels), comprimir, diminuir qualidade e converter entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO
 - Girar, espelhar e recortar (1:1, 4:3, 16:9, 9:16…)
 - Ajustes de cor: brilho, contraste, saturação, preto e branco, sépia
@@ -49,6 +50,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Cortar trecho, juntar vídeos, mudar velocidade (0,25× a 4×)
 - Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
 - Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
+- **Traduzir e dublar**: legendas traduzidas por uma IA local e, se quiser, a dublagem com voz natural, no tempo da legenda
 - **Legendas** com o Whisper: automáticas ou revisando o texto antes, paradas ou animadas palavra por palavra (estilo Reels/TikTok), com estilos prontos e ajuste de fonte, cores, contorno, faixa e posição
 - Remover o áudio ou extrair frames
 - **Gravar a tela** (inteira, um monitor, uma janela ou uma área) em MP4, com ou sem microfone, com prévia ao vivo, pausa e escolha de qualidade e resolução
@@ -59,12 +61,14 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - **Ditado ao vivo**: o texto aparece na tela enquanto você fala
 - **Texto para voz**: narração com voz natural a partir de textos e legendas, em português e mais 5 idiomas (Piper)
 - **Remover ruído** de gravações de voz (chiado, ventilador, barulho de fundo), também em vídeos
+- **Melhorar voz**: som de podcast num clique (ruído, equalização, compressão e volume padrão)
 - **Separar voz e instrumental** com IA (karaokê ou só a voz)
 - Converter (MP3, WAV, FLAC, OGG, M4A, OPUS), cortar, juntar, normalizar volume e comprimir
 
 **PDF**
 - Juntar PDFs e dividir (páginas como `1-3, 7` ou uma página por arquivo)
 - **Organizar páginas**: arrastar, girar e apagar vendo as miniaturas
+- **Tabelas do PDF para Excel** (.xlsx ou .csv), inclusive de PDFs escaneados
 - **Comprimir PDF**, **PDF → imagens** (PNG/JPG), **proteger com senha** e **tirar a senha**
 - **PDF pesquisável (OCR)**: o texto de PDFs escaneados passa a poder ser pesquisado e copiado
 
@@ -80,7 +84,9 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Renomear em lote (com prévia e desfazer)
 - Gerador de QR Code
 - Histórico de conversões e downloads
+- **Modelos de IA sob demanda**: na primeira vez, o Conver pergunta para que você vai usá-lo e sugere só os modelos que fazem sentido; em Configurações dá para baixar ou apagar cada um
 - **Predefinições**: salve suas configurações favoritas (ex.: "WhatsApp até 16 MB") e use com um clique
+- **Marca d'água em lote**: logo ou texto em imagens, vídeos e PDFs de uma vez
 
 **No dia a dia**
 - **Busca de ferramentas** (Ctrl+F): ache pelo que você quer fazer ("cortar", "tirar fundo", "youtube"), não só pelo nome exato
@@ -102,8 +108,13 @@ que você configurar (Anthropic/Claude ou qualquer API compatível com a da Open
 - **IA: instrução** — descrever imagens, resumir transcrições, escrever legendas, traduzir… (a resposta segue
   adiante como texto e pode ser salva como .txt, .md, .srt…)
 - **IA: avaliar** — confere cada arquivo contra um critério e manda para a saída "sim" ou "não"
-- **IA local: classificar** — sem internet e sem API: olha cada imagem (ou um quadro do vídeo) e manda para a saída da
-  opção que combina mais ("documento", "selfie", "comida"…), ou para "incerto"
+- **IA local: classificar** — sem internet e sem API: olha cada imagem (ou um quadro do vídeo), ouve cada som ou lê
+  cada texto e manda para a saída da opção que combina mais ("documento", "selfie", "música", "reclamação"…), ou
+  para "incerto"
+- **Renomear com padrão** — nomes como `{opção}_{data}_{n}`, usando o que a IA escolheu
+
+Cada fluxo pode **rodar sozinho** quando chega um arquivo numa pasta ou num horário marcado (pelo Agendador de Tarefas
+do Windows, até com o Conver fechado), e guarda o **histórico** das execuções, com um botão para repetir só o que falhou.
 
 Os fluxos ficam salvos e também rodam pela linha de comando (`conver-cli flow_run --name "Meu fluxo" fotos\*`)
 e pelo MCP, onde agentes de IA podem criar e editar fluxos (`flow_node_types`, `flow_save`, `flow_run`).

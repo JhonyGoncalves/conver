@@ -18,7 +18,7 @@ fn tmp(name: &str) -> PathBuf {
     d
 }
 
-fn ctx_run(f: &Flow, inputs: &Inputs, out: Option<&std::path::Path>, ai: &Result<Config, String>) -> Value {
+pub(crate) fn ctx_run(f: &Flow, inputs: &Inputs, out: Option<&std::path::Path>, ai: &Result<Config, String>) -> Value {
     let state = Mutex::new(RunState::default());
     let log = |s: &str| println!("{s}");
     let ctx = ops::Ctx { progress: &|_| {}, cancelled: &|| false, log: &log };
@@ -30,11 +30,11 @@ fn ctx_run(f: &Flow, inputs: &Inputs, out: Option<&std::path::Path>, ai: &Result
     r
 }
 
-fn node(id: u32, kind: &str, args: Value) -> Node {
+pub(crate) fn node(id: u32, kind: &str, args: Value) -> Node {
     Node { id, kind: kind.into(), title: String::new(), args: args.as_object().cloned().unwrap_or_default(), pos: [0.0, 0.0] }
 }
 
-fn link(from: u32, port: &str, to: u32) -> Link {
+pub(crate) fn link(from: u32, port: &str, to: u32) -> Link {
     Link { from, port: port.into(), to }
 }
 
@@ -89,6 +89,7 @@ fn flow_tools_chain() {
     std::fs::write(d.join("nota.txt"), "olá").unwrap();
     // entrada → filtro (só imagens) → redimensionar 50% → converter para JPG → salvar; o texto vai para "no"
     let f = Flow {
+        trigger: Default::default(),
         name: "teste - cadeia".into(),
         description: String::new(),
         nodes: vec![
@@ -146,6 +147,7 @@ fn flow_ai_nodes() {
         image::RgbImage::from_pixel(64, 64, image::Rgb([255, 0, 0])).save(d.join("vermelho.png")).unwrap();
         // entrada → IA avalia (só a imagem "verde" passa) → IA escreve uma legenda salva em .txt → saída
         let f = Flow {
+            trigger: Default::default(),
             name: "teste - ia".into(),
             description: String::new(),
             nodes: vec![

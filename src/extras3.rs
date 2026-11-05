@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use eframe::egui::{self, Align, Layout, RichText, Ui, vec2};
+use eframe::egui::{self, Align, RichText, Ui, vec2};
 
 use crate::info::{self, Info};
 use crate::job::{Job, LogKind};
@@ -147,7 +147,8 @@ impl RecorderPage {
                     segmented(ui, p, &mut self.fmt, &[(AFmt::Mp3, "MP3"), (AFmt::Wav, "WAV (sem perda)"), (AFmt::M4a, "M4A")]);
                 });
                 row(ui, p, "Salvar em:", |ui| {
-                    ui.label(RichText::new(crate::i18n::tr(self.folder.display().to_string())).color(p.text));
+                    let dir = self.folder.display().to_string();
+                    ui.add(egui::TextEdit::singleline(&mut dir.as_str()).margin(widgets::FIELD_MARGIN).desired_width((ui.available_width() - 110.0).clamp(160.0, 460.0)));
                     if widgets::secondary(ui, p, "Escolher…", true) {
                         if let Some(d) = rfd::FileDialog::new().set_title(crate::i18n::tr("Pasta das gravações")).pick_folder() {
                             self.folder = d;
@@ -326,14 +327,14 @@ impl OcrPage {
         let height = 300.0;
         ui.horizontal_top(|ui| {
             let left = (ui.available_width() * 0.40).max(300.0);
-            ui.allocate_ui_with_layout(vec2(left, height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(left, height + 80.0), crate::widgets::down(), |ui| {
                 widgets::file_list(ui, p, &mut self.queue, Some(thumbs), None, height);
             });
-            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), crate::widgets::down(), |ui| {
                 card(ui, p, |ui| {
                     ui.horizontal(|ui| {
                         ui.label(RichText::new(crate::i18n::tr("Texto encontrado")).family(bold()).color(p.text));
-                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        ui.with_layout(crate::widgets::back(Align::Center), |ui| {
                             if widgets::secondary(ui, p, "Salvar .txt", !self.text.is_empty()) {
                                 let name = selected.as_ref().and_then(|s| s.file_stem()).map(|s| s.to_string_lossy().into_owned());
                                 if let Some(dst) = rfd::FileDialog::new()
@@ -467,10 +468,10 @@ impl InfoPage {
         let height = 420.0;
         ui.horizontal_top(|ui| {
             let left = (ui.available_width() * 0.38).max(280.0);
-            ui.allocate_ui_with_layout(vec2(left, height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(left, height + 80.0), crate::widgets::down(), |ui| {
                 widgets::file_list(ui, p, &mut self.queue, None, None, height);
             });
-            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), Layout::top_down(Align::Min), |ui| {
+            ui.allocate_ui_with_layout(vec2(ui.available_width(), height + 80.0), crate::widgets::down(), |ui| {
                 card(ui, p, |ui| {
                     let Some(path) = self.queue.selected_path().cloned() else {
                         ui.label(RichText::new(crate::i18n::tr("Adicione ou arraste um arquivo para ver as informações.")).color(p.muted));
@@ -479,7 +480,7 @@ impl InfoPage {
                     let info = self.cache.entry(path.clone()).or_insert_with(|| info::read(&path));
                     ui.horizontal(|ui| {
                         ui.label(RichText::new(crate::i18n::tr(tools::file_name(&path))).family(bold()).color(p.text));
-                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        ui.with_layout(crate::widgets::back(Align::Center), |ui| {
                             if widgets::secondary(ui, p, "Copiar tudo", true) && copy_text(&info.as_text()) {
                                 self.msg = Some("✔ Informações copiadas.".into());
                             }

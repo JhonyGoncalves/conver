@@ -5,6 +5,7 @@ use eframe::egui::{self, Color32, CornerRadius, FontFamily, FontId, Stroke, Text
 pub const LINEN: Color32 = Color32::from_rgb(0xE8, 0xEB, 0xE4);
 pub const CHARCOAL: Color32 = Color32::from_rgb(0x49, 0x49, 0x47);
 pub const CINNABAR: Color32 = Color32::from_rgb(0xF1, 0x30, 0x30);
+pub const ACTION: Color32 = Color32::from_rgb(0xD4, 0x2A, 0x24);
 
 #[derive(Clone, Copy)]
 pub struct Palette {
@@ -18,6 +19,9 @@ pub struct Palette {
     pub muted: Color32,
     pub accent: Color32,
     pub accent_soft: Color32,
+    /// Cinábrio mais fundo, para superfícies com texto branco (botão principal, item ativo do menu, etiquetas):
+    /// o branco sobre ele tem 5:1, contra 4:1 sobre o cinábrio puro.
+    pub action: Color32,
     pub on_accent: Color32,
     pub ok: Color32,
 }
@@ -36,6 +40,7 @@ impl Palette {
                 muted: Color32::from_rgb(0xB8, 0xBB, 0xB3),
                 accent: CINNABAR,
                 accent_soft: Color32::from_rgb(0x5A, 0x2E, 0x2C),
+                action: ACTION,
                 on_accent: Color32::WHITE,
                 ok: Color32::from_rgb(0x8F, 0xD1, 0x8A),
             }
@@ -51,6 +56,7 @@ impl Palette {
                 muted: Color32::from_rgb(0x61, 0x62, 0x5D),
                 accent: CINNABAR,
                 accent_soft: Color32::from_rgb(0xF6, 0xD3, 0xCF),
+                action: ACTION,
                 on_accent: Color32::WHITE,
                 ok: Color32::from_rgb(0x26, 0x7A, 0x34),
             }
@@ -77,8 +83,18 @@ pub fn install_fonts(ctx: &egui::Context) {
     if !bold.first().is_some_and(|f| f == "segoe-sb") && proportional.first().is_some_and(|f| f == "segoe") {
         bold.insert(0, "segoe".into());
     }
-    // escritas de outros idiomas: chinês e japonês (YaHei), coreano (Malgun) e formas árabes (Arial)
-    for (name, file) in [("yahei", "msyh.ttc"), ("yugothic", "YuGothM.ttc"), ("malgun", "malgun.ttf"), ("arial", "arial.ttf")] {
+    // escritas de outros idiomas: chinês (YaHei), japonês (Yu Gothic), coreano (Malgun) e formas árabes (Arial).
+    // A fonte do idioma escolhido vem antes das outras: os ideogramas existem nas três, e misturar fontes deixa
+    // kanji e kana desalinhados no japonês. (Cada uma entra na posição 2, então a última da lista fica primeiro.)
+    let mut cjk = vec![("yahei", "msyh.ttc"), ("yugothic", "YuGothM.ttc"), ("malgun", "malgun.ttf")];
+    let first = match crate::i18n::current().code {
+        "ja" => "yugothic",
+        "ko" => "malgun",
+        _ => "yahei",
+    };
+    cjk.sort_by_key(|(name, _)| *name == first);
+    cjk.push(("arial", "arial.ttf"));
+    for (name, file) in cjk {
         if let Ok(bytes) = std::fs::read(format!("{windir}\\Fonts\\{file}")) {
             fonts.font_data.insert(name.into(), std::sync::Arc::new(egui::FontData::from_owned(bytes)));
             let at = proportional.len().min(2);
@@ -107,7 +123,7 @@ pub fn apply(ctx: &egui::Context, p: &Palette) {
     v.code_bg_color = p.input;
     v.override_text_color = None; // o texto vem do fg_stroke; assim o texto de dica (placeholder) fica apagado
     v.hyperlink_color = p.accent;
-    v.selection.bg_fill = p.accent;
+    v.selection.bg_fill = p.action;
     v.selection.stroke = Stroke::new(1.0f32, p.on_accent);
     v.slider_trailing_fill = true;
     let r = CornerRadius::same(5);

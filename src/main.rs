@@ -3,10 +3,14 @@
 
 mod ai;
 mod ai_api;
+mod llm;
+mod audioclass;
 mod bgremove;
 mod captions;
 mod captions_page;
 mod classify;
+mod triggers;
+mod watermark;
 mod captura;
 mod cli;
 mod dictation;
@@ -16,6 +20,8 @@ mod extras2;
 mod extras3;
 mod extras4;
 mod extras5;
+mod extras6;
+mod faces;
 mod flow;
 mod flows_page;
 mod history;
@@ -29,12 +35,14 @@ mod job;
 mod media;
 mod media_extra;
 mod media_page;
+mod models;
 mod notify;
 mod ocr;
 mod ops;
 mod pages;
 mod pdf;
 mod pdf_extra;
+mod pdf_tables;
 mod presets;
 mod qr;
 mod recorder;
@@ -45,11 +53,13 @@ mod separate;
 mod theme;
 mod tools;
 mod transcribe;
+mod translate;
 mod tts;
 mod updater;
 mod upscale;
 mod video;
 mod watch;
+mod welcome;
 mod widgets;
 
 use std::collections::HashMap;
@@ -57,7 +67,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use eframe::egui::{
-    self, Align, Align2, Color32, ColorImage, CursorIcon, FontId, Frame, Layout, Margin, RichText, Sense, Stroke,
+    self, Align, Align2, Color32, ColorImage, CursorIcon, FontId, Frame, Layout, Margin, ProgressBar, RichText, Sense, Stroke,
     TextureHandle, TextureOptions, Ui, vec2,
 };
 use serde::{Deserialize, Serialize};
@@ -78,18 +88,25 @@ const LOGO_PNG: &[u8] = include_bytes!("../assets/logo.png");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
-struct Config {
+pub(crate) struct Config {
     dark: bool,
     download_dir: Option<PathBuf>,
     notify: bool,
     sound: bool,
     check_updates: bool,
     lang: String,
+    /// A tela de boas-vindas já foi vista (quem já usava o Conver antes dela não a vê).
+    #[serde(default = "sim")]
+    pub(crate) welcome_done: bool,
+}
+
+fn sim() -> bool {
+    true
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { dark: false, download_dir: None, notify: true, sound: true, check_updates: true, lang: i18n::system_default().into() }
+        Self { dark: false, download_dir: None, notify: true, sound: true, check_updates: true, lang: i18n::system_default().into(), welcome_done: false }
     }
 }
 
@@ -142,6 +159,9 @@ enum Page {
     Flows,
     Captions,
     Eraser,
+    Watermark,
+    Faces,
+    Translate,
     Tts,
     ImageGen,
     Dictation,
@@ -160,7 +180,7 @@ const IMG_TOOLS: [ImgTool; 10] = [
     ImgTool::Upscale,
 ];
 
-const MEDIA_TOOLS: [MTool; 16] = [
+const MEDIA_TOOLS: [MTool; 17] = [
     MTool::VConvert,
     MTool::VCompress,
     MTool::VTrim,
@@ -177,6 +197,7 @@ const MEDIA_TOOLS: [MTool; 16] = [
     MTool::Music,
     MTool::AMerge,
     MTool::Denoise,
+    MTool::Voice,
 ];
 
 const NAV: &[(&str, &[(Page, &str)])] = &[
@@ -190,6 +211,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Img(ImgTool::Convert), "Converter formato"),
             (Page::Img(ImgTool::RemoveBg), "Remover fundo"),
             (Page::Eraser, "Apagar objeto"),
+            (Page::Faces, "Desfocar rostos"),
             (Page::ImageGen, "Gerar imagem"),
             (Page::Img(ImgTool::Upscale), "Ampliar com IA"),
             (Page::Img(ImgTool::Transform), "Girar / recortar"),
@@ -211,6 +233,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Media(MTool::Gif), "Vídeo → GIF"),
             (Page::Media(MTool::Subtitles), "Queimar legenda"),
             (Page::Captions, "Legendas"),
+            (Page::Translate, "Traduzir e dublar"),
             (Page::Media(MTool::Music), "Música de fundo"),
             (Page::Media(MTool::AudioFrames), "Remover áudio / frames"),
             (Page::Screen, "Gravar a tela"),
@@ -229,6 +252,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Media(MTool::AMerge), "Juntar áudios"),
             (Page::Media(MTool::Normalize), "Normalizar volume"),
             (Page::Media(MTool::Denoise), "Remover ruído"),
+            (Page::Media(MTool::Voice), "Melhorar voz"),
             (Page::Media(MTool::ACompress), "Comprimir"),
         ],
     ),
@@ -241,6 +265,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Pdf(PdfTool::Compress), "Comprimir PDF"),
             (Page::Pdf(PdfTool::ToImages), "PDF → imagens"),
             (Page::Pdf(PdfTool::Ocr), "PDF pesquisável (OCR)"),
+            (Page::Pdf(PdfTool::Tables), "Tabelas para Excel"),
             (Page::Pdf(PdfTool::Protect), "Proteger com senha"),
             (Page::Pdf(PdfTool::Unlock), "Tirar senha"),
         ],
@@ -253,6 +278,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Info, "Informações do arquivo"),
             (Page::Watch, "Pasta vigiada"),
             (Page::Rename, "Renomear em lote"),
+            (Page::Watermark, "Marca d'água"),
             (Page::Qr, "QR Code"),
         ],
     ),
@@ -296,6 +322,9 @@ struct ConverApp {
     flows: flows_page::FlowsPage,
     captions: captions_page::CaptionsPage,
     eraser: extras5::EraserPage,
+    watermark: extras6::WatermarkPage,
+    faces: extras6::FacesPage,
+    translate: extras6::TranslatePage,
     tts: extras5::TtsPage,
     imagegen: extras5::ImageGenPage,
     dictation: extras5::DictationPage,
@@ -312,14 +341,22 @@ struct ConverApp {
     menu_on: bool,
     ytdlp_job: Job,
     captura: Option<captura::Captura>,
+    /// Boas-vindas (só na primeira vez).
+    welcome: Option<welcome::Welcome>,
+    /// Downloads de modelos de IA em segundo plano (boas-vindas e Configurações).
+    downloads: models::Downloads,
+    /// Pacote esperando a confirmação para ser apagado.
+    confirm_remove: Option<models::Pack>,
+    /// Ferramenta que o menu já rolou para mostrar.
+    nav_shown: Option<Page>,
 }
 
 impl ConverApp {
     fn new(cc: &eframe::CreationContext, inbox: Arc<Mutex<Vec<PathBuf>>>) -> Self {
         let ctx = &cc.egui_ctx;
-        theme::install_fonts(ctx);
         let cfg = Config::load();
         i18n::set(&cfg.lang);
+        theme::install_fonts(ctx);
         notify::configure(cfg.notify, cfg.sound);
         let pal = Palette::new(cfg.dark);
         theme::apply(ctx, &pal);
@@ -367,6 +404,9 @@ impl ConverApp {
             flows: flows_page::FlowsPage::new(),
             captions: captions_page::CaptionsPage::new(),
             eraser: extras5::EraserPage::new(),
+            watermark: extras6::WatermarkPage::new(),
+            faces: extras6::FacesPage::new(),
+            translate: extras6::TranslatePage::new(),
             tts: extras5::TtsPage::new(),
             imagegen: extras5::ImageGenPage::new(),
             dictation: extras5::DictationPage::new(),
@@ -383,7 +423,18 @@ impl ConverApp {
             menu_on: integration::menu_registered(),
             ytdlp_job: Job::default(),
             captura: captura::from_env(),
+            welcome: None,
+            downloads: models::Downloads::default(),
+            confirm_remove: None,
+            nav_shown: None,
         };
+        if !app.cfg.welcome_done && app.captura.is_none() {
+            app.welcome = Some(welcome::Welcome::new());
+        }
+        if app.captura.is_none() {
+            // fluxos com pasta vigiada rodam sozinhos enquanto o Conver está aberto
+            triggers::start_watcher();
+        }
         if app.captura.is_some() {
             app.add_paths(captura::arquivos());
             app.nav_query = std::env::var("CONVER_BUSCA").unwrap_or_default();
@@ -437,6 +488,12 @@ impl ConverApp {
             self.pal = Palette::new(cena.dark);
             theme::apply(ctx, &self.pal);
             i18n::set(&cena.lang);
+            theme::install_fonts(ctx);
+            self.welcome = match cena.page.as_str() {
+                "boas_vindas" => Some(welcome::Welcome::demo(0)),
+                "boas_vindas_modelos" => Some(welcome::Welcome::demo(1)),
+                _ => None,
+            };
             self.page = match cena.page.as_str() {
                 "settings" => Page::Settings,
                 "history" => Page::History,
@@ -540,6 +597,84 @@ impl ConverApp {
         });
     }
 
+    /// Modelos de IA: o que está no computador, baixar agora e apagar.
+    fn models_card(&mut self, ui: &mut Ui) {
+        let p = self.pal;
+        card(ui, &p, |ui| {
+            ui.label(RichText::new(crate::i18n::tr("Modelos de IA")).family(bold()).size(16.0).color(p.text));
+            ui.add_space(2.0);
+            widgets::hint(ui, &p, "Cada ferramenta baixa o modelo que falta na primeira vez que você usa. Aqui dá para baixar antes ou apagar para liberar espaço.");
+            ui.add_space(4.0);
+            for (i, pack) in models::Pack::ALL.into_iter().enumerate() {
+                if i > 0 {
+                    ui.separator();
+                }
+                let installed = pack.installed();
+                ui.horizontal(|ui| {
+                    widgets::vt(ui, |ui| {
+                        ui.spacing_mut().item_spacing.y = 0.0;
+                        ui.label(RichText::new(crate::i18n::tr(pack.title())).family(bold()).color(p.text));
+                        ui.label(RichText::new(crate::i18n::tr(pack.used_by())).size(12.5).color(p.muted));
+                    });
+                    ui.with_layout(widgets::back(Align::Center), |ui| {
+                        if self.confirm_remove == Some(pack) {
+                            if widgets::secondary(ui, &p, "Cancelar", true) {
+                                self.confirm_remove = None;
+                            }
+                            if widgets::secondary(ui, &p, "Apagar", true) {
+                                self.confirm_remove = None;
+                                if let Err(e) = pack.remove() {
+                                    self.downloads.job.state().log.push((job::LogKind::Err, crate::i18n::tr(format!("✖ {e}"))));
+                                }
+                            }
+                            ui.label(RichText::new(crate::i18n::tr(format!("Apagar {}?", models_size(pack.disk())))).color(p.text));
+                        } else if installed {
+                            if pack.removable() && widgets::secondary(ui, &p, "Apagar", !self.downloads.queued(pack)) {
+                                self.confirm_remove = Some(pack);
+                            }
+                            let size = if pack.removable() { pack.disk() } else { pack.size() };
+                            ui.label(RichText::new(crate::i18n::tr(format!("✔ Baixado • {}", models_size(size)))).color(p.ok));
+                        } else if self.downloads.current() == Some(pack) {
+                            ui.add(ProgressBar::new(self.downloads.progress()).desired_width(120.0).desired_height(6.0).fill(p.accent));
+                            ui.label(RichText::new(crate::i18n::tr(format!("Baixando… {:.0}%", self.downloads.progress() * 100.0))).color(p.text));
+                        } else if self.downloads.queued(pack) {
+                            ui.label(RichText::new(crate::i18n::tr("Na fila")).color(p.muted));
+                        } else {
+                            if widgets::secondary(ui, &p, "Baixar", true) {
+                                self.downloads.add(ui.ctx(), &[pack]);
+                            }
+                            ui.label(RichText::new(models_size(pack.size())).color(p.muted));
+                        }
+                    });
+                });
+            }
+            ui.add_space(4.0);
+            let used: u64 = models::Pack::ALL.iter().map(|k| k.disk()).sum();
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(crate::i18n::tr(format!("Espaço usado: {}", models_size(used)))).color(p.muted));
+                if widgets::secondary(ui, &p, "Abrir pasta", true) {
+                    let dir = tools::app_dir().join("modelos");
+                    let _ = std::fs::create_dir_all(&dir);
+                    tools::open_folder(&dir);
+                }
+                if self.downloads.busy() && widgets::secondary(ui, &p, "Cancelar downloads", true) {
+                    self.downloads.job.cancel();
+                }
+            });
+            let st = self.downloads.job.state();
+            for (kind, line) in st.log.iter().rev().take(3) {
+                let color = match kind {
+                    job::LogKind::Err => p.accent,
+                    job::LogKind::Ok => p.ok,
+                    job::LogKind::Info => p.muted,
+                };
+                ui.label(RichText::new(crate::i18n::tr(line)).size(12.5).color(color));
+            }
+            drop(st);
+            widgets::hint(ui, &p, models::BUNDLED);
+        });
+    }
+
     fn set_dark(&mut self, ctx: &egui::Context, dark: bool) {
         self.cfg.dark = dark;
         self.cfg.save();
@@ -565,6 +700,9 @@ impl ConverApp {
             Page::Presets => Some(&mut self.presets.queue),
             Page::Captions => Some(&mut self.captions.queue),
             Page::Eraser => Some(&mut self.eraser.queue),
+            Page::Watermark => Some(&mut self.watermark.queue),
+            Page::Faces => Some(&mut self.faces.queue),
+            Page::Translate => Some(&mut self.translate.queue),
             _ => None,
         }
     }
@@ -629,7 +767,7 @@ impl ConverApp {
         ui.add_space(6.0);
         ui.horizontal(|ui| {
             ui.add(egui::Image::new((self.logo.id(), vec2(38.0, 38.0))));
-            ui.vertical(|ui| {
+            crate::widgets::vt(ui, |ui| {
                 ui.spacing_mut().item_spacing.y = 0.0;
                 ui.label(RichText::new(crate::i18n::tr("Conver")).family(bold()).size(24.0).color(p.accent));
                 ui.label(RichText::new(crate::i18n::tr("conversor universal")).size(12.0).color(p.muted));
@@ -686,8 +824,16 @@ impl ConverApp {
                             Page::Dictation if self.dictation.listening() => "Ditado ao vivo  ●",
                             _ => label,
                         };
-                        if nav_item(ui, &p, label, self.page == *page) {
+                        let selected = self.page == *page;
+                        let r = nav_item_resp(ui, &p, label, selected);
+                        // a ferramenta aberta fica à vista no menu (também quando ela é aberta por arquivo solto ou busca)
+                        if selected && self.nav_shown != Some(self.page) {
+                            r.scroll_to_me(None);
+                            self.nav_shown = Some(self.page);
+                        }
+                        if r.clicked() {
                             self.page = *page;
+                            self.nav_shown = Some(*page);
                         }
                     }
                 }
@@ -712,6 +858,15 @@ impl ConverApp {
             if nav_item(ui, &p, "⚙  Configurações", self.page == Page::Settings) {
                 self.page = Page::Settings;
             }
+            if self.downloads.busy() {
+                // download de modelos em segundo plano: um clique leva às Configurações
+                let text = crate::i18n::tr(format!("Baixando modelos de IA… {:.0}%", self.downloads.progress() * 100.0));
+                let r = ui.add(egui::Label::new(RichText::new(text).size(12.0).color(p.muted)).sense(Sense::click()));
+                if r.on_hover_cursor(CursorIcon::PointingHand).clicked() {
+                    self.page = Page::Settings;
+                }
+                ui.add(ProgressBar::new(self.downloads.progress()).desired_height(4.0).fill(p.accent));
+            }
             if nav_item(ui, &p, "🕘  Histórico", self.page == Page::History) {
                 self.page = Page::History;
             }
@@ -727,17 +882,26 @@ impl ConverApp {
             ui.label(RichText::new(crate::i18n::tr("Idioma")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             let current = i18n::current();
+            // o nome na própria escrita e, entre parênteses, no idioma da interface (já prontos para a tela: sem tr())
             let label = |l: &i18n::Lang| {
-                if l.code == "pt" { l.name.to_string() } else { format!("{}  ({})", l.name, crate::i18n::tr(l.pt_name)) }
+                let (native, here) = (i18n::native_name(l), crate::i18n::tr(l.pt_name));
+                if l.code == "pt" || native == here {
+                    native
+                } else if widgets::rtl() {
+                    format!("({here})  {native}")
+                } else {
+                    format!("{native}  ({here})")
+                }
             };
             let mut chosen = current.code;
-            egui::ComboBox::from_id_salt("lang").selected_text(crate::i18n::tr(label(current))).width(300.0).show_ui(ui, |ui| {
+            egui::ComboBox::from_id_salt("lang").selected_text(label(current)).width(300.0).show_ui(ui, |ui| {
                 for l in i18n::LANGS.iter() {
-                    ui.selectable_value(&mut chosen, l.code, crate::i18n::tr(label(l)));
+                    ui.selectable_value(&mut chosen, l.code, label(l));
                 }
             });
             if chosen != current.code {
                 i18n::set(chosen);
+                theme::install_fonts(ui.ctx());
                 self.cfg.lang = chosen.to_string();
                 self.cfg.save();
             }
@@ -763,13 +927,16 @@ impl ConverApp {
         });
         ui.add_space(4.0);
 
+        self.models_card(ui);
+        ui.add_space(4.0);
+
         let p = self.pal;
         card(ui, &p, |ui| {
             ui.label(RichText::new(crate::i18n::tr("Avisos")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             let (mut n, mut snd) = (self.cfg.notify, self.cfg.sound);
-            ui.checkbox(&mut n, crate::i18n::tr("Notificação do Windows quando uma tarefa demorada terminar (com o Conver em segundo plano)"));
-            ui.checkbox(&mut snd, crate::i18n::tr("Tocar um som ao terminar"));
+            crate::widgets::check(ui, &mut n, crate::i18n::tr("Notificação do Windows quando uma tarefa demorada terminar (com o Conver em segundo plano)"));
+            crate::widgets::check(ui, &mut snd, crate::i18n::tr("Tocar um som ao terminar"));
             if (n, snd) != (self.cfg.notify, self.cfg.sound) {
                 self.cfg.notify = n;
                 self.cfg.sound = snd;
@@ -790,7 +957,8 @@ impl ConverApp {
             ui.label(RichText::new(crate::i18n::tr("Downloads")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             row(ui, &p, "Pasta padrão:", |ui| {
-                ui.label(RichText::new(crate::i18n::tr(self.cfg.download_dir().display().to_string())).color(p.text));
+                let dir = self.cfg.download_dir().display().to_string();
+                ui.add(egui::TextEdit::singleline(&mut dir.as_str()).margin(widgets::FIELD_MARGIN).desired_width((ui.available_width() - 110.0).clamp(160.0, 460.0)));
                 if widgets::secondary(ui, &p, "Alterar…", true) {
                     if let Some(d) = rfd::FileDialog::new().set_title(crate::i18n::tr("Pasta padrão dos downloads")).pick_folder() {
                         self.cfg.download_dir = Some(d.clone());
@@ -858,7 +1026,7 @@ impl ConverApp {
             ui.label(RichText::new(crate::i18n::tr("Integração com o Windows")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             let mut on = self.menu_on;
-            ui.checkbox(&mut on, crate::i18n::tr("Mostrar \"Abrir com Conver\" no menu do botão direito (imagens, vídeos, áudios e PDFs)"));
+            crate::widgets::check(ui, &mut on, crate::i18n::tr("Mostrar \"Abrir com Conver\" no menu do botão direito (imagens, vídeos, áudios e PDFs)"));
             if on != self.menu_on {
                 let r = if on { integration::register_menu() } else { integration::unregister_menu(); Ok(()) };
                 match r {
@@ -876,7 +1044,7 @@ impl ConverApp {
             ui.label(RichText::new(crate::i18n::tr("Atualizações")).family(bold()).size(16.0).color(p.text));
             ui.add_space(4.0);
             let mut check = self.cfg.check_updates;
-            ui.checkbox(&mut check, crate::i18n::tr("Verificar se há uma versão nova do Conver ao abrir (consulta o GitHub)"));
+            crate::widgets::check(ui, &mut check, crate::i18n::tr("Verificar se há uma versão nova do Conver ao abrir (consulta o GitHub)"));
             if check != self.cfg.check_updates {
                 self.cfg.check_updates = check;
                 self.cfg.save();
@@ -1023,7 +1191,7 @@ impl ConverApp {
                 ui.horizontal(|ui| {
                     ui.label(RichText::new(crate::i18n::tr(format!("Nova versão do Conver disponível: {}", rel.version))).family(bold()).color(p.text));
                     ui.hyperlink_to(crate::i18n::tr("O que mudou"), &rel.url);
-                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    ui.with_layout(crate::widgets::back(Align::Center), |ui| {
                         if !self.update_job.state().running && widgets::secondary(ui, &p, "Agora não", true) {
                             self.update_dismissed = true;
                         }
@@ -1067,6 +1235,7 @@ fn page_id(page: Page) -> &'static str {
             MTool::Normalize => "a_normalize",
             MTool::ACompress => "a_compress",
             MTool::Denoise => "a_denoise",
+            MTool::Voice => "a_voice",
         },
         Page::Pdf(t) => match t {
             PdfTool::Merge => "pdf_merge",
@@ -1076,6 +1245,7 @@ fn page_id(page: Page) -> &'static str {
             PdfTool::Protect => "pdf_protect",
             PdfTool::Unlock => "pdf_unlock",
             PdfTool::Ocr => "pdf_ocr",
+            PdfTool::Tables => "pdf_tables",
             PdfTool::Organize => "pdf_organize",
         },
         Page::Download => "download",
@@ -1092,6 +1262,9 @@ fn page_id(page: Page) -> &'static str {
         Page::Flows => "flows",
         Page::Captions => "v_captions",
         Page::Eraser => "img_erase",
+        Page::Watermark => "watermark",
+        Page::Faces => "img_faces",
+        Page::Translate => "v_translate",
         Page::Tts => "tts",
         Page::ImageGen => "img_generate",
         Page::Dictation => "dictation",
@@ -1099,10 +1272,18 @@ fn page_id(page: Page) -> &'static str {
     }
 }
 
+fn models_size(bytes: u64) -> String {
+    tools::human_size(bytes)
+}
+
 fn nav_item(ui: &mut Ui, p: &Palette, label: &str, selected: bool) -> bool {
+    nav_item_resp(ui, p, label, selected).clicked()
+}
+
+fn nav_item_resp(ui: &mut Ui, p: &Palette, label: &str, selected: bool) -> egui::Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 31.0), Sense::click());
     let fill = if selected {
-        p.accent
+        p.action
     } else if resp.hovered() {
         p.card
     } else {
@@ -1110,13 +1291,13 @@ fn nav_item(ui: &mut Ui, p: &Palette, label: &str, selected: bool) -> bool {
     };
     ui.painter().rect_filled(rect, 8, fill);
     ui.painter().text(
-        rect.left_center() + vec2(14.0, 0.0),
-        Align2::LEFT_CENTER,
+        if widgets::rtl() { rect.right_center() - vec2(14.0, 0.0) } else { rect.left_center() + vec2(14.0, 0.0) },
+        if widgets::rtl() { Align2::RIGHT_CENTER } else { Align2::LEFT_CENTER },
         crate::i18n::tr(label),
         FontId::proportional(14.5),
         if selected { p.on_accent } else { p.text },
     );
-    resp.on_hover_cursor(CursorIcon::PointingHand).clicked()
+    resp.on_hover_cursor(CursorIcon::PointingHand)
 }
 
 /// Cartão com uma miniatura do tema.
@@ -1125,20 +1306,22 @@ fn theme_card(ui: &mut Ui, current: &Palette, dark: bool, name: &str, selected: 
     let (rect, resp) = ui.allocate_exact_size(vec2(190.0, 130.0), Sense::click());
     let painter = ui.painter();
     painter.rect_filled(rect, 12, t.bg);
+    // a miniatura acompanha o layout: menu à direita em árabe, urdu e persa
+    let m = |r: egui::Rect| widgets::mirror(r, rect);
     let side = egui::Rect::from_min_size(rect.min + vec2(8.0, 8.0), vec2(46.0, rect.height() - 40.0));
-    painter.rect_filled(side, 6, t.sidebar);
-    painter.rect_filled(egui::Rect::from_min_size(side.min + vec2(6.0, 10.0), vec2(34.0, 8.0)), 3, t.accent);
+    painter.rect_filled(m(side), 6, t.sidebar);
+    painter.rect_filled(m(egui::Rect::from_min_size(side.min + vec2(6.0, 10.0), vec2(34.0, 8.0))), 3, t.accent);
     for i in 0..3 {
-        painter.rect_filled(egui::Rect::from_min_size(side.min + vec2(6.0, 26.0 + i as f32 * 12.0), vec2(30.0, 6.0)), 3, t.muted);
+        painter.rect_filled(m(egui::Rect::from_min_size(side.min + vec2(6.0, 26.0 + i as f32 * 12.0), vec2(30.0, 6.0))), 3, t.muted);
     }
     let main = egui::Rect::from_min_max(egui::pos2(side.right() + 8.0, side.top()), egui::pos2(rect.right() - 8.0, side.bottom()));
-    painter.rect_filled(main, 6, t.card);
-    painter.rect_filled(egui::Rect::from_min_size(main.min + vec2(8.0, 10.0), vec2(70.0, 8.0)), 3, t.text);
-    painter.rect_filled(egui::Rect::from_min_size(main.min + vec2(8.0, 26.0), vec2(100.0, 6.0)), 3, t.muted);
-    painter.rect_filled(egui::Rect::from_min_size(main.right_bottom() - vec2(50.0, 20.0), vec2(42.0, 12.0)), 4, t.accent);
+    painter.rect_filled(m(main), 6, t.card);
+    painter.rect_filled(m(egui::Rect::from_min_size(main.min + vec2(8.0, 10.0), vec2(70.0, 8.0))), 3, t.text);
+    painter.rect_filled(m(egui::Rect::from_min_size(main.min + vec2(8.0, 26.0), vec2(100.0, 6.0))), 3, t.muted);
+    painter.rect_filled(m(egui::Rect::from_min_size(main.right_bottom() - vec2(50.0, 20.0), vec2(42.0, 12.0))), 4, t.accent);
     painter.text(
-        egui::pos2(rect.left() + 12.0, rect.bottom() - 16.0),
-        Align2::LEFT_CENTER,
+        if widgets::rtl() { egui::pos2(rect.right() - 12.0, rect.bottom() - 16.0) } else { egui::pos2(rect.left() + 12.0, rect.bottom() - 16.0) },
+        if widgets::rtl() { Align2::RIGHT_CENTER } else { Align2::LEFT_CENTER },
         crate::i18n::tr(name),
         FontId::new(14.0, bold()),
         t.text,
@@ -1152,8 +1335,9 @@ fn theme_card(ui: &mut Ui, current: &Palette, dark: bool, name: &str, selected: 
     };
     painter.rect_stroke(rect, 12, stroke, egui::StrokeKind::Inside);
     if selected {
-        painter.circle_filled(rect.right_bottom() - vec2(18.0, 16.0), 9.0, current.accent);
-        painter.text(rect.right_bottom() - vec2(18.0, 16.0), Align2::CENTER_CENTER, crate::i18n::tr("✔"), FontId::proportional(11.0), Color32::WHITE);
+        let tick = if widgets::rtl() { rect.left_bottom() + vec2(18.0, -16.0) } else { rect.right_bottom() - vec2(18.0, 16.0) };
+        painter.circle_filled(tick, 9.0, current.accent);
+        painter.text(tick, Align2::CENTER_CENTER, crate::i18n::tr("✔"), FontId::proportional(11.0), Color32::WHITE);
     }
     resp.on_hover_cursor(CursorIcon::PointingHand).clicked()
 }
@@ -1173,16 +1357,42 @@ impl eframe::App for ConverApp {
         notify::set_focused(ctx.input(|i| i.viewport().focused.unwrap_or(true)));
         let p = self.pal;
 
-        egui::SidePanel::left("nav")
+        if let Some(w) = self.welcome.as_mut() {
+            let mut done = None;
+            egui::CentralPanel::default()
+                .frame(Frame::default().fill(p.bg).inner_margin(Margin::symmetric(26, 20)))
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        if let welcome::Outcome::Done(packs) = w.ui(ui, &p, &self.downloads) {
+                            done = Some(packs);
+                        }
+                    });
+                });
+            if let Some(packs) = done {
+                self.downloads.add(ctx, &packs);
+                self.welcome = None;
+                if self.captura.is_none() {
+                    self.cfg.welcome_done = true;
+                    self.cfg.save();
+                }
+            }
+            return;
+        }
+
+        // árabe, urdu e persa: o menu fica à direita e as colunas se alinham pela direita (veja `widgets::rtl`)
+        let side = if widgets::rtl() { egui::panel::Side::Right } else { egui::panel::Side::Left };
+        egui::SidePanel::new(side, "nav")
             .exact_width(232.0)
             .resizable(false)
             .show_separator_line(false)
             .frame(Frame::default().fill(p.sidebar).inner_margin(Margin::symmetric(14, 16)))
-            .show(ctx, |ui| self.sidebar(ui));
+            .show(ctx, |ui| {
+                ui.with_layout(widgets::down(), |ui| self.sidebar(ui));
+            });
 
         egui::CentralPanel::default()
             .frame(Frame::default().fill(p.bg).inner_margin(Margin::symmetric(26, 20)))
-            .show(ctx, |ui| {
+            .show(ctx, |ui| ui.with_layout(widgets::down(), |ui| {
                 if self.page == Page::Flows {
                     self.update_banner(ui);
                     self.flows.ui(ui, &p);
@@ -1196,7 +1406,12 @@ impl eframe::App for ConverApp {
                     area = area.vertical_scroll_offset(off);
                 }
                 area.show(ui, |ui| {
-                    ui.set_width(ui.available_width() - 6.0);
+                    // folga para a barra de rolagem, que fica à direita mesmo em árabe, urdu e persa
+                    let full = ui.available_rect_before_wrap();
+                    let gap = if widgets::rtl() { 16.0 } else { 6.0 };
+                    let content = egui::Rect::from_min_max(full.min, egui::pos2(full.max.x - gap, full.max.y));
+                    ui.allocate_new_ui(egui::UiBuilder::new().max_rect(content).layout(widgets::down()), |ui| {
+                    ui.set_width(content.width());
                     self.update_banner(ui);
                     match self.page {
                         Page::Img(t) => {
@@ -1229,13 +1444,17 @@ impl eframe::App for ConverApp {
                         Page::Flows => {}
                         Page::Captions => self.captions.ui(ui, &p, &self.durs),
                         Page::Eraser => self.eraser.ui(ui, &p),
+                        Page::Watermark => self.watermark.ui(ui, &p),
+                        Page::Faces => self.faces.ui(ui, &p),
+                        Page::Translate => self.translate.ui(ui, &p),
                         Page::Tts => self.tts.ui(ui, &p),
                         Page::ImageGen => self.imagegen.ui(ui, &p),
                         Page::Dictation => self.dictation.ui(ui, &p),
                         Page::Settings => self.settings_ui(ui),
                     }
+                    });
                 });
-            });
+            }));
 
         if ctx.input(|i| !i.raw.hovered_files.is_empty()) {
             widgets::paint_drop_overlay(ctx, &self.pal);
@@ -1316,3 +1535,5 @@ mod tests_v15;
 mod tests_v16;
 #[cfg(test)]
 mod tests_v17;
+#[cfg(test)]
+mod tests_v18;
