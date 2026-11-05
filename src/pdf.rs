@@ -135,6 +135,78 @@ pub fn parse_ranges(text: &str, total: u32) -> Result<Vec<u32>, String> {
     Ok(pages)
 }
 
+/// Lê uma ordem de páginas como "3, 1, 2-5", mantendo a ordem escrita (uma página pode repetir).
+pub fn parse_order(text: &str, total: u32) -> Result<Vec<u32>, String> {
+    let mut out = Vec::new();
+    for part in text.split([',', ';', ' ']).map(str::trim).filter(|p| !p.is_empty()) {
+        let bad = || format!("página inválida: \"{part}\" (o PDF tem {total}).");
+        let (a, b) = match part.split_once('-') {
+            Some((a, b)) => (a.trim().parse::<u32>().map_err(|_| bad())?, if b.trim().is_empty() { total } else { b.trim().parse::<u32>().map_err(|_| bad())? }),
+            None => {
+                let n = part.parse::<u32>().map_err(|_| bad())?;
+                (n, n)
+            }
+        };
+        if a == 0 || b == 0 || a > total || b > total {
+            return Err(bad());
+        }
+        if a <= b { out.extend(a..=b) } else { out.extend((b..=a).rev()) }
+    }
+    if out.is_empty() {
+        return Err("informe pelo menos uma página.".into());
+    }
+    Ok(out)
+}
+
+/// Monta um PDF novo com as páginas na ordem dada, cada uma com uma rotação extra (0, 90, 180 ou 270 graus).
+/// Páginas que não aparecem são apagadas; uma página pode aparecer mais de uma vez.
+pub fn organize(src: &Path, out_dir: Option<&Path>, order: &[(u32, i64)]) -> Result<(String, PathBuf), String> {
+    let mut doc = open(src)?;
+    let pages = doc.get_pages();
+    let total = pages.len() as u32;
+    if order.is_empty() {
+        return Err("o PDF precisa ficar com pelo menos uma página.".into());
+    }
+    let root = doc
+        .catalog()
+        .and_then(|c| c.get(b"Pages"))
+        .and_then(Object::as_reference)
+        .map_err(|_| "o PDF não tem a árvore de páginas.".to_string())?;
+    // lê todas as páginas antes de mudar qualquer uma (uma página repetida não pode ver a rotação já alterada)
+    let mut planned = Vec::new();
+    for (n, rot) in order {
+        let id = *pages.get(n).ok_or_else(|| format!("o PDF não tem a página {n} (tem {total})."))?;
+        let dict = with_inherited(&doc, id).ok_or_else(|| format!("não foi possível ler a página {n}."))?;
+        planned.push((id, dict, *rot));
+    }
+    let mut kids = Vec::new();
+    let mut used = std::collections::HashSet::new();
+    for (id, mut dict, rot) in planned {
+        let old = dict.get(b"Rotate").ok().and_then(|o| o.as_i64().ok()).unwrap_or(0);
+        dict.set("Rotate", Object::Integer((old + rot).rem_euclid(360)));
+        dict.set("Parent", Object::Reference(root));
+        // a mesma página duas vezes: a segunda vira um objeto novo (o conteúdo é compartilhado)
+        let target = if used.insert(id) {
+            doc.objects.insert(id, Object::Dictionary(dict));
+            id
+        } else {
+            doc.add_object(Object::Dictionary(dict))
+        };
+        kids.push(Object::Reference(target));
+    }
+    let n = kids.len();
+    let root_dict = doc.get_dictionary_mut(root).map_err(|e| e.to_string())?;
+    root_dict.set("Kids", Object::Array(kids));
+    root_dict.set("Count", Object::Integer(n as i64));
+    doc.prune_objects();
+    doc.compress();
+    let dst = tools::out_path(src, out_dir, "_organizado", "pdf");
+    doc.save(&dst).map_err(|e| format!("não foi possível salvar: {e}"))?;
+    let removed = total as usize - used.len();
+    let note = if removed > 0 { format!("{n} páginas ({removed} removida(s))") } else { format!("{n} páginas") };
+    Ok((note, dst))
+}
+
 fn keep_only(doc: &Document, keep: &[u32]) -> Document {
     let mut d = doc.clone();
     let total = d.get_pages().len() as u32;

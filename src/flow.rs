@@ -184,7 +184,7 @@ fn tool_category(name: &str) -> &'static str {
         "IMAGEM"
     } else if name.starts_with("video") || name.starts_with("media") || name == "screen_record" {
         "VÍDEO"
-    } else if name.starts_with("audio") || name == "transcribe" {
+    } else if name.starts_with("audio") || name == "transcribe" || name == "text_to_speech" {
         "ÁUDIO"
     } else if name.starts_with("pdf") {
         "PDF"

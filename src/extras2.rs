@@ -2,8 +2,10 @@
 
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
-use eframe::egui::{self, RichText, Ui};
+use eframe::egui::{self, RichText, Ui, vec2};
 
 use crate::imaging::{Fmt, Level};
 use crate::job::Job;
@@ -24,11 +26,23 @@ pub enum PdfTool {
     Protect,
     Unlock,
     Ocr,
+    Organize,
 }
 
 impl PdfTool {
-    pub const ALL: [PdfTool; 7] =
-        [PdfTool::Merge, PdfTool::Split, PdfTool::Compress, PdfTool::ToImages, PdfTool::Protect, PdfTool::Unlock, PdfTool::Ocr];
+    pub const ALL: [PdfTool; 8] =
+        [PdfTool::Merge, PdfTool::Split, PdfTool::Compress, PdfTool::ToImages, PdfTool::Protect, PdfTool::Unlock, PdfTool::Ocr, PdfTool::Organize];
+}
+
+/// Organizar páginas: a ordem atual (página original, rotação extra) e as miniaturas.
+#[derive(Default)]
+struct Organizer {
+    file: Option<PathBuf>,
+    order: Vec<(u32, i64)>,
+    /// Miniaturas prontas (feitas em segundo plano), ainda não enviadas para a tela.
+    ready: Arc<Mutex<Vec<(u32, egui::ColorImage)>>>,
+    tex: HashMap<u32, egui::TextureHandle>,
+    stop: Arc<AtomicBool>,
 }
 
 pub struct PdfPage {
@@ -51,6 +65,7 @@ pub struct PdfPage {
     ocr_langs: Option<Vec<(String, String)>>,
     ocr_lang: usize,
     skip_text: bool,
+    org: Organizer,
 }
 
 impl PdfPage {
@@ -76,7 +91,118 @@ impl PdfPage {
             ocr_langs: None,
             ocr_lang: 0,
             skip_text: true,
+            org: Organizer::default(),
         }
+    }
+
+    /// Grade de páginas: arrastar para mudar a ordem, girar e apagar.
+    fn organizer(&mut self, ui: &mut Ui, p: &Palette, file: Option<PathBuf>, pages: Option<usize>) {
+        let (Some(file), Some(total)) = (file, pages) else {
+            hint(ui, p, "Adicione um PDF para ver as páginas.");
+            return;
+        };
+        let o = &mut self.org;
+        if o.file.as_ref() != Some(&file) {
+            o.stop.store(true, Ordering::Relaxed);
+            *o = Organizer { file: Some(file.clone()), order: (1..=total as u32).map(|n| (n, 0)).collect(), ..Default::default() };
+            let (ready, stop, ctx) = (o.ready.clone(), o.stop.clone(), ui.ctx().clone());
+            std::thread::spawn(move || {
+                let _ = pdf_extra::thumbnails(&file, 28.0, |n, png| {
+                    if let Ok(img) = image::load_from_memory(&png) {
+                        let rgba = img.to_rgba8();
+                        let ci = egui::ColorImage::from_rgba_unmultiplied([rgba.width() as usize, rgba.height() as usize], rgba.as_raw());
+                        ready.lock().unwrap().push((n, ci));
+                        ctx.request_repaint();
+                    }
+                    !stop.load(Ordering::Relaxed)
+                });
+            });
+        }
+        for (n, img) in o.ready.lock().unwrap().drain(..) {
+            o.tex.insert(n, ui.ctx().load_texture(format!("pdf_org_{n}"), img, egui::TextureOptions::LINEAR));
+        }
+        ui.horizontal(|ui| {
+            hint(ui, p, "Arraste as páginas para mudar a ordem. ⟲ ⟳ giram e × apaga.");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if widgets::secondary(ui, p, "Desfazer tudo", true) {
+                    o.order = (1..=total as u32).map(|n| (n, 0)).collect();
+                }
+                if widgets::secondary(ui, p, "Girar todas ⟳", !o.order.is_empty()) {
+                    for x in o.order.iter_mut() {
+                        x.1 = (x.1 + 90).rem_euclid(360);
+                    }
+                }
+            });
+        });
+        ui.add_space(4.0);
+        let mut moved: Option<(usize, usize)> = None;
+        let mut remove = None;
+        let mut rotate: Option<(usize, i64)> = None;
+        egui::ScrollArea::vertical().id_salt("pdf_org").max_height(430.0).auto_shrink([false, true]).show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
+                for (i, (page, rot)) in o.order.iter().enumerate() {
+                    let frame = egui::Frame::default().fill(p.input).stroke(egui::Stroke::new(1.0f32, p.border)).corner_radius(8).inner_margin(egui::Margin::same(6));
+                    let card = frame.show(ui, |ui| {
+                        ui.set_width(112.0);
+                        ui.vertical_centered(|ui| {
+                            ui.dnd_drag_source(egui::Id::new(("pdf_org_drag", i)), i, |ui| {
+                                let (rect, _) = ui.allocate_exact_size(vec2(106.0, 138.0), egui::Sense::hover());
+                                match o.tex.get(page) {
+                                    Some(tex) => {
+                                        let s = tex.size_vec2();
+                                        let turned = rot % 180 != 0;
+                                        let shown = widgets::fit(if turned { (s.y, s.x) } else { (s.x, s.y) }, rect.size() - vec2(4.0, 4.0));
+                                        let unrotated = if turned { vec2(shown.y, shown.x) } else { shown };
+                                        let r = egui::Rect::from_center_size(rect.center(), unrotated);
+                                        egui::Image::new(tex).rotate((*rot as f32).to_radians(), vec2(0.5, 0.5)).paint_at(ui, r);
+                                    }
+                                    None => {
+                                        ui.painter().rect_filled(rect.shrink(8.0), 4, p.card);
+                                        ui.painter().text(rect.center(), egui::Align2::CENTER_CENTER, "…", egui::FontId::proportional(18.0), p.muted);
+                                    }
+                                }
+                                ui.label(RichText::new(crate::i18n::tr(format!("{}  •  pág. {page}", i + 1))).size(12.0).color(p.text));
+                            });
+                            ui.horizontal(|ui| {
+                                ui.spacing_mut().item_spacing.x = 2.0;
+                                ui.add_space(6.0);
+                                if ui.small_button("⟲").on_hover_text(crate::i18n::tr("Girar para a esquerda")).clicked() {
+                                    rotate = Some((i, -90));
+                                }
+                                if ui.small_button("⟳").on_hover_text(crate::i18n::tr("Girar para a direita")).clicked() {
+                                    rotate = Some((i, 90));
+                                }
+                                if ui.small_button("×").on_hover_text(crate::i18n::tr("Apagar a página")).clicked() {
+                                    remove = Some(i);
+                                }
+                            });
+                        });
+                    });
+                    // soltar uma página em cima de outra: ela vai para essa posição
+                    if let Some(from) = card.response.dnd_release_payload::<usize>() {
+                        moved = Some((*from, i));
+                    }
+                    if card.response.dnd_hover_payload::<usize>().is_some_and(|f| *f != i) {
+                        ui.painter().rect_stroke(card.response.rect, 8, egui::Stroke::new(2.0f32, p.accent), egui::StrokeKind::Outside);
+                    }
+                }
+            });
+        });
+        if let Some((from, to)) = moved {
+            if from != to && from < o.order.len() {
+                let item = o.order.remove(from);
+                o.order.insert(to.min(o.order.len()), item);
+            }
+        }
+        if let Some((i, d)) = rotate {
+            o.order[i].1 = (o.order[i].1 + d).rem_euclid(360);
+        }
+        if let Some(i) = remove {
+            o.order.remove(i);
+        }
+        let removed = total.saturating_sub(o.order.len());
+        hint(ui, p, &format!("{} página(s) no PDF novo{}. O original não é alterado.", o.order.len(), if removed > 0 { format!(", {removed} apagada(s)") } else { String::new() }));
     }
 
     fn count(&mut self, f: &PathBuf) -> Option<usize> {
@@ -108,6 +234,7 @@ impl PdfPage {
                 "Reconhece o texto de PDFs escaneados com o OCR do Windows: depois dá para pesquisar, selecionar e copiar.",
                 "Reconhecer texto",
             ),
+            PdfTool::Organize => ("Organizar páginas", "Mude a ordem, gire e apague páginas de um PDF vendo as miniaturas.", "Salvar PDF"),
         };
         widgets::header(ui, p, title, subtitle);
         widgets::file_list(ui, p, &mut self.queue, None, None, 190.0);
@@ -116,6 +243,7 @@ impl PdfPage {
         let selected_pages = selected.as_ref().and_then(|f| self.count(f));
         let total_pages: usize = self.queue.files.clone().iter().filter_map(|f| self.count(f)).sum();
         card(ui, p, |ui| match self.tool {
+            PdfTool::Organize => self.organizer(ui, p, selected.clone(), selected_pages),
             PdfTool::Merge => {
                 row(ui, p, "Nome do PDF:", |ui| {
                     ui.add(egui::TextEdit::singleline(&mut self.name).margin(crate::widgets::FIELD_MARGIN).desired_width(240.0));
@@ -228,6 +356,7 @@ impl PdfPage {
             PdfTool::Split => has && (self.each_page || !self.ranges.trim().is_empty()),
             PdfTool::Protect => has && !self.password.is_empty() && self.password == self.password2,
             PdfTool::Unlock => has && !self.password.is_empty(),
+            PdfTool::Organize => selected.is_some() && !self.org.order.is_empty() && self.org.file == selected,
             _ => has,
         };
         match widgets::action_bar(ui, p, &self.job, action, can) {
@@ -283,6 +412,12 @@ impl PdfPage {
                         let pw = self.password.clone();
                         self.job.start(ui.ctx(), move |ctl| {
                             run_batch(ctl, title, &files, |src, _| pdf_extra::unlock(src, out.as_deref(), &pw));
+                        });
+                    }
+                    PdfTool::Organize => {
+                        let (src, order) = (self.org.file.clone().unwrap_or_default(), self.org.order.clone());
+                        self.job.start(ui.ctx(), move |ctl| {
+                            run_single(ctl, title, &tools::file_name(&src), || pdf::organize(&src, out.as_deref(), &order));
                         });
                     }
                     PdfTool::Ocr => {

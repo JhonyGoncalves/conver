@@ -1,5 +1,17 @@
 # Lista de mudanças
 
+## 1.5.0
+
+### Novidades (IA no próprio PC, sem internet depois de baixar o modelo)
+- **Texto para voz:** transforma textos e legendas (.txt, .srt) em narração com voz natural, em MP3 ou WAV, com 4 velocidades. Usa o Piper; 10 vozes em português (3), inglês, espanhol, francês, alemão e italiano, cada uma baixada (uns 63 MB) na primeira vez que for usada. Um texto de 5 s de fala fica pronto em uns 2 s.
+- **Gerar imagem:** descreva a imagem e ela é criada pela placa de vídeo (Vulkan, funciona em placas AMD, NVIDIA e Intel), em formato quadrado, retrato ou paisagem, 1, 2 ou 4 de uma vez. Com uma IA configurada, o pedido é traduzido para o inglês antes, que o modelo entende melhor. Usa o stable-diffusion.cpp e o modelo DreamShaper 8 LCM (2,1 GB, baixado no primeiro uso); cada imagem leva uns 10 a 20 s numa placa comum.
+- **Apagar objeto:** pinte por cima de uma pessoa, um objeto, um texto ou uma marca d'água e a IA (LaMa) preenche o fundo. Dá para continuar apagando, comparar com o original e voltar atrás.
+- **Ditado ao vivo:** fale e o texto aparece na tela enquanto você fala, com o Whisper. Numa pausa a frase é confirmada; o texto pode ser editado e copiado.
+- **Legendas animadas (Reels/TikTok):** legendas palavra por palavra em que a palavra falada fica destacada, com um leve pulo. Três estilos (palavra colorida, caixa, uma palavra por vez), posição, cor, palavras por vez e maiúsculas, com prévia na tela.
+- **Remover ruído:** tira chiado, ventilador e barulho de fundo de gravações de voz, em áudios e vídeos. Três forças: leve (só chiado) e duas com IA (RNNoise).
+- **Organizar páginas do PDF:** miniaturas de todas as páginas para arrastar, girar e apagar, e salvar um PDF novo.
+- As 7 ferramentas também estão na linha de comando, no MCP e nos fluxos de automação: `text_to_speech`, `image_generate`, `image_erase`, `video_animated_captions`, `audio_denoise` e `pdf_organize` (o ditado ao vivo é só na tela).
+
 ## 1.4.2
 
 ### Desempenho

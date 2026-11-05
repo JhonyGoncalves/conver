@@ -4,18 +4,23 @@
 mod ai;
 mod ai_api;
 mod bgremove;
+mod captions;
 mod captura;
 mod cli;
+mod dictation;
 mod download;
 mod extras;
 mod extras2;
 mod extras3;
 mod extras4;
+mod extras5;
 mod flow;
 mod flows_page;
 mod history;
 mod i18n;
+mod imagegen;
 mod imaging;
+mod inpaint;
 mod info;
 mod integration;
 mod job;
@@ -38,6 +43,7 @@ mod separate;
 mod theme;
 mod tools;
 mod transcribe;
+mod tts;
 mod updater;
 mod upscale;
 mod video;
@@ -132,6 +138,11 @@ enum Page {
     Screen,
     Presets,
     Flows,
+    Captions,
+    Eraser,
+    Tts,
+    ImageGen,
+    Dictation,
 }
 
 const IMG_TOOLS: [ImgTool; 10] = [
@@ -147,7 +158,7 @@ const IMG_TOOLS: [ImgTool; 10] = [
     ImgTool::Upscale,
 ];
 
-const MEDIA_TOOLS: [MTool; 15] = [
+const MEDIA_TOOLS: [MTool; 16] = [
     MTool::VConvert,
     MTool::VCompress,
     MTool::VTrim,
@@ -163,6 +174,7 @@ const MEDIA_TOOLS: [MTool; 15] = [
     MTool::Subtitles,
     MTool::Music,
     MTool::AMerge,
+    MTool::Denoise,
 ];
 
 const NAV: &[(&str, &[(Page, &str)])] = &[
@@ -175,6 +187,8 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Img(ImgTool::Quality), "Diminuir qualidade"),
             (Page::Img(ImgTool::Convert), "Converter formato"),
             (Page::Img(ImgTool::RemoveBg), "Remover fundo"),
+            (Page::Eraser, "Apagar objeto"),
+            (Page::ImageGen, "Gerar imagem"),
             (Page::Img(ImgTool::Upscale), "Ampliar com IA"),
             (Page::Img(ImgTool::Transform), "Girar / recortar"),
             (Page::Img(ImgTool::Adjust), "Ajustes de cor"),
@@ -194,6 +208,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Media(MTool::VTransform), "Girar / recortar"),
             (Page::Media(MTool::Gif), "Vídeo → GIF"),
             (Page::Media(MTool::Subtitles), "Queimar legenda"),
+            (Page::Captions, "Legendas animadas"),
             (Page::Media(MTool::Music), "Música de fundo"),
             (Page::Media(MTool::AudioFrames), "Remover áudio / frames"),
             (Page::Screen, "Gravar a tela"),
@@ -204,11 +219,14 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
         &[
             (Page::Recorder, "Gravador de áudio"),
             (Page::Transcribe, "Transcrever / legendar"),
+            (Page::Dictation, "Ditado ao vivo"),
+            (Page::Tts, "Texto para voz"),
             (Page::Separate, "Separar voz e instrumental"),
             (Page::Media(MTool::AConvert), "Converter formato"),
             (Page::Media(MTool::ATrim), "Cortar áudio"),
             (Page::Media(MTool::AMerge), "Juntar áudios"),
             (Page::Media(MTool::Normalize), "Normalizar volume"),
+            (Page::Media(MTool::Denoise), "Remover ruído"),
             (Page::Media(MTool::ACompress), "Comprimir"),
         ],
     ),
@@ -217,6 +235,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
         &[
             (Page::Pdf(PdfTool::Merge), "Juntar PDFs"),
             (Page::Pdf(PdfTool::Split), "Dividir PDF"),
+            (Page::Pdf(PdfTool::Organize), "Organizar páginas"),
             (Page::Pdf(PdfTool::Compress), "Comprimir PDF"),
             (Page::Pdf(PdfTool::ToImages), "PDF → imagens"),
             (Page::Pdf(PdfTool::Ocr), "PDF pesquisável (OCR)"),
@@ -273,6 +292,11 @@ struct ConverApp {
     screen: ScreenPage,
     presets: PresetsPage,
     flows: flows_page::FlowsPage,
+    captions: extras5::CaptionsPage,
+    eraser: extras5::EraserPage,
+    tts: extras5::TtsPage,
+    imagegen: extras5::ImageGenPage,
+    dictation: extras5::DictationPage,
     ai: ai_api::Settings,
     ai_key: String,
     ai_test: Arc<Mutex<Option<Result<String, String>>>>,
@@ -339,6 +363,11 @@ impl ConverApp {
             screen: ScreenPage::new(),
             presets: PresetsPage::new(),
             flows: flows_page::FlowsPage::new(),
+            captions: extras5::CaptionsPage::new(),
+            eraser: extras5::EraserPage::new(),
+            tts: extras5::TtsPage::new(),
+            imagegen: extras5::ImageGenPage::new(),
+            dictation: extras5::DictationPage::new(),
             ai: ai_api::Settings::load(),
             ai_key: String::new(),
             ai_test: Arc::default(),
@@ -419,6 +448,14 @@ impl ConverApp {
             }
             if self.page == Page::Flows {
                 self.flows.demo();
+            }
+            // os arquivos de exemplo entram na tela da cena (se ela aceitar)
+            let files = captura::arquivos();
+            if self.queue_of(self.page).is_some_and(|q| files.iter().any(|f| q.accepts(f) && !q.files.contains(f))) {
+                let page = self.page;
+                if let Some(q) = self.queue_of(page) {
+                    let _ = q.add(files.into_iter().filter(|f| f.is_file()));
+                }
             }
         }
         cap.quadros += 1;
@@ -524,6 +561,8 @@ impl ConverApp {
             Page::Transcribe => Some(&mut self.transcribe.queue),
             Page::Separate => Some(&mut self.separate.queue),
             Page::Presets => Some(&mut self.presets.queue),
+            Page::Captions => Some(&mut self.captions.queue),
+            Page::Eraser => Some(&mut self.eraser.queue),
             _ => None,
         }
     }
@@ -551,6 +590,13 @@ impl ConverApp {
         if page == Page::Flows {
             self.flows.add_files(paths);
             return;
+        }
+        // um texto ou legenda solto em "Texto para voz" vira o texto a narrar
+        if page == Page::Tts {
+            if let Some(f) = paths.iter().find(|p| extras5::TtsPage::accepts(p)) {
+                self.tts.load_file(f);
+                return;
+            }
         }
         let current_accepts = self.queue_of(page).is_some_and(|q| paths.iter().any(|p| q.accepts(p)));
         if !current_accepts {
@@ -635,6 +681,7 @@ impl ConverApp {
                             Page::Watch if self.watch.running() => "Pasta vigiada  ●",
                             Page::Recorder if self.recorder.recording() => "Gravador de áudio  ●",
                             Page::Screen if self.screen.recording() => "Gravar a tela  ●",
+                            Page::Dictation if self.dictation.listening() => "Ditado ao vivo  ●",
                             _ => label,
                         };
                         if nav_item(ui, &p, label, self.page == *page) {
@@ -1017,6 +1064,7 @@ fn page_id(page: Page) -> &'static str {
             MTool::AMerge => "a_merge",
             MTool::Normalize => "a_normalize",
             MTool::ACompress => "a_compress",
+            MTool::Denoise => "a_denoise",
         },
         Page::Pdf(t) => match t {
             PdfTool::Merge => "pdf_merge",
@@ -1026,6 +1074,7 @@ fn page_id(page: Page) -> &'static str {
             PdfTool::Protect => "pdf_protect",
             PdfTool::Unlock => "pdf_unlock",
             PdfTool::Ocr => "pdf_ocr",
+            PdfTool::Organize => "pdf_organize",
         },
         Page::Download => "download",
         Page::Watch => "watch",
@@ -1039,6 +1088,11 @@ fn page_id(page: Page) -> &'static str {
         Page::Screen => "screen",
         Page::Presets => "presets",
         Page::Flows => "flows",
+        Page::Captions => "v_captions",
+        Page::Eraser => "img_erase",
+        Page::Tts => "tts",
+        Page::ImageGen => "img_generate",
+        Page::Dictation => "dictation",
         Page::History | Page::Settings => "",
     }
 }
@@ -1171,6 +1225,11 @@ impl eframe::App for ConverApp {
                         Page::Screen => self.screen.ui(ui, &p),
                         Page::Presets => self.presets.ui(ui, &p),
                         Page::Flows => {}
+                        Page::Captions => self.captions.ui(ui, &p, &self.durs),
+                        Page::Eraser => self.eraser.ui(ui, &p),
+                        Page::Tts => self.tts.ui(ui, &p),
+                        Page::ImageGen => self.imagegen.ui(ui, &p),
+                        Page::Dictation => self.dictation.ui(ui, &p),
                         Page::Settings => self.settings_ui(ui),
                     }
                 });
@@ -1251,3 +1310,5 @@ mod tests_v13;
 mod tests_v14;
 #[cfg(test)]
 mod tests_v15;
+#[cfg(test)]
+mod tests_v16;

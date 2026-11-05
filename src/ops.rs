@@ -603,6 +603,13 @@ fn t_normalize(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     batch("Normalizar volume", &files, ctx, |f, p| media::normalize(f, out.as_deref(), lufs, p, ctx.cancelled))
 }
 
+fn t_denoise(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = media_files(a)?;
+    let level = a.choice("strength", &[("light", media::Denoise::Leve), ("medium", media::Denoise::Media), ("strong", media::Denoise::Forte)], media::Denoise::Media)?;
+    let out = a.out_dir()?;
+    batch("Remover ruído", &files, ctx, |f, p| media::denoise(f, out.as_deref(), level, p, ctx.cancelled))
+}
+
 fn t_audio_compress(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let files = media_files(a)?;
     let codec = a.choice("codec", &[("mp3", ACodec::Mp3), ("aac", ACodec::Aac), ("opus", ACodec::Opus)], ACodec::Mp3)?;
@@ -665,6 +672,135 @@ fn t_pdf_split(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let ranges = a.str("pages").filter(|s| !s.trim().is_empty());
     let out = a.out_dir()?;
     batch("Dividir PDF", &files, ctx, |f, p| pdf::split(f, out.as_deref(), ranges.as_deref(), p, ctx.cancelled))
+}
+
+fn music_dir() -> Option<PathBuf> {
+    std::env::var_os("USERPROFILE").map(|h| PathBuf::from(h).join("Music")).filter(|p| p.is_dir())
+}
+
+fn t_tts(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let voice = match a.str("voice").filter(|s| !s.trim().is_empty()) {
+        Some(v) => crate::tts::voice(v.trim()).ok_or_else(|| {
+            let ids: Vec<&str> = crate::tts::VOICES.iter().map(|v| v.id).collect();
+            format!("voz desconhecida: {v}. Use uma de: {}.", ids.join(", "))
+        })?,
+        None => crate::tts::default_voice(&a.str_or("language", "pt")),
+    };
+    let speed = a.num_or("speed", 1.0)? as f32;
+    let fmt = a.choice("format", &[("mp3", crate::tts::OutFmt::Mp3), ("wav", crate::tts::OutFmt::Wav)], crate::tts::OutFmt::Mp3)?;
+    let ext = if fmt == crate::tts::OutFmt::Mp3 { "mp3" } else { "wav" };
+    let out = a.out_dir()?;
+    if let Some(text) = a.str("text").filter(|t| !t.trim().is_empty()) {
+        let dir = out.or_else(music_dir).unwrap_or_else(std::env::temp_dir);
+        let dst = match a.str("output").filter(|s| !s.trim().is_empty()) {
+            Some(p) => tools::unique_path(PathBuf::from(p).with_extension(ext)),
+            None => tools::unique_path(dir.join(format!("narracao_{}.{ext}", tools::now_string().replace([':', ' ', '/'], "-")))),
+        };
+        return single("Texto para voz", "texto", crate::tts::speak(&text, voice, speed, fmt, &dst, ctx.progress, ctx.cancelled));
+    }
+    let files = filter_ext(a.files().map_err(|_| "informe \"text\" ou arquivos de texto em \"files\".".to_string())?, &["txt", "md", "srt", "vtt"])?;
+    batch("Texto para voz", &files, ctx, |f, p| {
+        let text = crate::tts::text_from_file(f)?;
+        let dst = tools::out_path(f, out.as_deref(), "_narracao", ext);
+        crate::tts::speak(&text, voice, speed, fmt, &dst, p, ctx.cancelled)
+    })
+}
+
+fn t_image_generate(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::imagegen::{Quality, Request, Shape};
+    let mut prompt = a.str("prompt").filter(|s| !s.trim().is_empty()).ok_or("informe \"prompt\" (a descrição da imagem).")?;
+    // o modelo entende inglês: com a IA configurada, traduz o pedido
+    if a.bool_or("translate", false)? {
+        let cfg = crate::ai_api::Settings::load().config()?;
+        prompt = crate::ai_api::ask(&cfg, "Translate the user's image description to English for an image generator. Reply with only the translation.", &[crate::ai_api::Part::Text(prompt.clone())], 300)?;
+    }
+    let req = Request {
+        prompt,
+        negative: a.str_or("negative", ""),
+        shape: a.choice("shape", &[("square", Shape::Quadrada), ("portrait", Shape::Retrato), ("landscape", Shape::Paisagem)], Shape::Quadrada)?,
+        quality: a.choice("quality", &[("fast", Quality::Rapida), ("better", Quality::Melhor)], Quality::Rapida)?,
+        count: a.num_or("count", 1.0)?.clamp(1.0, 8.0) as u32,
+        seed: a.num("seed")?.map(|s| s as i64),
+    };
+    let dir = a.out_dir()?.unwrap_or_else(crate::imagegen::default_dir);
+    let files = crate::imagegen::generate(&req, &dir, ctx.progress, ctx.cancelled)?;
+    for f in &files {
+        history::record("Gerar imagem", &req.prompt.chars().take(60).collect::<String>(), f, &format!("{}×{}", req.shape.size().0, req.shape.size().1));
+    }
+    Ok(json!({ "prompt": req.prompt, "results": files.iter().map(|f| json!({ "output": f.display().to_string() })).collect::<Vec<_>>() }))
+}
+
+fn t_image_erase(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = images(a)?;
+    let mask_file = a.str("mask").filter(|s| !s.trim().is_empty());
+    let rects: Vec<(i64, i64, i64, i64)> = match a.get("regions") {
+        Some(Value::Array(list)) => list
+            .iter()
+            .filter_map(|r| match r {
+                Value::Array(v) if v.len() == 4 => Some((v[0].as_i64()?, v[1].as_i64()?, v[2].as_i64()?, v[3].as_i64()?)),
+                Value::Object(m) => Some((m.get("x")?.as_i64()?, m.get("y")?.as_i64()?, m.get("width")?.as_i64()?, m.get("height")?.as_i64()?)),
+                _ => None,
+            })
+            .collect(),
+        _ => Vec::new(),
+    };
+    if mask_file.is_none() && rects.is_empty() {
+        return Err("informe \"regions\" ([[x, y, largura, altura], …]) ou \"mask\" (imagem: branco = apagar).".into());
+    }
+    let out = a.out_dir()?;
+    batch("Apagar objeto", &files, ctx, |f, p| {
+        let (w, h) = image::image_dimensions(f).map_err(|e| e.to_string())?;
+        let mask = match &mask_file {
+            Some(m) => image::open(m).map_err(|e| format!("máscara: {e}"))?.to_luma8(),
+            None => crate::inpaint::mask_from_rects(w, h, &rects),
+        };
+        crate::inpaint::erase_file(f, out.as_deref(), &mask, p, ctx.cancelled)
+    })
+}
+
+/// Opções das legendas animadas a partir dos argumentos.
+pub fn caption_style(a: &Args) -> Result<crate::captions::Style, String> {
+    use crate::captions::{Look, Place, Style, Tint};
+    Ok(Style {
+        look: a.choice("style", &[("highlight", Look::Destaque), ("box", Look::Caixa), ("word", Look::UmaPalavra)], Look::Destaque)?,
+        place: a.choice("position", &[("bottom", Place::Baixo), ("middle", Place::Meio), ("top", Place::Cima)], Place::Baixo)?,
+        tint: a.choice("color", &[("yellow", Tint::Amarelo), ("green", Tint::Verde), ("red", Tint::Cinabrio), ("blue", Tint::Azul)], Tint::Amarelo)?,
+        words_per_line: a.num_or("words_per_line", 3.0)?.clamp(1.0, 6.0) as usize,
+        uppercase: a.bool_or("uppercase", true)?,
+    })
+}
+
+fn t_captions(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use transcribe::WModel;
+    let files = filter_ext(a.files()?, video::VIDEO_EXTS)?;
+    let model = a.choice("model", &[("fast", WModel::Rapido), ("balanced", WModel::Equilibrado), ("accurate", WModel::Preciso)], WModel::Rapido)?;
+    let lang = a.str_or("language", "auto");
+    let style = caption_style(a)?;
+    let keep = a.bool_or("keep_ass", false)?;
+    let out = a.out_dir()?;
+    batch("Legendas animadas", &files, ctx, |f, p| crate::captions::animated(f, out.as_deref(), model, &lang, style, keep, p, ctx.cancelled))
+}
+
+fn t_pdf_organize(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    let files = pdfs(a)?;
+    let src = files.first().ok_or("informe o PDF.")?;
+    let total = pdf::page_count(src).ok_or("não foi possível ler o PDF.")? as u32;
+    let order = match a.str("order").filter(|s| !s.trim().is_empty()) {
+        Some(o) => pdf::parse_order(&o.replace(['[', ']'], ""), total)?,
+        None => (1..=total).collect(),
+    };
+    let rotations: std::collections::HashMap<u32, i64> = match a.get("rotate") {
+        Some(Value::Object(m)) => m.iter().filter_map(|(k, v)| Some((k.trim().parse().ok()?, v.as_i64().or_else(|| v.as_str()?.parse().ok())?))).collect(),
+        _ => Default::default(),
+    };
+    for r in rotations.values() {
+        if r % 90 != 0 {
+            return Err("\"rotate\": use 90, 180, 270 (ou -90).".into());
+        }
+    }
+    let plan: Vec<(u32, i64)> = order.iter().map(|n| (*n, *rotations.get(n).unwrap_or(&0))).collect();
+    let out = a.out_dir()?;
+    single("Organizar páginas", &tools::file_name(src), pdf::organize(src, out.as_deref(), &plan))
 }
 
 fn t_pdf_compress(a: &Args, ctx: &Ctx) -> Result<Value, String> {
@@ -1007,6 +1143,8 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("audios, in order"), "format": enum_prop("Output format.", &names(AFMTS), "mp3") }), &["files"]), t_audio_merge),
     tool!("audio_normalize", "Normalizar volume", "Normalize loudness (EBU R128) so files have the same volume.",
         schema(json!({ "files": files_prop("audios or videos"), "lufs": int_prop("Target loudness (-14 streaming, -16 podcast, -23 TV).", -30, -5, -14) }), &["files"]), t_normalize),
+    tool!("audio_denoise", "Remover ruído", "Remove background noise (hiss, fan, street, keyboard) from voice recordings in audios and videos. medium/strong use the RNNoise neural network, offline.",
+        schema(json!({ "files": files_prop("audios or videos"), "strength": enum_prop("light (only hiss), medium (AI, recommended for voice) or strong.", &["light", "medium", "strong"], "medium") }), &["files"]), t_denoise),
     tool!("audio_compress", "Comprimir áudio", "Make audio files smaller (MP3/AAC/OPUS at a bitrate, optional mono).",
         schema(json!({ "files": files_prop("audios"), "codec": enum_prop("Codec.", &["mp3", "aac", "opus"], "mp3"), "kbps": int_prop("Bitrate.", 16, 320, 96),
             "mono": bool_prop("Convert to mono.", false) }), &["files"]), t_audio_compress),
@@ -1022,6 +1160,35 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("PDFs, in order"), "output": str_prop("Full output path (optional)."), "name": str_prop("File name without extension (optional).") }), &["files"]), t_pdf_merge),
     tool!("pdf_split", "Dividir PDF", "Extract pages (e.g. \"1-3, 7, 10-\") into a new PDF, or save every page as its own PDF when \"pages\" is empty.",
         schema(json!({ "files": files_prop("PDFs"), "pages": str_prop("Page ranges like \"1-3, 7\". Empty = one PDF per page.") }), &["files"]), t_pdf_split),
+    tool!("text_to_speech", "Texto para voz", "Read text aloud with a natural local voice (Piper, offline; ~63 MB per voice, downloaded on first use) and save MP3/WAV. Give \"text\" or text/subtitle files (.txt, .md, .srt, .vtt).",
+        json!({ "type": "object", "properties": {
+            "text": str_prop("Text to read (instead of files)."), "files": files_prop("text or subtitle files"),
+            "voice": enum_prop("Voice id (default: the first one of \"language\").", &crate::tts::VOICES.iter().map(|v| v.id).collect::<Vec<_>>(), "pt_BR-faber-medium"),
+            "language": str_prop("Language code to pick a default voice: pt, en, es, fr, de, it."),
+            "speed": num_prop("Speech speed, 0.5 to 2 (1 = normal)."), "format": enum_prop("Output format.", &["mp3", "wav"], "mp3"),
+            "output": str_prop("Output file (with \"text\")."), "out_dir": str_prop("Output folder (default: Music, or next to each file).") } }), t_tts),
+    tool!("image_generate", "Gerar imagem", "Create images from a text description on this PC (stable-diffusion.cpp on the GPU via Vulkan, DreamShaper 8 LCM model, 2.1 GB downloaded on first use; about 10 s per 512px image on a mid-range GPU). Write the prompt in English, or set translate to use the configured AI.",
+        json!({ "type": "object", "properties": {
+            "prompt": str_prop("What the image shows (English works best)."), "negative": str_prop("What to avoid (optional)."),
+            "shape": enum_prop("square 512×512, portrait 512×768 or landscape 768×512.", &["square", "portrait", "landscape"], "square"),
+            "quality": enum_prop("fast (4 steps) or better (8 steps, slower).", &["fast", "better"], "fast"),
+            "count": int_prop("How many images.", 1, 8, 1), "seed": num_prop("Seed to repeat a result (default random)."),
+            "translate": bool_prop("Translate the prompt to English with the AI configured in Settings.", false),
+            "out_dir": str_prop("Folder (default: Pictures\\Conver).") }, "required": ["prompt"] }), t_image_generate),
+    tool!("image_erase", "Apagar objeto", "Erase objects, people, text or watermarks from images with a local AI (LaMa inpainting, 208 MB downloaded on first use): the area is filled with what would be behind it. Give rectangles in \"regions\" or a mask image.",
+        schema(json!({ "files": files_prop("images"), "regions": json!({ "type": "array", "items": { "type": "array", "items": { "type": "integer" } }, "description": "Rectangles to erase, each [x, y, width, height] in image pixels." }),
+            "mask": str_prop("Mask image path (white = erase), instead of regions.") }), &["files"]), t_image_erase),
+    tool!("video_animated_captions", "Legendas animadas", "Burn word-by-word animated captions (Reels/TikTok style) into videos: Whisper finds when each word is spoken (offline) and the spoken word is highlighted.",
+        schema(json!({ "files": files_prop("videos"), "model": enum_prop("Whisper model: fast, balanced or accurate.", &["fast", "balanced", "accurate"], "fast"),
+            "language": str_prop("Spoken language code like \"pt\" or \"auto\" (default)."),
+            "style": enum_prop("highlight (word changes color), box (colored box behind the word) or word (one big word at a time).", &["highlight", "box", "word"], "highlight"),
+            "position": enum_prop("Where the captions go.", &["bottom", "middle", "top"], "bottom"),
+            "color": enum_prop("Highlight color.", &["yellow", "green", "red", "blue"], "yellow"),
+            "words_per_line": int_prop("Words shown together.", 1, 6, 3), "uppercase": bool_prop("Uppercase text.", true),
+            "keep_ass": bool_prop("Also keep the .ass subtitle file next to the video.", false) }), &["files"]), t_captions),
+    tool!("pdf_organize", "Organizar páginas", "Reorder, rotate and delete PDF pages. \"order\" lists the pages of the new PDF (e.g. \"3, 1, 2, 5-8\"; pages left out are deleted, a page may repeat); \"rotate\" maps original page numbers to extra degrees (e.g. {\"2\": 90}).",
+        schema(json!({ "files": files_prop("PDF (only the first is used)"), "order": str_prop("New page order, e.g. \"3, 1, 2-5\" (default: all, unchanged)."),
+            "rotate": json!({ "type": "object", "description": "Extra rotation per original page number, e.g. {\"1\": 90, \"4\": 180}." }) }), &["files"]), t_pdf_organize),
     tool!("pdf_compress", "Comprimir PDF", "Make PDFs smaller by recompressing the images inside them.",
         schema(json!({ "files": files_prop("PDFs"), "level": enum_prop("Compression level.", &["light", "medium", "strong"], "medium") }), &["files"]), t_pdf_compress),
     tool!("pdf_to_images", "PDF para imagens", "Save PDF pages as PNG or JPG images (rendered by Windows).",

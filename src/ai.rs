@@ -34,6 +34,15 @@ pub fn find_model(file: &str) -> Option<PathBuf> {
     model_dirs().into_iter().map(|d| d.join(file)).find(|p| p.is_file())
 }
 
+/// Dica sob a ferramenta: o modelo já está no PC ou vai ser baixado no primeiro uso.
+pub fn model_hint(ui: &mut eframe::egui::Ui, p: &crate::theme::Palette, spec: &ModelSpec) {
+    if is_installed(spec) {
+        crate::widgets::hint(ui, p, &format!("✔ Modelo {} pronto neste computador.", spec.label));
+    } else {
+        crate::widgets::hint(ui, p, &format!("O modelo {} é baixado uma vez, na primeira vez que você usar (a assinatura é conferida).", spec.label));
+    }
+}
+
 pub fn is_installed(spec: &ModelSpec) -> bool {
     find_model(spec.file).is_some()
 }

@@ -19,10 +19,13 @@ Antes dos testes, ponha `Conver\bin` no PATH na mesma sessão: `$env:PATH = "$PW
 
 Tem tudo o que vai junto no download e é usada também pelo `cargo run`/testes (achada via `CARGO_MANIFEST_DIR`):
 - `bin\ffmpeg.exe` (7.1.1, gyan full, GPLv3), `bin\yt-dlp.exe`, `bin\onnxruntime.dll` (1.22.0 oficial da Microsoft),
-  `bin\whisper\` (whisper-cli.exe + DLLs do whisper.cpp 1.9.2)
-- `modelos\silueta.onnx` (remover fundo) e `modelos\realesr-general-x4v3.onnx` (ampliar)
+  `bin\whisper\` (whisper-cli.exe, whisper-server.exe + DLLs do whisper.cpp 1.9.2),
+  `bin\piper\` (Piper 2023.11.14-2 com espeak-ng-data e o próprio onnxruntime 1.14.1), `bin\sd\` (sd-cli.exe +
+  DLLs Vulkan do stable-diffusion.cpp master-1050-58bb3c1)
+- `modelos\silueta.onnx` (remover fundo), `modelos\realesr-general-x4v3.onnx` (ampliar) e `modelos\rnnoise-sh.rnnn`
+  (remover ruído, pelo `arnndn` do ffmpeg)
 - `conver-cli.exe` (copiado pelo `build.ps1` de `target\release`)
-- Modelos grandes (Whisper, UVR) não vão no download: são baixados para `%APPDATA%\Conver\modelos` no primeiro uso.
+- Modelos grandes (Whisper, UVR, vozes do Piper, DreamShaper 8 LCM, LaMa) não vão no download: são baixados para `%APPDATA%\Conver\modelos` no primeiro uso.
 
 `tools::find_tool` / `tools::find_tool_file` procuram em `exe_dir\bin`, `exe_dir` e `CARGO_MANIFEST_DIR\Conver\bin`.
 Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de `%APPDATA%\Conver` (`tools::app_dir`).
@@ -56,11 +59,17 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   em `ia.json`). Os fluxos ficam em `fluxos/<nome>.json` e o MCP usa os mesmos arquivos (`flow_*` em `ops.rs`);
   a tela recarrega quando o arquivo muda por fora. Ferramenta nova em `ops::TOOLS` vira node sozinha.
 - IA: `ai.rs` (ambiente ONNX compartilhado e download de modelos com SHA-256), `upscale.rs` (Real-ESRGAN em blocos),
-  `separate.rs` (UVR MDX-Net com STFT própria via realfft), `transcribe.rs` (whisper-cli em `bin\whisper`).
+  `separate.rs` (UVR MDX-Net com STFT própria via realfft), `transcribe.rs` (whisper-cli em `bin\whisper`; também o
+  tempo de cada palavra, `word_timestamps`).
+- IA 1.5: `captions.rs` (legendas animadas: monta um .ass com uma linha por palavra e queima com o ffmpeg),
+  `dictation.rs` (ditado ao vivo: sobe o `whisper-server` numa porta livre e manda trechos do microfone por HTTP),
+  `tts.rs` (Piper como processo, `VOICES` com revisão fixa do Hugging Face), `imagegen.rs` (`sd-cli` com
+  `--sampling-method lcm`, Vulkan), `inpaint.rs` (LaMa em 512×512 recortado em volta da máscara). Telas em `extras5.rs`.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
-- Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP).
-  Transcrição e separação são `#[ignore]` (baixam modelos): rode com `--include-ignored`. O teste `integrations`
+- Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;
+  `tests_v16.rs` = ferramentas da 1.5). Transcrição, separação, ditado, voz, gerar imagem, apagar objeto e legendas
+  animadas são `#[ignore]` (baixam modelos): rode com `--include-ignored`. O teste `integrations`
   falha se o Conver estiver aberto (a porta da instância única fica ocupada). Com placa AMD, o processo de teste
   termina com 0xC0000005 depois de `pdf_tools` (o driver `atidxx64.dll`, usado pela API de PDF do Windows, quebra ao
   ser descarregado): julgue pela linha `test result`. O app e a CLI evitam isso com `tools::exit_now`.

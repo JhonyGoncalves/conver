@@ -47,6 +47,34 @@ O Conver não é derivado do FFmpeg: ele apenas executa o `ffmpeg.exe` como um p
 - Não vem no download: é baixado de <https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models> no primeiro uso, conferindo o SHA-256 (`317554b07fe1ea5279a77f2b1520a41ea4b93432560c4ffd08792c30fddf9adc`).
 - Projeto: [Ultimate Vocal Remover](https://github.com/Anjok07/ultimatevocalremovergui) (licença MIT).
 
+## whisper-server (ditado ao vivo)
+
+- Arquivo: `bin\whisper\whisper-server.exe`, do mesmo pacote oficial do whisper.cpp 1.9.2 (MIT). Roda só no próprio computador (127.0.0.1).
+
+## Modelo RNNoise "somnolent-hogwash" (remover ruído)
+
+- Arquivo: `modelos\rnnoise-sh.rnnn` (SHA-256 `70bb6685eb0c2a1d18e2918dca3fbfbd39317010b1802eb1b6ea73a92f3fdec0`)
+- Origem: [GregorR/rnnoise-models](https://github.com/GregorR/rnnoise-models) (commit `3eee541`). Segundo o autor, os modelos não são obra criativa e não estão sujeitos a direitos autorais. O filtro que usa o modelo (`arnndn`) faz parte do FFmpeg.
+
+## Piper — MIT (texto para voz)
+
+- Arquivos: `bin\piper\` (`piper.exe`, `piper_phonemize.dll`, `espeak-ng.dll`, `espeak-ng-data`, `onnxruntime.dll` 1.14.1, `libtashkeel_model.ort`)
+- Versão: 2023.11.14-2, compilação oficial (<https://github.com/rhasspy/piper/releases/tag/2023.11.14-2>)
+- Licenças: Piper e piper-phonemize — MIT (`licencas\piper-LICENSE.txt`, `licencas\piper-phonemize-LICENSE.txt`); eSpeak NG — GPL v3 (`licencas\espeak-ng-COPYING.txt`, código em <https://github.com/espeak-ng/espeak-ng>); ONNX Runtime 1.14.1 — MIT (`licencas\onnxruntime-1.14-LICENSE.txt`).
+- O Conver só executa o `piper.exe` como programa separado.
+- As vozes não vêm no download: são baixadas de <https://huggingface.co/rhasspy/piper-voices> (revisão `e7229f7`, licença MIT; cada voz traz o seu cartão com a origem dos dados) no primeiro uso, conferindo o SHA-256.
+
+## stable-diffusion.cpp — MIT (gerar imagem)
+
+- Arquivos: `bin\sd\` (`sd-cli.exe`, `stable-diffusion.dll`, `ggml*.dll` com Vulkan, `libwebp*.dll`)
+- Versão: master-1050-58bb3c1, compilação oficial Vulkan (<https://github.com/leejet/stable-diffusion.cpp/releases/tag/master-1050-58bb3c1>)
+- Licenças: MIT — `licencas\stable-diffusion.cpp-LICENSE.txt` e `licencas\ggml-LICENSE.txt`; libwebp — BSD.
+- O modelo não vem no download: **DreamShaper 8 LCM** (Lykon, <https://huggingface.co/Lykon/dreamshaper-8-lcm>, baseado no Stable Diffusion 1.5) é baixado no primeiro uso, conferindo o SHA-256 (`a4f3e1526c5dc4fcbe342f5c410d83ae202c7a415fcefcbb92e0f93fcd0a87c3`). Licença **CreativeML OpenRAIL-M**: o uso é livre, inclusive comercial, mas proíbe usos nocivos listados na licença (<https://huggingface.co/spaces/CompVis/stable-diffusion-license>); quem gera as imagens é responsável por elas.
+
+## Modelo LaMa (apagar objeto)
+
+- Não vem no download: `lama_fp32.onnx` de <https://huggingface.co/Carve/LaMa-ONNX> (licença Apache 2.0, a partir do [LaMa](https://github.com/advimman/lama), Apache 2.0) é baixado no primeiro uso, conferindo o SHA-256 (`1faef5301d78db7dda502fe59966957ec4b79dd64e16f03ed96913c7a4eb68d6`).
+
 ## Bibliotecas Rust
 
 O Conver usa bibliotecas Rust de código aberto (egui/eframe, image, lopdf, ort, realfft, sha2, ar-reshaper, unicode-bidi, rfd, serde, ureq, windows-rs e outras), quase todas sob MIT e/ou Apache 2.0. A lista completa, com versões, está no arquivo `Cargo.lock` do repositório.

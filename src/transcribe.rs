@@ -201,8 +201,98 @@ pub fn transcribe(
     Ok((format!("{words} palavras • {}", names.join(" + ")), saved.remove(0)))
 }
 
+/// Uma palavra falada, com início e fim em segundos.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Word {
+    pub start: f64,
+    pub end: f64,
+    pub text: String,
+}
+
+/// Palavra por palavra, com o tempo de cada uma (para as legendas animadas).
+pub fn word_timestamps(src: &Path, model: WModel, lang: &str, on_progress: &dyn Fn(f32), cancelled: &dyn Fn() -> bool) -> Result<Vec<Word>, String> {
+    let cli = whisper_cli()?;
+    let spec = model.spec();
+    let model_path = ai::ensure_model(&spec, &|p| on_progress(p * 0.15), cancelled)?;
+    let work = model_path.parent().map(Path::to_path_buf).unwrap_or_else(std::env::temp_dir);
+    let tag = format!("conver_tmp_w{}_{}", std::process::id(), tools::file_size(src));
+    let wav = work.join(format!("{tag}.wav"));
+    let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
+    let conv = tools::command(&ff)
+        .args(["-hide_banner", "-loglevel", "error", "-y", "-i"])
+        .arg(src)
+        .args(["-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le"])
+        .arg(&wav)
+        .output()
+        .map_err(|e| format!("não foi possível iniciar o ffmpeg: {e}"))?;
+    if !conv.status.success() {
+        let _ = std::fs::remove_file(&wav);
+        return Err("o arquivo não tem áudio.".into());
+    }
+    on_progress(0.18);
+    let lang = if lang.trim().is_empty() { "auto" } else { lang.trim() };
+    // -ml 1 + -sow: um trecho por palavra; -oj: JSON com o início e o fim (em ms) de cada um
+    let mut child = tools::command(&cli)
+        .current_dir(&work)
+        .args(["-m", spec.file, "-f", &format!("{tag}.wav"), "-of", &tag, "-l", lang, "-pp", "-ml", "1", "-sow", "-oj"])
+        .args(["-t", &ai::threads().to_string()])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("não foi possível iniciar o Whisper: {e}"))?;
+    let stderr = child.stderr.take().unwrap();
+    let mut tail = Vec::new();
+    for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+        if cancelled() {
+            let _ = child.kill();
+            let _ = child.wait();
+            cleanup(&work, &tag);
+            return Err("Cancelado.".into());
+        }
+        if let Some(p) = line.split("progress =").nth(1).and_then(|v| v.trim().trim_end_matches('%').trim().parse::<f32>().ok()) {
+            on_progress(0.18 + 0.8 * (p / 100.0).clamp(0.0, 1.0));
+        }
+        tail.push(line);
+        if tail.len() > 6 {
+            tail.remove(0);
+        }
+    }
+    let status = child.wait().map_err(|e| e.to_string())?;
+    let json = std::fs::read_to_string(work.join(format!("{tag}.json")));
+    cleanup(&work, &tag);
+    if !status.success() {
+        return Err(format!("falha no Whisper: {}", tail.join(" | ")));
+    }
+    let v: serde_json::Value = serde_json::from_str(&json.map_err(|_| "o Whisper não gerou o resultado.".to_string())?).map_err(|e| e.to_string())?;
+    let mut words: Vec<Word> = v["transcription"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|seg| {
+            let text = seg["text"].as_str()?.trim().to_string();
+            let from = seg["offsets"]["from"].as_f64()? / 1000.0;
+            let to = seg["offsets"]["to"].as_f64()? / 1000.0;
+            // o Whisper marca sons e música entre colchetes: não são palavras
+            (!text.is_empty() && !text.starts_with('[') && !text.starts_with('(')).then_some(Word { start: from, end: to.max(from), text })
+        })
+        .collect();
+    // pontuação solta vira parte da palavra anterior
+    let mut i = 1;
+    while i < words.len() {
+        if words[i].text.chars().all(|c| c.is_ascii_punctuation()) {
+            let t = words.remove(i).text;
+            words[i - 1].text.push_str(&t);
+        } else {
+            i += 1;
+        }
+    }
+    on_progress(1.0);
+    Ok(words)
+}
+
 fn cleanup(work: &Path, tag: &str) {
-    for ext in ["wav", "txt", "srt", "vtt"] {
+    for ext in ["wav", "txt", "srt", "vtt", "json"] {
         let _ = std::fs::remove_file(work.join(format!("{tag}.{ext}")));
     }
 }

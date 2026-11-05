@@ -395,6 +395,49 @@ pub fn normalize(
     Ok((format!("volume ajustado para {lufs} LUFS"), dst))
 }
 
+/// Força da limpeza de ruído.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Denoise {
+    /// Filtro de espectro (afftdn): tira chiado constante sem mexer na voz.
+    Leve,
+    /// Rede neural RNNoise (arnndn), treinada para voz gravada: tira ventilador, rua, teclado…
+    Media,
+    /// RNNoise mais o filtro de espectro, para gravações bem ruidosas.
+    Forte,
+}
+
+/// Modelo do RNNoise (vai junto no download, em `modelos`).
+pub const RNNOISE_MODEL: &str = "rnnoise-sh.rnnn";
+
+/// Remove ruído de fundo de áudios e vídeos (em vídeos, a imagem é copiada sem perda).
+pub fn denoise(
+    src: &Path,
+    out_dir: Option<&Path>,
+    level: Denoise,
+    on_progress: &dyn Fn(f32),
+    cancelled: &dyn Fn() -> bool,
+) -> Result<(String, PathBuf), String> {
+    let info = require_audio(src)?;
+    let (ext, mut out) = if info.has_video {
+        (keep_or_mp4(src), s(&["-map", "0:v:0", "-map", "0:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k"]))
+    } else {
+        reencode_for(src, false)
+    };
+    // o caminho vai dentro do filtro: barras normais, ":" e "'" escapados
+    let rnn = |m: &Path| format!("arnndn=m='{}'", m.display().to_string().replace('\\', "/").replace(':', "\\:").replace('\'', "\\'"));
+    let model = crate::ai::find_model(RNNOISE_MODEL);
+    let (af, label) = match (level, model.as_deref()) {
+        (Denoise::Media, Some(m)) => (format!("highpass=f=70,{}", rnn(m)), "ruído removido (IA)"),
+        (Denoise::Forte, Some(m)) => (format!("highpass=f=80,{},afftdn=nr=10:nf=-45", rnn(m)), "ruído removido (forte)"),
+        // tn=1: acompanha o ruído ao longo do arquivo (nf é só o ponto de partida)
+        _ => ("highpass=f=70,afftdn=nr=18:nf=-30:tn=1".to_string(), "chiado removido"),
+    };
+    out.extend(s(&["-af", &af]));
+    let dst = tools::out_path(src, out_dir, "_sem_ruido", &ext);
+    encode_to(s(&["-i", &path_s(src)]), out, &dst, info.duration, on_progress, cancelled)?;
+    Ok((label.to_string(), dst))
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ACodec {
     Mp3,

@@ -34,6 +34,8 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 **Imagem**
 - **Ampliar com IA** (2× ou 4×, Real-ESRGAN): fotos pequenas, prints e imagens antigas sem borrar
 - **Remover fundo** com IA, no próprio computador e sem internet: fundo transparente (PNG) ou de uma cor, borda definida ou suave
+- **Gerar imagem** com IA a partir de uma descrição, usando a placa de vídeo, sem internet e sem limite (Stable Diffusion)
+- **Apagar objeto**: pinte por cima de uma pessoa, um texto ou uma marca d'água e a IA preenche o fundo
 - Redimensionar (porcentagem ou pixels), comprimir, diminuir qualidade e converter entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO
 - Girar, espelhar e recortar (1:1, 4:3, 16:9, 9:16…)
 - Ajustes de cor: brilho, contraste, saturação, preto e branco, sépia
@@ -47,17 +49,22 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Cortar trecho, juntar vídeos, mudar velocidade (0,25× a 4×)
 - Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
 - Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
+- **Legendas animadas** no estilo Reels/TikTok: palavra por palavra, com a palavra falada em destaque
 - Remover o áudio ou extrair frames
 - **Gravar a tela** (inteira, um monitor, uma janela ou uma área) em MP4, com ou sem microfone, com prévia ao vivo, pausa e escolha de qualidade e resolução
 
 **Áudio**
 - Gravador de áudio (microfone) em MP3, WAV ou M4A, com faixa de áudio e medidor de nível ao vivo (mostra quando o som estoura) e teste do microfone antes de gravar
 - **Transcrever / legendar** com o Whisper, sem internet: fala → texto (.txt) e legendas (.srt/.vtt), em dezenas de idiomas
+- **Ditado ao vivo**: o texto aparece na tela enquanto você fala
+- **Texto para voz**: narração com voz natural a partir de textos e legendas, em português e mais 5 idiomas (Piper)
+- **Remover ruído** de gravações de voz (chiado, ventilador, barulho de fundo), também em vídeos
 - **Separar voz e instrumental** com IA (karaokê ou só a voz)
 - Converter (MP3, WAV, FLAC, OGG, M4A, OPUS), cortar, juntar, normalizar volume e comprimir
 
 **PDF**
 - Juntar PDFs e dividir (páginas como `1-3, 7` ou uma página por arquivo)
+- **Organizar páginas**: arrastar, girar e apagar vendo as miniaturas
 - **Comprimir PDF**, **PDF → imagens** (PNG/JPG), **proteger com senha** e **tirar a senha**
 - **PDF pesquisável (OCR)**: o texto de PDFs escaneados passa a poder ser pesquisado e copiado
 
@@ -113,7 +120,7 @@ conver-cli preset "WhatsApp (vídeo até 16 MB)" video.mp4
 conver-cli pdf_ocr digitalizado.pdf --json             # resultado em JSON
 ```
 
-**Agentes de IA** (Claude Desktop, Claude Code, Cursor, VS Code e outros compatíveis com MCP) podem usar as mais de 40 ferramentas do Conver. Adicione ao arquivo de configuração de MCP do agente (o caminho certo aparece em Configurações → Automação, com um botão para copiar):
+**Agentes de IA** (Claude Desktop, Claude Code, Cursor, VS Code e outros compatíveis com MCP) podem usar as mais de 50 ferramentas do Conver. Adicione ao arquivo de configuração de MCP do agente (o caminho certo aparece em Configurações → Automação, com um botão para copiar):
 
 ```json
 {
@@ -130,7 +137,7 @@ O servidor MCP usa stdio, informa o progresso das tarefas longas, aceita cancela
 
 ## Privacidade
 
-Tudo é feito no seu computador. O Conver só acessa a internet quando você usa os downloads, quando atualiza o yt-dlp, na primeira vez que usa a transcrição ou a separação de voz (para baixar o modelo de IA, conferindo a assinatura) e, se a opção estiver ligada, para ver se há uma versão nova (uma consulta à API do GitHub). Não há telemetria.
+Tudo é feito no seu computador. O Conver só acessa a internet quando você usa os downloads, quando atualiza o yt-dlp, na primeira vez que usa uma ferramenta de IA que precisa de um modelo maior — transcrição, ditado, legendas animadas, separação de voz, texto para voz, gerar imagem e apagar objeto — (para baixar o modelo, conferindo a assinatura); a tradução do pedido em Gerar imagem usa a IA que você configurou e, se a opção estiver ligada, para ver se há uma versão nova (uma consulta à API do GitHub). Não há telemetria.
 
 Use os downloads apenas para conteúdos que você tem direito de baixar.
 
@@ -145,7 +152,10 @@ winget install Rustlang.Rustup Gyan.FFmpeg JRSoftware.InnoSetup
 #    (pasta lib do onnxruntime-win-x64-1.22.0.zip, https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0)
 #    e em Conver\modelos o silueta.onnx (https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
 #    e o realesr-general-x4v3.onnx (exportado do .pth oficial do Real-ESRGAN v0.2.5.0)
-#    e em Conver\bin\whisper o whisper-cli.exe e as DLLs do whisper-bin-x64.zip (whisper.cpp v1.9.2)
+#    e em Conver\bin\whisper o whisper-cli.exe, o whisper-server.exe e as DLLs do whisper-bin-x64.zip (whisper.cpp v1.9.2)
+#    e em Conver\bin\piper o piper_windows_amd64.zip (Piper 2023.11.14-2) e em Conver\bin\sd o sd-cli.exe e as DLLs
+#    da versão Vulkan do stable-diffusion.cpp (master-1050-58bb3c1); em Conver\modelos o rnnoise-sh.rnnn
+#    (https://github.com/GregorR/rnnoise-models)
 # 3. compile e gere a versão portátil e o instalador em dist\
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
@@ -163,7 +173,8 @@ Para só rodar durante o desenvolvimento: `cargo run --release` (com `ffmpeg.exe
 | `src/download.rs` | Downloads com o yt-dlp |
 | `src/pdf.rs`, `ocr.rs`, `info.rs`, `recorder.rs` | PDF, OCR, informações e gravador |
 | `src/bgremove.rs`, `upscale.rs`, `separate.rs`, `ai.rs` | IA: remover fundo, ampliar, separar voz; ONNX Runtime e download de modelos |
-| `src/transcribe.rs` | Transcrição com o whisper.cpp |
+| `src/transcribe.rs`, `dictation.rs`, `captions.rs` | Transcrição com o whisper.cpp, ditado ao vivo e legendas animadas |
+| `src/tts.rs`, `imagegen.rs`, `inpaint.rs` | Texto para voz (Piper), gerar imagem (stable-diffusion.cpp) e apagar objeto (LaMa) |
 | `src/pdf_extra.rs` | Comprimir, senha, PDF → imagens e OCR de PDF |
 | `src/screenrec.rs` | Gravação de tela |
 | `src/ops.rs`, `cli.rs`, `presets.rs` | Núcleo das ferramentas (JSON), linha de comando, servidor MCP e predefinições |
@@ -183,4 +194,4 @@ Também ajuda muito dar uma ⭐ no repositório, relatar problemas e sugerir fer
 
 ## Licença
 
-O código do Conver está sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3), o yt-dlp (Unlicense), o ONNX Runtime (MIT), o whisper.cpp (MIT) e os modelos silueta (MIT/Apache 2.0) e Real-ESRGAN (BSD-3) como componentes separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).
+O código do Conver está sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3), o yt-dlp (Unlicense), o ONNX Runtime (MIT), o whisper.cpp (MIT), o Piper (MIT, com o espeak-ng sob GPL v3), o stable-diffusion.cpp (MIT) e os modelos silueta (MIT/Apache 2.0), Real-ESRGAN (BSD-3) e RNNoise como componentes separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).

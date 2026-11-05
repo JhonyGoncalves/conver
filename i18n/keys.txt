@@ -1,3 +1,5 @@
+✔ Modelo {} pronto neste computador.
+O modelo {} é baixado uma vez, na primeira vez que você usar (a assinatura é conferida).
 não foi possível baixar {label} ({e}).
 Cancelado.
 o download parou ({e}).
@@ -17,6 +19,20 @@ resposta inválida da IA.
 a IA não devolveu texto.
 o modelo de remoção de fundo não foi encontrado (pasta modelos).
 resposta inesperada do modelo.
+o arquivo não tem vídeo.
+nenhuma fala encontrada no vídeo.
+não foi possível salvar a legenda: {e}
+{} palavras • {}
+o reconhecimento de fala não respondeu: {e}
+Preparando o modelo…
+Baixando o modelo… {:.0}%
+nenhuma porta livre para o reconhecimento de fala.
+não foi possível iniciar o reconhecimento de fala: {e}
+o reconhecimento de fala fechou ao carregar o modelo.
+o reconhecimento de fala demorou demais para começar.
+Ouvindo… fale à vontade.
+Parou: {e}
+Parado.
 320 kbps
 192 kbps
 128 kbps
@@ -87,6 +103,16 @@ Os arquivos que você converter ou baixar aparecem nesta lista.
 arquivo não existe mais
 Mostrar na pasta
 Abrir
+Adicione um PDF para ver as páginas.
+Arraste as páginas para mudar a ordem. ⟲ ⟳ giram e × apaga.
+Desfazer tudo
+Girar todas ⟳
+{}  •  pág. {page}
+Girar para a esquerda
+Girar para a direita
+Apagar a página
+{} página(s) no PDF novo{}. O original não é alterado.
+, {removed} apagada(s)
 Juntar PDFs
 Una vários PDFs num só, na ordem da lista.
 Juntar
@@ -108,6 +134,9 @@ Tirar senha
 PDF pesquisável (OCR)
 Reconhece o texto de PDFs escaneados com o OCR do Windows: depois dá para pesquisar, selecionar e copiar.
 Reconhecer texto
+Organizar páginas
+Mude a ordem, gire e apague páginas de um PDF vendo as miniaturas.
+Salvar PDF
 Nome do PDF:
 O PDF final terá {total_pages} páginas. Use ↑ e ↓ para mudar a ordem.
 Modo:
@@ -216,8 +245,6 @@ Copiar tudo
 ✔ Informações copiadas.
 Ver no mapa
 ⚠ Esta foto tem a localização de onde foi tirada. Use "Remover metadados" antes de compartilhar.
-✔ Modelo {} pronto neste computador.
-O modelo {} é baixado uma vez, na primeira vez que você usar (a assinatura é conferida).
 Áudios e vídeos
 Transcrever / legendar
 Transforme a fala de áudios e vídeos em texto e legendas (SRT/VTT) com o Whisper, no seu PC e sem internet.
@@ -291,6 +318,92 @@ Usando: {}
 Concluído: {} ok, {} com erro.
 Salvo em: {}
 Erro.
+Vídeos
+prévia
+Legendas animadas
+Legendas palavra por palavra no estilo Reels e TikTok: a palavra falada fica destacada. Tudo no seu PC, sem internet.
+Estilo:
+Palavra colorida
+Caixa
+Uma palavra por vez
+Cor do destaque:
+Amarelo
+Verde
+Vermelho
+Azul
+Posição:
+Embaixo
+No meio
+Em cima
+Palavras juntas:
+Texto:
+Em maiúsculas
+Salvar também a legenda (.ass)
+O Whisper descobre quando cada palavra é falada; depois a legenda é gravada dentro do vídeo (o original não muda).
+Legendar
+Apagar objeto
+Pinte por cima de um objeto, pessoa, texto ou marca d'água e a IA preenche o fundo. No seu PC, sem internet.
+✖ não foi possível abrir a imagem: {e}
+✔ Pronto. Pinte mais para continuar apagando ou salve a imagem.
+Pincel:
+Limpar
+Ver o original
+Adicione uma imagem para começar.
+A IA está preenchendo…
+Salvar imagem
+✔ Salvo: {}
+✖ não foi possível salvar: {e}
+Voltar ao original
+Apagando…
+Pronto.
+Texto para voz
+Transforme textos e legendas em narração com uma voz natural, no seu PC e sem internet.
+Abrir arquivo…
+Texto e legendas
+{n} caracteres  •  ~{} de fala
+Escreva ou cole o texto aqui (ou arraste um .txt ou uma legenda .srt para a janela).
+Voz:
+Velocidade:
+Devagar
+Normal
+Rápida
+Bem rápida
+✔ Voz pronta neste computador.
+A voz (cerca de 63 MB) é baixada uma vez, na primeira vez que você usar (a assinatura é conferida).
+Gerar narração
+Gerar imagem
+Descreva uma imagem e a IA cria no seu PC, usando a placa de vídeo. Sem internet e sem limite.
+O que a imagem mostra
+ex.: uma cabana de madeira numa floresta com neve ao pôr do sol, luz quente nas janelas
+Evitar:
+opcional: o que não deve aparecer
+Quadrada
+Retrato
+Paisagem
+Melhor (mais lenta)
+Quantas:
+Traduzir o pedido para o inglês com a IA configurada
+O modelo entende melhor pedidos em inglês. Com uma IA configurada em Configurações, o Conver traduz sozinho.
+Usa a placa de vídeo (Vulkan). Numa placa comum, cada imagem leva uns 10 a 20 segundos, mais uns segundos para carregar o modelo.
+Clique para abrir
+Gerar
+Traduzindo o pedido…
+Pedido em inglês: {t}
+Sem tradução ({e}); usando o texto como está.
+Gerando…
+✔ {} imagem(ns) em {}
+Ditado ao vivo
+Fale e o texto aparece na tela enquanto você fala, com o Whisper no seu PC. Para ditar, legendar ao vivo ou fazer anotações.
+Rápido (82 MB)
+Equilibrado (264 MB, mais lento)
+O texto aparece com 1 a 2 segundos de atraso; numa pausa, a frase é confirmada. Nada sai do seu computador.
+●  Ouvindo
+Preparando…
+Parado
+●  Começar a ditar
+O texto ditado aparece aqui. Você pode editar à vontade.
+… {partial}
+✔ Copiado.
 o fluxo tem um ciclo (um node volta para um anterior).
 o fluxo precisa de um nome.
 há dois nodes com o id {}.
@@ -389,7 +502,6 @@ Nenhum ainda: arraste arquivos para a janela ou use os botões abaixo.
 Remover da lista
 + Arquivos…
 + Pasta…
-Limpar
 Pela linha de comando ou pelo MCP, os arquivos passados em flow_run substituem estes.
 ▶  Executar fluxo
 Executando “{}”…
@@ -486,18 +598,20 @@ Branco
 Preto e branco
 Sépia
 Inverter
-Em cima
-Embaixo
 Pequeno
 Grande
 Suave
 Definida
-Vídeos
 Áudios
 PDFs
 Textos
 A4 em pé
 A4 deitado
+descreva a imagem.
+não foi possível criar a pasta: {e}
+não foi possível iniciar o gerador: {e}
+o gerador parou sem salvar a imagem.
+faltou memória na placa de vídeo; tente o formato quadrado. ({why})
 Sem recorte
 Inverter cores
 Informe a largura e/ou a altura.
@@ -556,13 +670,16 @@ Cores
  (com transparência)
 Imagem
 não foi possível ler (danificado ou protegido)
+a máscara precisa ter o tamanho da imagem.
+pinte o que deve ser apagado.
+falha na IA: {e}
+não foi possível abrir a imagem: {e}
 não foi possível consultar o GitHub: {e}
 não foi possível acessar o GitHub: {e}
 falha no download: {e}
 o arquivo baixado não confere com a assinatura publicada; nada foi alterado.
 não foi possível substituir o yt-dlp (está em uso?): {e}
 a versão baixada não funcionou; a anterior foi mantida.
-Pronto.
 Cancelando…
 Iniciando…
 Erro inesperado.
@@ -588,6 +705,7 @@ Remover áudio / frames
 Cortar áudio
 Juntar áudios
 Normalizar volume
+Remover ruído
 PDF → imagens
 Proteger com senha
 Vídeos e músicas
@@ -611,6 +729,7 @@ Ctrl+F
 Pasta vigiada  ●
 Gravador de áudio  ●
 Gravar a tela  ●
+Ditado ao vivo  ●
 Nenhuma ferramenta encontrada.
 ⚙  Configurações
 🕘  Histórico
@@ -675,12 +794,14 @@ adicione pelo menos 2 vídeos.
 {} não tem vídeo.
 {} vídeos • {}{extra} • {}
 {e} — se os vídeos forem diferentes entre si, use "Recodificar"
-o arquivo não tem vídeo.
 {label}×{d}
 áudio removido • {}
 {n} imagens na pasta {}
 o arquivo não tem áudio.
 volume ajustado para {lufs} LUFS
+ruído removido (IA)
+ruído removido (forte)
+chiado removido
 o início passa do fim do vídeo.
 {} → {} • {} fps • {}
 9:16 (Reels/TikTok)
@@ -722,9 +843,9 @@ Criar GIF
 Girar e recortar vídeo
 Gire vídeos gravados de lado ou recorte para 9:16 (Reels/TikTok), 1:1, 4:5 ou 16:9.
 Grave uma legenda (.srt, .ass ou .vtt) dentro do vídeo, para aparecer em qualquer player ou rede social.
-Legendar
 Coloque uma música no vídeo, misturada com o som original ou no lugar dele.
 Una várias músicas ou gravações num arquivo só, na ordem da lista.
+Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.
 Início inválido. Use o formato 00:01:30 (ou só segundos).
 Fim inválido. Use o formato 00:02:45 (ou só segundos).
 O fim precisa ser depois do início.
@@ -753,7 +874,6 @@ Rápido (só emendar)
 Funciona com vídeos diferentes: todos ficam na resolução do primeiro, com bordas se precisar. Salva em MP4.
 Instantâneo, mas só funciona se todos os vídeos tiverem o mesmo formato, resolução e codificação.
 Use ↑ e ↓ na lista para mudar a ordem.
-Velocidade:
 Personalizada:
 Manter o áudio (acelerado/desacelerado junto)
 Remover áudio
@@ -768,6 +888,10 @@ Alto (−14, streaming)
 Padrão (−16)
 Suave (−23, TV)
 Em vídeos, a imagem é copiada sem perda; só o áudio é regravado.
+Força:
+Leve (só chiado)
+Média (IA)
+A opção com IA (RNNoise) foi treinada para voz: limpa bem falas, podcasts e aulas, mas pode abafar música.
 MP3 (compatível)
 OPUS (menor)
 Taxa de bits:
@@ -799,7 +923,6 @@ Nenhuma legenda com o mesmo nome do vídeo selecionado. Escolha o arquivo.
 Cada vídeo usa a legenda com o mesmo nome dele (video.srt), ou escolha uma para todos.
 Tamanho do texto:
 Médio
-Posição:
 Música:
 Todos os arquivos
 Escolha a música
@@ -918,6 +1041,14 @@ adicione pelo menos 2 PDFs.
 intervalo inválido: "{part}". Use algo como 1-3, 7, 10-
 a página {a} não existe (o PDF tem {total}).
 informe as páginas, por exemplo 1-3, 7
+página inválida: "{part}" (o PDF tem {total}).
+informe pelo menos uma página.
+o PDF precisa ficar com pelo menos uma página.
+o PDF não tem a árvore de páginas.
+o PDF não tem a página {n} (tem {total}).
+não foi possível ler a página {n}.
+{n} páginas ({removed} removida(s))
+{n} páginas
 {} de {total} páginas
 {total} PDFs na pasta {}
 {} está protegido por senha; tire a senha antes.
@@ -951,7 +1082,6 @@ falha ao salvar: {}
 o áudio é curto demais (menos de meio segundo).
 {} • {dur}
 {} → {} ({sign}{:.0}%)
-Rápido (82 MB)
 Equilibrado (264 MB)
 Preciso (574 MB)
 Whisper base (82 MB)
@@ -981,6 +1111,20 @@ não foi possível iniciar o Whisper: {e}
 falha no Whisper: {}
 o Whisper não gerou nenhum arquivo.
 {words} palavras • {}
+o Whisper não gerou o resultado.
+Português (Brasil) — Faber, masculina
+Português (Brasil) — Cadu, masculina
+Português (Brasil) — Jeff, masculina
+Inglês (EUA) — Amy, feminina
+Inglês (EUA) — Lessac, feminina
+Espanhol (Espanha) — Davefx, masculina
+Espanhol (México) — Claude, masculina
+Francês — Siwis, feminina
+Alemão — Thorsten, masculina
+Italiano — Paola, feminina
+não foi possível iniciar o Piper: {e}
+o Piper não gerou o áudio.
+não foi possível converter para MP3.
 esta cópia do Conver não foi instalada pelo instalador nem é a portátil; baixe pelo site.
 a versão nova não tem o arquivo para esta cópia do Conver; baixe pelo site.
 a versão nova não publicou as somas de verificação; baixe pelo site.

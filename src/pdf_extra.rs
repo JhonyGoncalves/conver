@@ -246,6 +246,19 @@ fn render_page(doc: &PdfDocument, index: u32, dpi: f32) -> Result<(Vec<u8>, (f32
     .map_err(werr)
 }
 
+/// Miniaturas das páginas (para organizar): chama `each(página, PNG)` para cada uma, da primeira à última.
+pub fn thumbnails(src: &Path, dpi: f32, mut each: impl FnMut(u32, Vec<u8>) -> bool) -> Result<u32, String> {
+    let doc = open_winrt(src, "")?;
+    let total = doc.PageCount().map_err(werr)?;
+    for i in 0..total {
+        let (png, _) = render_page(&doc, i, dpi)?;
+        if !each(i + 1, png) {
+            break;
+        }
+    }
+    Ok(total)
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PageFmt {
     Png,

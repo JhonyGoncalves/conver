@@ -95,11 +95,13 @@ pub struct Levels {
     pub clips: u32,
     pub last_clip: Option<Instant>,
     hold: (f32, Instant),
+    /// O próprio som (mono, 16 kHz), guardado só quando alguém precisa dele (o ditado).
+    pub audio: Option<Vec<f32>>,
 }
 
 impl Default for Levels {
     fn default() -> Self {
-        Self { blocks: VecDeque::new(), samples: 0, clips: 0, last_clip: None, hold: (0.0, Instant::now()) }
+        Self { blocks: VecDeque::new(), samples: 0, clips: 0, last_clip: None, hold: (0.0, Instant::now()), audio: None }
     }
 }
 
@@ -156,8 +158,11 @@ fn read_levels(mut out: impl Read + Send + 'static, meter: Meter, on_tick: impl 
             carry.extend_from_slice(&buf[..got]);
             let whole = carry.len() / 4 * 4;
             let mut blocks = Vec::new();
+            let mut chunk = Vec::with_capacity(whole / 4);
             for c in carry[..whole].chunks_exact(4) {
-                let s = f32::from_le_bytes([c[0], c[1], c[2], c[3]]).abs();
+                let v = f32::from_le_bytes([c[0], c[1], c[2], c[3]]);
+                chunk.push(v);
+                let s = v.abs();
                 peak = peak.max(s);
                 n += 1;
                 if n == BLOCK {
@@ -170,6 +175,9 @@ fn read_levels(mut out: impl Read + Send + 'static, meter: Meter, on_tick: impl 
                 m.samples += (whole / 4) as u64;
                 for b in blocks.iter() {
                     m.push(*b);
+                }
+                if let Some(a) = m.audio.as_mut() {
+                    a.extend_from_slice(&chunk);
                 }
             }
             if !blocks.is_empty() {
@@ -312,6 +320,10 @@ impl Monitor {
 
     /// Escuta qualquer entrada do ffmpeg (o modo de captura e os testes usam um som gerado).
     pub fn start_input(input: &[String], device: &str, on_tick: impl Fn() + Send + 'static) -> Result<Self, String> {
+        Self::start_with(input, device, false, on_tick)
+    }
+
+    pub fn start_with(input: &[String], device: &str, keep: bool, on_tick: impl Fn() + Send + 'static) -> Result<Self, String> {
         let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
         let mut child = tools::command(&ff)
             .args(["-hide_banner", "-nostats", "-loglevel", "error"])
@@ -323,6 +335,9 @@ impl Monitor {
             .spawn()
             .map_err(|e| format!("não foi possível iniciar o ffmpeg: {e}"))?;
         let meter: Meter = Arc::default();
+        if keep {
+            meter.lock().unwrap().audio = Some(Vec::new());
+        }
         read_levels(child.stdout.take().unwrap(), meter.clone(), on_tick);
         let errors = read_errors(child.stderr.take().unwrap());
         Ok(Self { child, meter, errors, device: device.to_string() })

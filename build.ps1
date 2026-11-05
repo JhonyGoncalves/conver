@@ -35,10 +35,18 @@ foreach ($tool in "ffmpeg", "yt-dlp") {
 $extras = @{
     "Conver\bin\onnxruntime.dll"  = "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-win-x64-1.22.0.zip (lib\onnxruntime.dll)"
     "Conver\modelos\silueta.onnx" = "https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx"
+    # remover ruído: modelo do RNNoise (GregorR/rnnoise-models, somnolent-hogwash, sem direitos autorais)
+    "Conver\modelos\rnnoise-sh.rnnn" = "https://raw.githubusercontent.com/GregorR/rnnoise-models/3eee541a283fd3b8f81b85b1748e3b9ccbefa04d/somnolent-hogwash-2018-09-01/sh.rnnn"
     # ampliar com IA: realesr-general-x4v3.pth oficial (xinntao/Real-ESRGAN v0.2.5.0) exportado para ONNX
     "Conver\modelos\realesr-general-x4v3.onnx" = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth (exportar para ONNX)"
     # transcrever: whisper-cli.exe e DLLs do whisper-bin-x64.zip (os modelos são baixados pelo app)
     "Conver\bin\whisper\whisper-cli.exe" = "https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.2/whisper-bin-x64.zip (whisper-cli.exe, whisper.dll, ggml*.dll)"
+    # ditado ao vivo: whisper-server.exe do mesmo pacote
+    "Conver\bin\whisper\whisper-server.exe" = "https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.2/whisper-bin-x64.zip (Release\whisper-server.exe)"
+    # texto para voz: pasta piper do piper_windows_amd64.zip (as vozes são baixadas pelo app)
+    "Conver\bin\piper\piper.exe" = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip (pasta piper, sem pkgconfig)"
+    # gerar imagem: stable-diffusion.cpp com Vulkan (o modelo é baixado pelo app)
+    "Conver\bin\sd\sd-cli.exe" = "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-1050-58bb3c1/sd-master-58bb3c1-bin-win-vulkan-x64.zip (sem sd-server.exe e start-server.*)"
 }
 foreach ($f in $extras.Keys) {
     if (-not (Test-Path $f)) { throw "falta $f - baixe de $($extras[$f])" }

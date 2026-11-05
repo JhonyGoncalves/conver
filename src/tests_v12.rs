@@ -8,14 +8,14 @@ use serde_json::json;
 use crate::imaging::Level;
 use crate::{ops, pdf_extra, tools};
 
-fn tmp(name: &str) -> PathBuf {
+pub(crate) fn tmp(name: &str) -> PathBuf {
     let d = std::env::temp_dir().join("conver_tests").join(name);
     let _ = std::fs::remove_dir_all(&d);
     std::fs::create_dir_all(&d).unwrap();
     d
 }
 
-fn ffmpeg(args: &[&str], cwd: Option<&Path>) {
+pub(crate) fn ffmpeg(args: &[&str], cwd: Option<&Path>) {
     let ff = tools::find_tool("ffmpeg").expect("ffmpeg");
     let mut c = tools::command(&ff);
     c.args(["-y", "-loglevel", "error"]).args(args);
@@ -25,7 +25,7 @@ fn ffmpeg(args: &[&str], cwd: Option<&Path>) {
     assert!(c.status().unwrap().success(), "ffmpeg {args:?}");
 }
 
-fn ctx_call(name: &str, args: serde_json::Value) -> Result<serde_json::Value, String> {
+pub(crate) fn ctx_call(name: &str, args: serde_json::Value) -> Result<serde_json::Value, String> {
     let ctx = ops::Ctx { progress: &|_| {}, cancelled: &|| false, log: &|m| println!("  {m}") };
     ops::call(name, &args, &ctx)
 }
@@ -120,7 +120,7 @@ fn upscale_image() {
 }
 
 /// Fala sintetizada pelo próprio Windows (para testar transcrição e separação).
-fn speech(d: &Path, text: &str) -> PathBuf {
+pub(crate) fn speech(d: &Path, text: &str) -> PathBuf {
     let wav = d.join("fala.wav");
     let script = format!(
         "Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; \

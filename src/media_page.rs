@@ -29,6 +29,7 @@ pub enum MTool {
     Subtitles,
     Music,
     AMerge,
+    Denoise,
 }
 
 impl MTool {
@@ -89,18 +90,23 @@ impl MTool {
                 "Aplicar",
             ),
             MTool::AMerge => ("Juntar áudios", "Una várias músicas ou gravações num arquivo só, na ordem da lista.", "Juntar"),
+            MTool::Denoise => (
+                "Remover ruído",
+                "Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.",
+                "Limpar",
+            ),
         }
     }
 
     fn exts(self) -> &'static [&'static str] {
         match self {
-            MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge => media::MEDIA_EXTS,
+            MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise => media::MEDIA_EXTS,
             _ => video::VIDEO_EXTS,
         }
     }
 
     fn is_audio(self) -> bool {
-        matches!(self, MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge)
+        matches!(self, MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise)
     }
 }
 
@@ -135,6 +141,7 @@ pub struct MediaPage {
     afmt: AFmt,
     aq: VQuality,
     lufs: i32,
+    denoise: media::Denoise,
     acodec: ACodec,
     akbps: u32,
     mono: bool,
@@ -187,6 +194,7 @@ impl MediaPage {
             afmt: AFmt::Mp3,
             aq: VQuality::Alta,
             lufs: -16,
+            denoise: media::Denoise::Media,
             acodec: ACodec::Mp3,
             akbps: 96,
             mono: false,
@@ -367,6 +375,18 @@ impl MediaPage {
                         &[(-14, "Alto (−14, streaming)"), (-16, "Padrão (−16)"), (-23, "Suave (−23, TV)")],
                     );
                 });
+                hint(ui, p, "Em vídeos, a imagem é copiada sem perda; só o áudio é regravado.");
+            }
+            MTool::Denoise => {
+                row(ui, p, "Força:", |ui| {
+                    segmented(
+                        ui,
+                        p,
+                        &mut self.denoise,
+                        &[(media::Denoise::Leve, "Leve (só chiado)"), (media::Denoise::Media, "Média (IA)"), (media::Denoise::Forte, "Forte")],
+                    );
+                });
+                hint(ui, p, "A opção com IA (RNNoise) foi treinada para voz: limpa bem falas, podcasts e aulas, mas pode abafar música.");
                 hint(ui, p, "Em vídeos, a imagem é copiada sem perda; só o áudio é regravado.");
             }
             MTool::ACompress => {
@@ -561,6 +581,7 @@ impl MediaPage {
         let (precise, factor, keep_audio) = (self.precise, self.factor, self.keep_audio);
         let (frames, every, png) = (self.frames, self.every, self.png);
         let (afmt, aq, lufs, acodec, akbps, mono) = (self.afmt, self.aq, self.lufs, self.acodec, self.akbps, self.mono);
+        let denoise = self.denoise;
         let gif_start = video::parse_timecode(&self.gif_start).unwrap_or(0.0);
         let (gif_len, gif_width, gif_fps) = (self.gif_len, self.gif_width, self.gif_fps);
         let (vrotate, vflip, vaspect) = (self.vrotate, self.vflip, self.vaspect);
@@ -580,6 +601,7 @@ impl MediaPage {
                     MTool::AConvert => media::audio_convert(src, out, afmt, aq, progress, &cancelled),
                     MTool::Normalize => media::normalize(src, out, lufs, progress, &cancelled),
                     MTool::ACompress => media::audio_compress(src, out, acodec, akbps, mono, progress, &cancelled),
+                    MTool::Denoise => media::denoise(src, out, denoise, progress, &cancelled),
                     MTool::Gif => media_extra::video_gif(src, out, gif_start, gif_len, gif_width, gif_fps, progress, &cancelled),
                     MTool::VTransform => media_extra::video_transform(src, out, vrotate, vflip, vaspect, progress, &cancelled),
                     MTool::Subtitles => {

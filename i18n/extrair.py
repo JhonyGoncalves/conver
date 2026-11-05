@@ -43,6 +43,10 @@ INTERNAL = {
     "DeviceGray", "ICCBased", "StdCF", "Videos", "Filter", "Width", "Height", "Encoding", "Resources", "Contents",
     "pipe:0", "mcpServers", "ET\\nQ\\n", "UVR-MDX-NET-Inst_HQ_3.onnx", "Authorization", "Bearer {}", "image/jpeg",
     "tool:", "nothing arrived", "{base} {i}", "{}{port}  →  {}", "Documents", "{} {}{main}  •  {}×{}",
+    "Rotate", "Pictures", "Content-Type", "generating image: ", "thank you.", "legendas pela comunidade amara.org",
+    "{}, {BASE_NEGATIVE}", "&H0000E1FF&", "&H00FFB238&", "highpass=f=70,afftdn=nr=18:nf=-30:tn=1", "incrível",
+    "blurry, low quality, deformed, bad anatomy, watermark, text, signature", "multipart/form-data; boundary={boundary}",
+    "Translate the user's image description to English for an image generator. Reply with only the translation.",
 }
 # arquivos que não têm texto de tela: linha de comando/MCP (respondem em JSON e no terminal) e dados
 SKIP_FILES = {"cli.rs", "presets.rs", "search.rs", "captura.rs"}
