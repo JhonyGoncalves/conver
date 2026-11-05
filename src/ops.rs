@@ -758,27 +758,102 @@ fn t_image_erase(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     })
 }
 
-/// Opções das legendas animadas a partir dos argumentos.
+/// Cor "#RRGGBB" ou um nome simples.
+fn color_arg(a: &Args, k: &str) -> Result<Option<[u8; 3]>, String> {
+    use crate::captions::{BLUE, GREEN, RED, WHITE, YELLOW};
+    let Some(v) = a.str(k).map(|v| v.trim().to_lowercase()) else { return Ok(None) };
+    let named = [("yellow", YELLOW), ("green", GREEN), ("red", RED), ("blue", BLUE), ("white", WHITE), ("black", [0, 0, 0])];
+    if let Some((_, c)) = named.iter().find(|(n, _)| *n == v) {
+        return Ok(Some(*c));
+    }
+    let hex = v.trim_start_matches('#');
+    if hex.len() == 6 {
+        if let Ok(n) = u32::from_str_radix(hex, 16) {
+            return Ok(Some([(n >> 16) as u8, (n >> 8) as u8, n as u8]));
+        }
+    }
+    Err(format!("\"{k}\": use uma cor como \"#FFD700\" ou yellow, green, red, blue, white, black (recebido: {v})."))
+}
+
+// i18n: fora
+pub const CAPTION_PRESETS: &[&str] = &["reels", "box", "word", "reveal", "classic", "band"];
+// i18n: dentro
+
+/// Estilo das legendas a partir dos argumentos: começa da predefinição e aplica cada ajuste dado.
 pub fn caption_style(a: &Args) -> Result<crate::captions::Style, String> {
-    use crate::captions::{Look, Place, Style, Tint};
-    Ok(Style {
-        look: a.choice("style", &[("highlight", Look::Destaque), ("box", Look::Caixa), ("word", Look::UmaPalavra)], Look::Destaque)?,
-        place: a.choice("position", &[("bottom", Place::Baixo), ("middle", Place::Meio), ("top", Place::Cima)], Place::Baixo)?,
-        tint: a.choice("color", &[("yellow", Tint::Amarelo), ("green", Tint::Verde), ("red", Tint::Cinabrio), ("blue", Tint::Azul)], Tint::Amarelo)?,
-        words_per_line: a.num_or("words_per_line", 3.0)?.clamp(1.0, 6.0) as usize,
-        uppercase: a.bool_or("uppercase", true)?,
-    })
+    use crate::captions::Effect;
+    let presets = crate::captions::presets();
+    // "style" é o nome antigo (highlight/box/word)
+    let legacy = a.str("style").map(|s| if s == "highlight" { "reels".to_string() } else { s });
+    let name = a.str("preset").or(legacy).unwrap_or_else(|| "reels".into());
+    let i = CAPTION_PRESETS
+        .iter()
+        .position(|p| *p == name)
+        .ok_or_else(|| format!("\"preset\": use {} (recebido: {name}).", CAPTION_PRESETS.join(", ")))?;
+    let mut st = presets[i].1.clone();
+    st.animated = a.bool_or("animated", st.animated)?;
+    st.effect = a.choice("effect", &[("color", Effect::Cor), ("box", Effect::Caixa), ("reveal", Effect::Revelar)], st.effect)?;
+    st.pop = a.bool_or("pop", st.pop)?;
+    if let Some(f) = a.str("font").filter(|f| !f.trim().is_empty()) {
+        st.font = f.trim().to_string();
+    }
+    st.size = a.num_or("font_size", st.size as f64)?.clamp(1.5, 20.0) as f32;
+    st.bold = a.bool_or("bold", st.bold)?;
+    st.italic = a.bool_or("italic", st.italic)?;
+    st.uppercase = a.bool_or("uppercase", st.uppercase)?;
+    st.words_per_line = a.num_or("words_per_line", st.words_per_line as f64)?.clamp(1.0, 12.0) as usize;
+    if let Some(c) = color_arg(a, "text_color")? {
+        st.text = c;
+    }
+    // "color" é o nome antigo da cor do destaque
+    if let Some(c) = color_arg(a, "highlight_color")?.or(color_arg(a, "color")?) {
+        st.highlight = c;
+    }
+    if let Some(c) = color_arg(a, "outline_color")? {
+        st.outline_color = c;
+    }
+    st.outline = a.num_or("outline", st.outline as f64)?.clamp(0.0, 40.0) as f32;
+    st.shadow = a.num_or("shadow", st.shadow as f64)?.clamp(0.0, 40.0) as f32;
+    match a.str("background_color").map(|v| v.trim().to_lowercase()) {
+        Some(v) if v == "none" || v.is_empty() => st.background = false,
+        Some(_) => {
+            st.background = true;
+            st.back_color = color_arg(a, "background_color")?.unwrap_or(st.back_color);
+        }
+        None => {}
+    }
+    st.back_opacity = a.num_or("background_opacity", st.back_opacity as f64)?.clamp(0.0, 100.0) as u8;
+    st.y = a.choice("position", &[("bottom", 80.0), ("middle", 50.0), ("top", 14.0)], st.y)?;
+    st.x = a.num_or("x", st.x as f64)?.clamp(0.0, 100.0) as f32;
+    st.y = a.num_or("y", st.y as f64)?.clamp(0.0, 100.0) as f32;
+    Ok(st)
 }
 
 fn t_captions(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::captions::Source;
     use transcribe::WModel;
-    let files = filter_ext(a.files()?, video::VIDEO_EXTS)?;
+    let all = a.files()?;
+    // legendas que vieram junto (.srt/.vtt com o mesmo nome do vídeo) ou em "subtitle_file": usa o texto delas
+    let mut subs: Vec<PathBuf> = all.iter().filter(|f| matches!(tools::ext_lower(f).as_str(), "srt" | "vtt")).cloned().collect();
+    subs.extend(a.str("subtitle_file").map(PathBuf::from));
+    let files = filter_ext(all, video::VIDEO_EXTS)?;
     let model = a.choice("model", &[("fast", WModel::Rapido), ("balanced", WModel::Equilibrado), ("accurate", WModel::Preciso)], WModel::Rapido)?;
     let lang = a.str_or("language", "auto");
     let style = caption_style(a)?;
     let keep = a.bool_or("keep_ass", false)?;
     let out = a.out_dir()?;
-    batch("Legendas animadas", &files, ctx, |f, p| crate::captions::animated(f, out.as_deref(), model, &lang, style, keep, p, ctx.cancelled))
+    let single = files.len() == 1 && subs.len() == 1;
+    let stem = |f: &Path| f.file_stem().map(|s| s.to_string_lossy().to_lowercase());
+    batch("Legendas", &files, ctx, |f, p| {
+        let source = match subs.iter().find(|s| single || stem(s) == stem(f)) {
+            Some(s) => {
+                let text = std::fs::read_to_string(s).map_err(|e| format!("não foi possível ler a legenda: {e}"))?;
+                Source::Cues(crate::captions::parse_subtitle(&text))
+            }
+            None => Source::Transcribe { model, lang: lang.clone() },
+        };
+        crate::captions::burn(f, out.as_deref(), source, &style, keep, p, ctx.cancelled)
+    })
 }
 
 fn t_pdf_organize(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
@@ -1178,13 +1253,27 @@ pub static TOOLS: &[Tool] = &[
     tool!("image_erase", "Apagar objeto", "Erase objects, people, text or watermarks from images with a local AI (LaMa inpainting, 208 MB downloaded on first use): the area is filled with what would be behind it. Give rectangles in \"regions\" or a mask image.",
         schema(json!({ "files": files_prop("images"), "regions": json!({ "type": "array", "items": { "type": "array", "items": { "type": "integer" } }, "description": "Rectangles to erase, each [x, y, width, height] in image pixels." }),
             "mask": str_prop("Mask image path (white = erase), instead of regions.") }), &["files"]), t_image_erase),
-    tool!("video_animated_captions", "Legendas animadas", "Burn word-by-word animated captions (Reels/TikTok style) into videos: Whisper finds when each word is spoken (offline) and the spoken word is highlighted.",
-        schema(json!({ "files": files_prop("videos"), "model": enum_prop("Whisper model: fast, balanced or accurate.", &["fast", "balanced", "accurate"], "fast"),
+    tool!("video_captions", "Legendas", "Burn captions into videos, animated word by word (Reels/TikTok style) or as plain lines. Whisper finds when each word is spoken (offline), or the text comes from a .srt/.vtt given in files (same name as the video) or in subtitle_file, so a corrected subtitle can be used. Start from a preset and override any detail: font, size, colors, outline, shadow, background band, position.",
+        schema(json!({ "files": files_prop("videos (and optionally their .srt/.vtt subtitles)"),
+            "preset": enum_prop("Starting style: reels (spoken word changes color), box (colored box behind the word), word (one big word at a time), reveal (words appear as spoken), classic (plain lines), band (plain lines on a dark band).", CAPTION_PRESETS, "reels"),
+            "animated": bool_prop("Highlight word by word (false: plain lines). Default comes from the preset.", true),
+            "effect": enum_prop("When animated: color (spoken word changes color), box (box behind it) or reveal (words appear as spoken).", &["color", "box", "reveal"], "color"),
+            "pop": bool_prop("Small pop when each word starts.", true),
+            "font": str_prop("Font installed in Windows, e.g. \"Segoe UI Black\", \"Arial\", \"Impact\"."),
+            "font_size": num_prop("Font size in % of the video height (vertical videos: of 16/9 of the width). Reels preset: 6.2."),
+            "bold": bool_prop("Bold.", true), "italic": bool_prop("Italic.", false), "uppercase": bool_prop("Uppercase text.", true),
+            "words_per_line": int_prop("Words shown together.", 1, 12, 3),
+            "text_color": str_prop("Text color: \"#RRGGBB\" or white, yellow, green, red, blue, black."),
+            "highlight_color": str_prop("Color of the spoken word (or of its box)."),
+            "outline_color": str_prop("Outline color."), "outline": num_prop("Outline thickness in % of the font size (0-40)."),
+            "shadow": num_prop("Shadow distance in % of the font size (0-40)."),
+            "background_color": str_prop("Band behind the text (\"#RRGGBB\"), or \"none\"."), "background_opacity": int_prop("Band opacity, 0-100.", 0, 100, 65),
+            "position": enum_prop("Quick vertical position (x/y override it).", &["bottom", "middle", "top"], "bottom"),
+            "x": num_prop("Horizontal center of the captions in % of the width (50 = middle)."),
+            "y": num_prop("Vertical center of the captions in % of the height (80 = lower part)."),
+            "subtitle_file": str_prop("A .srt/.vtt with the text to use instead of transcribing (for one video)."),
+            "model": enum_prop("Whisper model: fast, balanced or accurate.", &["fast", "balanced", "accurate"], "fast"),
             "language": str_prop("Spoken language code like \"pt\" or \"auto\" (default)."),
-            "style": enum_prop("highlight (word changes color), box (colored box behind the word) or word (one big word at a time).", &["highlight", "box", "word"], "highlight"),
-            "position": enum_prop("Where the captions go.", &["bottom", "middle", "top"], "bottom"),
-            "color": enum_prop("Highlight color.", &["yellow", "green", "red", "blue"], "yellow"),
-            "words_per_line": int_prop("Words shown together.", 1, 6, 3), "uppercase": bool_prop("Uppercase text.", true),
             "keep_ass": bool_prop("Also keep the .ass subtitle file next to the video.", false) }), &["files"]), t_captions),
     tool!("pdf_organize", "Organizar páginas", "Reorder, rotate and delete PDF pages. \"order\" lists the pages of the new PDF (e.g. \"3, 1, 2, 5-8\"; pages left out are deleted, a page may repeat); \"rotate\" maps original page numbers to extra degrees (e.g. {\"2\": 90}).",
         schema(json!({ "files": files_prop("PDF (only the first is used)"), "order": str_prop("New page order, e.g. \"3, 1, 2-5\" (default: all, unchanged)."),
@@ -1250,6 +1339,8 @@ pub static TOOLS: &[Tool] = &[
 
 pub fn find(name: &str) -> Option<&'static Tool> {
     let n = name.trim().to_lowercase().replace('-', "_");
+    // nomes antigos continuam valendo (fluxos e predefinições salvos)
+    let n = if n == "video_animated_captions" { "video_captions".to_string() } else { n };
     TOOLS.iter().find(|t| t.name == n)
 }
 

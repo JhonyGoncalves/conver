@@ -92,7 +92,7 @@ pub fn keywords(id: &str) -> &'static str {
         "v_transform" => "girar video rotacionar virar espelhar recortar vertical reels tiktok shorts 9 16 quadrado rotate crop",
         "v_gif" => "gif animado video para gif converter gif meme animacao animated",
         "v_subs" => "legenda queimar legenda embutir legenda srt ass vtt colocar legenda subtitulo subtitles burn hardsub caption",
-        "v_captions" => "legendas animadas legenda animada palavra por palavra reels tiktok shorts karaoke legenda automatica destaque captions animated subtitles word by word",
+        "v_captions" => "legendas legenda animada palavra por palavra reels tiktok shorts karaoke legenda automatica corrigir legenda editar srt destaque captions animated subtitles word by word",
         "v_music" => "musica de fundo trilha sonora adicionar musica audio background music soundtrack",
         "v_audioframes" => "remover audio tirar som mudo silenciar extrair frames quadros fotos do video capturas mute remove audio frames screenshots",
         "screen" => "gravar tela gravador de tela captura de tela video da tela screen recorder record screen capture",

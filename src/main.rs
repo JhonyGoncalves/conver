@@ -5,6 +5,7 @@ mod ai;
 mod ai_api;
 mod bgremove;
 mod captions;
+mod captions_page;
 mod captura;
 mod cli;
 mod dictation;
@@ -208,7 +209,7 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Media(MTool::VTransform), "Girar / recortar"),
             (Page::Media(MTool::Gif), "Vídeo → GIF"),
             (Page::Media(MTool::Subtitles), "Queimar legenda"),
-            (Page::Captions, "Legendas animadas"),
+            (Page::Captions, "Legendas"),
             (Page::Media(MTool::Music), "Música de fundo"),
             (Page::Media(MTool::AudioFrames), "Remover áudio / frames"),
             (Page::Screen, "Gravar a tela"),
@@ -292,7 +293,7 @@ struct ConverApp {
     screen: ScreenPage,
     presets: PresetsPage,
     flows: flows_page::FlowsPage,
-    captions: extras5::CaptionsPage,
+    captions: captions_page::CaptionsPage,
     eraser: extras5::EraserPage,
     tts: extras5::TtsPage,
     imagegen: extras5::ImageGenPage,
@@ -363,7 +364,7 @@ impl ConverApp {
             screen: ScreenPage::new(),
             presets: PresetsPage::new(),
             flows: flows_page::FlowsPage::new(),
-            captions: extras5::CaptionsPage::new(),
+            captions: captions_page::CaptionsPage::new(),
             eraser: extras5::EraserPage::new(),
             tts: extras5::TtsPage::new(),
             imagegen: extras5::ImageGenPage::new(),

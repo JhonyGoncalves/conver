@@ -1,8 +1,8 @@
-//! Testes da leva 1.5: remover ruído, organizar páginas do PDF e legendas animadas.
+//! Testes da leva 1.5: remover ruído, organizar páginas do PDF e legendas.
 
 use serde_json::json;
 
-use crate::captions::{self, Look, Place, Style, Tint};
+use crate::captions::{self, Cue, Effect, Style};
 use crate::tests_v12::{ctx_call, ffmpeg, speech, tmp};
 use crate::transcribe::{WModel, Word};
 
@@ -79,17 +79,109 @@ fn pdf_organize_pages() {
 fn captions_ass_build() {
     let w = |t: &str, s: f64, e: f64| Word { start: s, end: e, text: t.into() };
     let words = vec![w("Olá,", 0.0, 0.3), w("isto", 0.35, 0.6), w("é", 0.62, 0.7), w("um", 0.72, 0.8), w("teste.", 0.85, 1.2), w("Depois", 2.5, 2.8)];
-    let ass = captions::build_ass(&words, 1080, 1920, Style { look: Look::Destaque, place: Place::Baixo, tint: Tint::Amarelo, words_per_line: 3, uppercase: true });
+    let cues = captions::cues_from_words(&words);
+    assert_eq!(cues.len(), 2, "a frase termina no ponto e a pausa começa outra");
+    assert_eq!(cues[0].text, "Olá, isto é um teste.");
+    assert!((cues[0].end - 1.55).abs() < 0.01, "fica um pouco depois da última palavra: {}", cues[0].end);
+    let ass = captions::build_ass(&cues, 1080, 1920, &Style::default());
     let lines: Vec<&str> = ass.lines().filter(|l| l.starts_with("Dialogue:")).collect();
     println!("{}", lines.join("\n"));
     assert_eq!(lines.len(), 6, "uma linha por palavra");
     assert!(lines[0].contains("OLÁ,") && lines[0].contains("ISTO") && lines[0].contains("É") && !lines[0].contains("UM"), "grupo de 3");
-    assert!(lines[3].contains("UM") && lines[3].contains("TESTE.") && !lines[3].contains("DEPOIS"), "a frase termina no ponto");
-    assert!(lines[5].contains("DEPOIS"), "a pausa longa começa outro grupo");
+    assert!(lines[3].contains("UM") && lines[3].contains("TESTE.") && !lines[3].contains("DEPOIS"));
     assert!(lines[0].contains("0:00:00.00,0:00:00.35"), "fica destacada até a próxima palavra");
-    assert!(ass.contains("PlayResX: 1080") && ass.contains("Alignment") && ass.contains("&H0000E1FF&"));
-    let one = captions::build_ass(&words, 1920, 1080, Style { look: Look::UmaPalavra, ..Default::default() });
-    assert!(one.lines().filter(|l| l.starts_with("Dialogue:")).all(|l| l.split(",,").last().unwrap().split(' ').count() == 1));
+    assert!(lines[0].contains("\\an5\\pos(540,1536)"), "posição no centro, a 80% da altura");
+    assert!(ass.contains("PlayResX: 1080") && ass.contains("&H0000E1FF&") && ass.contains("Segoe UI Black"));
+    // uma palavra por vez
+    let one = captions::build_ass(&cues, 1920, 1080, &captions::presets()[2].1);
+    assert!(one.lines().filter(|l| l.starts_with("Dialogue:")).all(|l| l.rsplit('}').next().unwrap().split(' ').count() == 1));
+    // legenda parada: uma linha por grupo, sem destaque
+    let plain = Style { animated: false, words_per_line: 4, ..Style::default() };
+    let still = captions::build_ass(&cues, 1080, 1920, &plain);
+    let sl: Vec<&str> = still.lines().filter(|l| l.starts_with("Dialogue:")).collect();
+    assert_eq!(sl.len(), 3, "{sl:?}");
+    assert!(sl.iter().all(|l| !l.contains("\\c&H")), "sem cor de destaque");
+    // aparecendo: as palavras seguintes ficam invisíveis
+    let rev = captions::build_ass(&cues, 1080, 1920, &Style { effect: Effect::Revelar, ..Style::default() });
+    assert!(rev.lines().find(|l| l.starts_with("Dialogue:")).unwrap().matches("\\alpha&HFF&").count() == 2);
+    // faixa atrás do texto: BorderStyle 3 com a cor e a opacidade da faixa
+    let band = captions::build_ass(&cues, 1080, 1920, &captions::presets()[5].1);
+    assert!(band.contains(",3,") && band.contains("&H5A000000&"), "{}", band.lines().find(|l| l.starts_with("Style:")).unwrap());
+}
+
+#[test]
+fn captions_edit_and_srt() {
+    let w = |t: &str, s: f64, e: f64| Word { start: s, end: e, text: t.into() };
+    let orig = vec![w("ola", 1.0, 1.3), w("mundo", 1.4, 1.9), w("bonito", 2.0, 2.6)];
+    // corrigiu a grafia: o tempo de cada palavra é o do Whisper
+    let fixed = Cue { start: 1.0, end: 2.9, text: "Olá mundo bonito".into(), words: orig.clone() };
+    let cw = captions::cue_words(&fixed);
+    assert_eq!(cw.iter().map(|w| w.text.as_str()).collect::<Vec<_>>(), ["Olá", "mundo", "bonito"]);
+    assert!((cw[1].start - 1.4).abs() < 1e-6 && (cw[2].start - 2.0).abs() < 1e-6);
+    // mudou o número de palavras: o tempo é repartido dentro da frase
+    let changed = Cue { text: "Olá mundo tão bonito".into(), ..fixed.clone() };
+    let cw = captions::cue_words(&changed);
+    assert_eq!(cw.len(), 4);
+    assert!((cw[0].start - 1.0).abs() < 1e-6 && (cw[3].end - 2.9).abs() < 1e-6 && cw.windows(2).all(|p| p[1].start >= p[0].start));
+    // a frase foi adiantada: as palavras acompanham
+    let moved = Cue { start: 0.5, end: 2.4, ..fixed.clone() };
+    assert!((captions::cue_words(&moved)[1].start - 0.9).abs() < 1e-6);
+    // .srt de ida e volta, com tags e um .vtt
+    let srt = captions::to_srt(&[fixed.clone(), Cue { start: 3.25, end: 4.0, text: "Segunda frase".into(), words: vec![] }]);
+    assert!(srt.contains("00:00:01,000 --> 00:00:02,900\nOlá mundo bonito"), "{srt}");
+    let back = captions::parse_subtitle(&srt);
+    assert_eq!(back.len(), 2);
+    assert!((back[1].start - 3.25).abs() < 1e-6 && back[1].text == "Segunda frase");
+    let vtt = captions::parse_subtitle("WEBVTT\n\n00:01.500 --> 00:03.000 align:middle\n<i>Linha um</i>\nlinha dois\n");
+    assert_eq!(vtt.len(), 1);
+    assert!((vtt[0].start - 1.5).abs() < 1e-6 && vtt[0].text == "Linha um linha dois", "{vtt:?}");
+}
+
+#[test]
+fn captions_style_args() {
+    let m = json!({ "preset": "classic", "text_color": "#112233", "highlight_color": "green", "x": 30, "y": 20, "font": "Arial", "font_size": 5, "background_color": "#000000", "background_opacity": 40 });
+    let st = crate::ops::caption_style(&crate::ops::Args(m.as_object().unwrap())).unwrap();
+    assert!(!st.animated && st.text == [0x11, 0x22, 0x33] && st.highlight == captions::GREEN && st.font == "Arial");
+    assert!(st.x == 30.0 && st.y == 20.0 && st.size == 5.0 && st.background && st.back_opacity == 40);
+    // nomes antigos: style/color/position
+    let m = json!({ "style": "box", "color": "red", "position": "top" });
+    let st = crate::ops::caption_style(&crate::ops::Args(m.as_object().unwrap())).unwrap();
+    assert!(st.animated && st.effect == Effect::Caixa && st.highlight == captions::RED && st.y == 14.0);
+    assert!(crate::ops::caption_style(&crate::ops::Args(json!({ "text_color": "roxo" }).as_object().unwrap())).is_err());
+    assert!(crate::ops::find("video_animated_captions").is_some_and(|t| t.name == "video_captions"));
+}
+
+#[test]
+fn captions_preview_and_srt_burn() {
+    let d = tmp("legendas_srt");
+    // prévia de verdade (fundo liso): a faixa escura aparece embaixo, e a legenda muda de lugar com y
+    let band = captions::presets()[5].1.clone();
+    let png = captions::render_preview(None, 0.0, (1080, 1920), "Teste de prévia", None, &band, 640).unwrap();
+    let img = image::load_from_memory(&png).unwrap().to_rgb8();
+    assert_eq!(img.height(), 640);
+    let dark = |img: &image::RgbImage, y: u32| (0..img.width()).filter(|&x| img.get_pixel(x, y)[0] < 20).count();
+    let y88 = (640.0 * 0.88) as u32;
+    assert!(dark(&img, y88) > 40 && dark(&img, 100) == 0, "faixa no lugar certo: {} / {}", dark(&img, y88), dark(&img, 100));
+    let top = Style { y: 15.0, ..band };
+    let img = image::load_from_memory(&captions::render_preview(None, 0.0, (1080, 1920), "Teste de prévia", None, &top, 640).unwrap()).unwrap().to_rgb8();
+    assert!(dark(&img, (640.0 * 0.15) as u32) > 40 && dark(&img, y88) == 0, "a faixa subiu com y");
+    // gravar com uma legenda .srt corrigida (sem transcrever): vídeo + .srt de mesmo nome
+    let vid = d.join("clipe.mp4");
+    ffmpeg(&["-f", "lavfi", "-i", "color=c=0x223344:s=360x640:r=30:d=3", "-f", "lavfi", "-i", "sine=d=3", "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", &vid.to_string_lossy()], None);
+    std::fs::write(d.join("clipe.srt"), "1\n00:00:00,200 --> 00:00:01,400\nPalavra certa aqui\n\n2\n00:00:01,500 --> 00:00:02,800\nOutra frase\n").unwrap();
+    let r = ctx_call("video_captions", json!({ "files": [vid.display().to_string(), d.join("clipe.srt").display().to_string()], "preset": "reveal", "highlight_color": "#FF00FF", "keep_ass": true })).unwrap();
+    println!("{r}");
+    assert_eq!(r["ok"], 1, "{r}");
+    let out = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
+    assert!(crate::video::probe(&out).size == Some((360, 640)));
+    let ass = std::fs::read_to_string(d.join("clipe_legenda.ass")).unwrap();
+    assert!(ass.contains("PALAVRA") && ass.contains("OUTRA") && ass.contains("&H00FF00FF&"), "usou o texto do .srt e a cor pedida");
+    // o quadro de 1 s tem a cor do destaque (magenta) desenhada
+    let frame = d.join("quadro.png");
+    ffmpeg(&["-ss", "1.0", "-i", &out.to_string_lossy(), "-frames:v", "1", &frame.to_string_lossy()], None);
+    let f = image::open(&frame).unwrap().to_rgb8();
+    let magenta = f.pixels().filter(|p| p[0] > 200 && p[1] < 80 && p[2] > 200).count();
+    assert!(magenta > 50, "palavra destacada no vídeo: {magenta} pixels");
 }
 
 #[test]
@@ -109,7 +201,7 @@ fn captions_burn_video() {
     let out = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
     let p = crate::video::probe(&out);
     assert!(p.has_video && p.has_audio && p.size == Some((540, 960)), "{p:?}");
-    assert!(d.join("reels_legendas_animadas.ass").is_file());
+    assert!(d.join("reels_legenda.ass").is_file());
 }
 
 #[test]

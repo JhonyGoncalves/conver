@@ -1,5 +1,16 @@
 # Lista de mudanças
 
+## 1.5.1
+
+### Melhorias
+- **Legendas** (antes "Legendas animadas"):
+  - **modo manual:** "Revisar o texto antes" transcreve o vídeo e mostra as frases para corrigir o texto e os tempos, apagar ou criar frases, e só depois grava no vídeo. Também abre uma legenda .srt/.vtt pronta e salva o texto corrigido em .srt;
+  - **animação opcional:** legendas paradas, como as comuns, ou animadas palavra por palavra, com três efeitos (palavra colorida, caixa e "aparecendo") e o pulinho opcional;
+  - **seis estilos prontos** (Reels, Caixa colorida, Uma palavra por vez, Aparecendo, Clássica, Faixa escura) e **estilos salvos** com o nome que você quiser;
+  - **ajuste fino:** fonte, tamanho, negrito, itálico, cor do texto, do destaque e do contorno, espessura do contorno, sombra, faixa atrás do texto (cor e opacidade) e posição livre (clique ou arraste na prévia);
+  - **prévia de verdade:** um quadro do próprio vídeo com a legenda desenhada pelo mesmo ffmpeg que grava, e o estilo escolhido fica salvo para a próxima vez.
+- MCP e linha de comando: a ferramenta agora se chama `video_captions` (o nome antigo continua funcionando), com `preset`, `animated`, `effect`, cores em `#RRGGBB`, `font`, `font_size`, `outline`, `shadow`, `background_color`, `x`/`y` e `subtitle_file`. Um .srt com o mesmo nome do vídeo nos arquivos é usado no lugar da transcrição, para gravar uma legenda corrigida.
+
 ## 1.5.0
 
 ### Novidades (IA no próprio PC, sem internet depois de baixar o modelo)

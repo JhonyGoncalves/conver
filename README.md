@@ -49,7 +49,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Cortar trecho, juntar vídeos, mudar velocidade (0,25× a 4×)
 - Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
 - Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
-- **Legendas animadas** no estilo Reels/TikTok: palavra por palavra, com a palavra falada em destaque
+- **Legendas** com o Whisper: automáticas ou revisando o texto antes, paradas ou animadas palavra por palavra (estilo Reels/TikTok), com estilos prontos e ajuste de fonte, cores, contorno, faixa e posição
 - Remover o áudio ou extrair frames
 - **Gravar a tela** (inteira, um monitor, uma janela ou uma área) em MP4, com ou sem microfone, com prévia ao vivo, pausa e escolha de qualidade e resolução
 
@@ -173,7 +173,7 @@ Para só rodar durante o desenvolvimento: `cargo run --release` (com `ffmpeg.exe
 | `src/download.rs` | Downloads com o yt-dlp |
 | `src/pdf.rs`, `ocr.rs`, `info.rs`, `recorder.rs` | PDF, OCR, informações e gravador |
 | `src/bgremove.rs`, `upscale.rs`, `separate.rs`, `ai.rs` | IA: remover fundo, ampliar, separar voz; ONNX Runtime e download de modelos |
-| `src/transcribe.rs`, `dictation.rs`, `captions.rs` | Transcrição com o whisper.cpp, ditado ao vivo e legendas animadas |
+| `src/transcribe.rs`, `dictation.rs`, `captions.rs` | Transcrição com o whisper.cpp, ditado ao vivo e legendas (tela em `captions_page.rs`) |
 | `src/tts.rs`, `imagegen.rs`, `inpaint.rs` | Texto para voz (Piper), gerar imagem (stable-diffusion.cpp) e apagar objeto (LaMa) |
 | `src/pdf_extra.rs` | Comprimir, senha, PDF → imagens e OCR de PDF |
 | `src/screenrec.rs` | Gravação de tela |

@@ -61,7 +61,9 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
 - IA: `ai.rs` (ambiente ONNX compartilhado e download de modelos com SHA-256), `upscale.rs` (Real-ESRGAN em blocos),
   `separate.rs` (UVR MDX-Net com STFT própria via realfft), `transcribe.rs` (whisper-cli em `bin\whisper`; também o
   tempo de cada palavra, `word_timestamps`).
-- IA 1.5: `captions.rs` (legendas animadas: monta um .ass com uma linha por palavra e queima com o ffmpeg),
+- IA 1.5: `captions.rs` (legendas: frases `Cue` editáveis, `Style` com predefinições, .ass com `\pos` e, se animada,
+  uma linha por palavra; `render_preview` desenha um quadro com o próprio ffmpeg; tela em `captions_page.rs`,
+  estilo salvo em `legendas.json`; op `video_captions`, alias `video_animated_captions`),
   `dictation.rs` (ditado ao vivo: sobe o `whisper-server` numa porta livre e manda trechos do microfone por HTTP),
   `tts.rs` (Piper como processo, `VOICES` com revisão fixa do Hugging Face), `imagegen.rs` (`sd-cli` com
   `--sampling-method lcm`, Vulkan), `inpaint.rs` (LaMa em 512×512 recortado em volta da máscara). Telas em `extras5.rs`.
