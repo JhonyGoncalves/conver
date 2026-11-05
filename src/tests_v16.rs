@@ -343,3 +343,16 @@ fn image_generate() {
         assert_eq!(image::image_dimensions(&f).unwrap(), (512, 768));
     }
 }
+
+#[test]
+fn transcript_tidy() {
+    use crate::transcribe::{tidy, tidy_line};
+    assert_eq!(tidy_line(" (upbeat music)"), "");
+    assert_eq!(tidy_line(" - Wow, that's [laughs] great ♪"), "Wow, that's great");
+    let srt = "1\n00:00:00,000 --> 00:00:02,580\n (upbeat music)\n\n2\n00:00:06,860 --> 00:00:09,600\n - Wow, that's it?\n\n3\n00:00:10,000 --> 00:00:11,000\n Second\n";
+    let out = tidy("srt", srt);
+    assert_eq!(out, "1\n00:00:06,860 --> 00:00:09,600\nWow, that's it?\n\n2\n00:00:10,000 --> 00:00:11,000\nSecond\n", "{out}");
+    let vtt = tidy("vtt", "WEBVTT\n\n00:00.000 --> 00:02.000\n[Música]\n\n00:02.000 --> 00:03.000\nOlá\n");
+    assert_eq!(vtt, "WEBVTT\n\n00:02.000 --> 00:03.000\nOlá\n");
+    assert_eq!(tidy("txt", " (music)\n Hello there.\n"), "Hello there.\n");
+}

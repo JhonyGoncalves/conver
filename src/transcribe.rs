@@ -183,6 +183,10 @@ pub fn transcribe(
             let _ = std::fs::remove_file(&tmp);
             continue;
         }
+        // tira as marcações de som que o Whisper escreve, como "(upbeat music)" ou "[Música]"
+        if let Ok(text) = std::fs::read_to_string(&tmp) {
+            let _ = std::fs::write(&tmp, tidy(ext, &text));
+        }
         if ext == "txt" {
             words = std::fs::read_to_string(&tmp).map(|t| t.split_whitespace().count()).unwrap_or(0);
         }
@@ -200,6 +204,54 @@ pub fn transcribe(
     let names: Vec<String> = saved.iter().map(|p| tools::ext_lower(p).to_uppercase()).collect();
     Ok((format!("{words} palavras • {}", names.join(" + ")), saved.remove(0)))
 }
+
+/// Uma linha sem as marcações de som (trechos entre parênteses ou colchetes, ♪) e sem o travessão de troca de quem fala.
+pub fn tidy_line(line: &str) -> String {
+    let mut out = String::new();
+    let mut depth = 0i32;
+    for ch in line.chars() {
+        match ch {
+            '(' | '[' => depth += 1,
+            ')' | ']' => depth = (depth - 1).max(0),
+            '♪' | '♫' => {}
+            c if depth == 0 => out.push(c),
+            _ => {}
+        }
+    }
+    let t = out.split_whitespace().collect::<Vec<_>>().join(" ");
+    t.trim_start_matches(['-', '–', '—']).trim().to_string()
+}
+
+/// Limpa um .txt, .srt ou .vtt do Whisper: linhas de texto passam por `tidy_line`; blocos de legenda que ficam
+/// vazios saem (e o .srt é renumerado).
+// i18n: fora
+pub fn tidy(ext: &str, text: &str) -> String {
+    if ext == "txt" {
+        return text.lines().map(tidy_line).filter(|l| !l.is_empty()).collect::<Vec<_>>().join("\n") + "\n";
+    }
+    let text = text.replace("\r\n", "\n");
+    let mut out: Vec<String> = Vec::new();
+    let mut n = 0;
+    for block in text.split("\n\n") {
+        let lines: Vec<&str> = block.lines().collect();
+        let Some(i) = lines.iter().position(|l| l.contains("-->")) else {
+            // cabeçalho do .vtt
+            if !block.trim().is_empty() && ext == "vtt" {
+                out.push(block.trim().to_string());
+            }
+            continue;
+        };
+        let body: Vec<String> = lines[i + 1..].iter().map(|l| tidy_line(l)).filter(|l| !l.is_empty()).collect();
+        if body.is_empty() {
+            continue;
+        }
+        n += 1;
+        let head = if ext == "srt" { format!("{n}\n") } else { String::new() };
+        out.push(format!("{head}{}\n{}", lines[i], body.join("\n")));
+    }
+    out.join("\n\n") + "\n"
+}
+// i18n: dentro
 
 /// Uma palavra falada, com início e fim em segundos.
 #[derive(Clone, Debug, PartialEq)]

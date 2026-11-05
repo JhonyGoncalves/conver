@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 1.5.2
+
+### Correções
+- **Transcrever / legendar:** o .txt, o .srt e o .vtt não trazem mais as marcações de som do Whisper, como "(upbeat music)" ou "[Música]", nem o travessão de troca de quem fala. Assim, a legenda gravada a partir do .srt não mostra mais esses textos.
+
 ## 1.5.1
 
 ### Melhorias
