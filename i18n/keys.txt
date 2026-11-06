@@ -157,6 +157,19 @@ a IA não devolveu o vetor esperado.
 não foi possível ler um quadro do vídeo.
 não foi possível abrir a imagem: {e}
 o item não tem texto.
+corte {}: "{}" inválido (use segundos ou 1:30).
+corte {}: era esperado um objeto com "start" e "end".
+corte {}: campo desconhecido "{}".
+corte {}: falta "start".
+corte {}: o fim precisa ser depois do início.
+corte {}: "action" deve ser "keep" ou "remove".
+JSON inválido: {}
+campo desconhecido "{}".
+falta a lista "cuts".
+a lista "cuts" está vazia.
+"output" deve ser "together" ou "separate".
+"precise" deve ser true ou false.
+não foi possível ler {}: {}
 o reconhecimento de fala não respondeu: {e}
 Preparando o modelo…
 Baixando o modelo… {:.0}%
@@ -769,6 +782,7 @@ Imagem
 Áudio
 Vídeo
 Legenda
+Arquivo de cortes
 #ffffff
 O primeiro da lista
 Sem microfone
@@ -849,6 +863,9 @@ Duração (s)
 Tamanho
 Girar (graus)
 Corte preciso
+Arquivo de cortes (JSON ou auto)
+Trechos para manter
+Trechos para tirar
 Páginas
 Quadros por segundo
 Espelhar na horizontal
@@ -920,6 +937,8 @@ Sépia
 Inverter
 Pequeno
 Grande
+Juntar em um arquivo
+Um arquivo para cada trecho
 Suave
 Áudios
 PDFs
@@ -966,7 +985,7 @@ Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os deta
 Junte várias imagens num único PDF, uma por página, na ordem da lista.
 Converta entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ou extraia o áudio em MP3.
 Deixe vídeos menores escolhendo um nível de compressão ou o tamanho final em MB.
-Escolha o início e o fim e salve só aquele pedaço do vídeo.
+Escolha o início e o fim, ou vários trechos para manter e para tirar (0:10-1:00; 2:00-3:30).
 Una vários vídeos num só, na ordem da lista.
 Acelere ou deixe em câmera lenta (0,25× a 4×). O áudio acompanha sem ficar com voz fina ou grossa.
 Deixe o vídeo mudo ou salve imagens do vídeo a cada intervalo de tempo.
@@ -1194,6 +1213,9 @@ Agora não
 o início ({}) passa do fim do arquivo ({}).
 o fim precisa ser depois do início.
 {range} • {}
+não sobrou nenhum trecho.
+não foi possível ler a duração do arquivo.
+{} arquivo(s) • {} • {}
 adicione pelo menos 2 vídeos.
 {} não tem vídeo.
 {} vídeos • {}{extra} • {}
@@ -1225,19 +1247,17 @@ adicione pelo menos 2 arquivos.
 Converter formato de vídeo
 Comprimir vídeo
 Cortar trecho de vídeo
+Marque um ou vários trechos para manter ou tirar, inclusive um dentro do outro.
 Cortar
 Remover áudio / extrair frames
 Converter formato de áudio
-Salve só um trecho de uma música ou gravação.
+Marque um ou vários trechos de uma música ou gravação para manter ou tirar.
 Normalizar
 Comprimir áudio
 Vídeo para GIF
 Criar GIF
 Girar e recortar vídeo
 Melhorar
-Início inválido. Use o formato 00:01:30 (ou só segundos).
-Fim inválido. Use o formato 00:02:45 (ou só segundos).
-O fim precisa ser depois do início.
 Formato de saída:
 Comprimir por:
 Tamanho final
@@ -1250,10 +1270,6 @@ H.265 (menor, mais lento)
 64 kbps
 96 kbps
 O resultado é salvo em MP4 com o sufixo _comprimido.
-Início:
-duração do arquivo selecionado: {}
-Fim:
-até o fim
 Rápido (sem perda)
 Preciso (recodifica)
 Corta exatamente nos tempos informados; demora mais porque regrava o arquivo.
@@ -1292,6 +1308,7 @@ Taxa de bits:
 Canais:
 Converter para mono (metade do tamanho; bom para voz)
 64–96 kbps é ótimo para voz e podcasts; 128–160 kbps para música.
+Início:
 vídeo selecionado: {}
 Duração:
 Largura:
@@ -1300,6 +1317,7 @@ Largura:
 640 px
 800 px
 GIFs ficam grandes rápido: trechos curtos, 480 px e 12 fps costumam ficar abaixo de 5 MB.
+Início inválido. Use o formato 00:01:30 (ou só segundos).
 Girar:
 Não girar
 Espelhar:
@@ -1562,6 +1580,20 @@ Rodando com {n} arquivo(s) novo(s)…
 {when}: erro — {e}
 Conver — fluxo concluído
 Conver — fluxo com erro
+Fim inválido. Use o formato 00:02:45 (ou só segundos).
+O fim precisa ser depois do início.
+Fim:
+até o fim
++ Trecho para manter
++ Trecho para tirar
+Início aqui
+Fim aqui
+Vai sair: {} arquivo(s) • {} de {}
+Ler arquivo de cortes
+Salvar arquivo de cortes
+Com vários arquivos, quem tem um .cortes.json com o próprio nome ao lado usa o dele; os outros usam os trechos acima.
+Um trecho para tirar dentro de um trecho para manter abre um buraco nele. Com um arquivo para cada trecho, um trecho pode ficar dentro de outro e os dois saem completos.
+No modo Rápido, cada emenda cai no quadro-chave mais próximo e pode sobrar um pouco do que você tirou. Para cortar no ponto exato, use Preciso.
 Português (Brasil) — Faber, masculina
 Português (Brasil) — Cadu, masculina
 Português (Brasil) — Jeff, masculina

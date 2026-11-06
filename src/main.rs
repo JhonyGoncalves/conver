@@ -3,6 +3,7 @@
 
 mod ai;
 mod ai_api;
+mod cut_preset;
 mod llm;
 mod audioclass;
 mod bgpage;
@@ -58,6 +59,7 @@ mod segment;
 mod separate;
 mod theme;
 mod tools;
+mod trim_page;
 mod transcribe;
 mod translate;
 mod tts;
@@ -765,6 +767,17 @@ impl ConverApp {
             }
         }
         let page = self.page;
+        // um arquivo de cortes solto em "Cortar" é lido, junto ou não com o vídeo
+        if let Page::Media(t @ (MTool::VTrim | MTool::ATrim)) = page {
+            let (json, rest): (Vec<PathBuf>, Vec<PathBuf>) = paths.into_iter().partition(|p| tools::ext_lower(p) == "json");
+            paths = rest;
+            if let (Some(f), Some(p)) = (json.last(), self.medias.get_mut(&t)) {
+                p.load_cuts(f);
+            }
+            if paths.is_empty() {
+                return;
+            }
+        }
         if page == Page::Flows {
             self.flows.add_files(paths);
             return;

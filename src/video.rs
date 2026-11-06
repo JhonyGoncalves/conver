@@ -219,6 +219,20 @@ pub fn fmt_time(secs: f64) -> String {
     if h > 0 { format!("{h:02}:{m:02}:{s:02}") } else { format!("{m:02}:{s:02}") }
 }
 
+/// Como `fmt_time`, com décimos de segundo quando houver ("01:30.5"). `parse_timecode` lê de volta.
+pub fn fmt_time_fine(secs: f64) -> String {
+    let tenths = (secs.max(0.0) * 10.0).round() as u64;
+    let base = fmt_time((tenths / 10) as f64);
+    if tenths % 10 == 0 { base } else { format!("{base}.{}", tenths % 10) }
+}
+
+/// Como `fmt_time`, sem arredondar: guarda até os milissegundos ("01:30.125").
+pub fn fmt_time_exact(secs: f64) -> String {
+    let ms = (secs.max(0.0) * 1000.0).round() as u64;
+    let base = fmt_time((ms / 1000) as f64);
+    if ms % 1000 == 0 { base } else { format!("{base}.{}", format!("{:03}", ms % 1000).trim_end_matches('0')) }
+}
+
 fn parse_time(t: &str) -> Option<f64> {
     let mut parts = t.split(':');
     let h: f64 = parts.next()?.trim().parse().ok()?;

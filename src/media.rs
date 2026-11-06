@@ -102,6 +102,217 @@ pub fn trim(
     Ok((format!("{range} • {}", tools::human_size(tools::file_size(&dst))), dst))
 }
 
+/// Um trecho marcado: para manter ou para tirar. Sem `end`, vai até o fim do arquivo.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Cut {
+    pub keep: bool,
+    pub start: f64,
+    pub end: Option<f64>,
+}
+
+/// Junta intervalos que se tocam ou se sobrepõem, em ordem.
+fn union(mut ranges: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
+    ranges.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let mut out: Vec<(f64, f64)> = Vec::new();
+    for (a, b) in ranges {
+        match out.last_mut() {
+            Some(last) if a <= last.1 => last.1 = last.1.max(b),
+            _ => out.push((a, b)),
+        }
+    }
+    out
+}
+
+/// Tira de `part` os intervalos de `holes` (já unidos).
+fn subtract(part: (f64, f64), holes: &[(f64, f64)]) -> Vec<(f64, f64)> {
+    let mut out = Vec::new();
+    let mut from = part.0;
+    for &(a, b) in holes {
+        if a >= part.1 {
+            break;
+        }
+        if a > from {
+            out.push((from, a));
+        }
+        from = from.max(b);
+    }
+    if from < part.1 {
+        out.push((from, part.1));
+    }
+    out
+}
+
+/// Decide o que sai: uma lista por arquivo, cada uma com as partes dele, em ordem. O que está em "tirar" sai de tudo,
+/// mesmo dentro de um trecho para manter. Sem nenhum trecho para manter, vale o arquivo inteiro. Com `together`, tudo
+/// vira um arquivo só e o que se repete conta uma vez; sem ele, cada trecho é um arquivo, mesmo um dentro do outro.
+pub fn plan_cuts(cuts: &[Cut], dur: f64, together: bool) -> Result<Vec<Vec<(f64, f64)>>, String> {
+    let range = |c: &Cut| (c.start.min(dur), c.end.unwrap_or(dur).min(dur));
+    let holes = union(cuts.iter().filter(|c| !c.keep).map(range).collect());
+    let mut clips: Vec<(f64, f64)> = cuts.iter().filter(|c| c.keep).map(range).filter(|(a, b)| b > a).collect();
+    if cuts.iter().all(|c| !c.keep) {
+        clips.push((0.0, dur));
+    }
+    let lists = if together { vec![union(clips)] } else { clips.into_iter().map(|c| vec![c]).collect() };
+    let plan: Vec<Vec<(f64, f64)>> = lists
+        .into_iter()
+        .map(|list| list.into_iter().flat_map(|c| subtract(c, &holes)).filter(|(a, b)| b - a >= 0.05).collect::<Vec<_>>())
+        .filter(|list| !list.is_empty())
+        .collect();
+    if plan.is_empty() {
+        return Err("não sobrou nenhum trecho.".into());
+    }
+    Ok(plan)
+}
+
+// i18n: fora
+/// Aceita "0:10-1:00; 2:00-" (o fim é opcional) e devolve os trechos do tipo `keep`.
+pub fn parse_cuts(text: &str, keep: bool) -> Result<Vec<Cut>, String> {
+    text.split([';', ',', '\n'])
+        .map(str::trim)
+        .filter(|t| !t.is_empty())
+        .map(|t| {
+            let bad = || format!("trecho inválido: \"{t}\" (use 0:10-1:00).");
+            let (a, b) = t.split_once('-').ok_or_else(bad)?;
+            let start = crate::video::parse_timecode(a).ok_or_else(bad)?;
+            let end = if b.trim().is_empty() { None } else { Some(crate::video::parse_timecode(b).ok_or_else(bad)?) };
+            if end.is_some_and(|e| e <= start) {
+                return Err(bad());
+            }
+            Ok(Cut { keep, start, end })
+        })
+        .collect()
+}
+
+// i18n: dentro
+/// Grava uma lista de partes em `dst`. Uma parte só é um corte comum; várias são emendadas. Com `precise`, cada uma é
+/// aberta no ponto exato e tudo é recodificado; sem ele, as partes são copiadas sem perda e emendadas (cada emenda
+/// cai no quadro-chave mais próximo).
+fn write_parts(
+    src: &Path,
+    info: &crate::video::Probe,
+    parts: &[(f64, f64)],
+    dst: &Path,
+    precise: bool,
+    codec: Vec<String>,
+    on_progress: &dyn Fn(f32),
+    cancelled: &dyn Fn() -> bool,
+) -> Result<(), String> {
+    let open = |(a, b): (f64, f64)| {
+        let mut input = s(&["-ss", &format!("{a:.3}"), "-to", &format!("{b:.3}")]);
+        input.extend(["-i".to_string(), path_s(src)]);
+        input
+    };
+    let total: f64 = parts.iter().map(|(a, b)| b - a).sum();
+    if parts.len() == 1 {
+        return encode_to(open(parts[0]), codec, dst, Some(total), on_progress, cancelled);
+    }
+    if precise {
+        let input: Vec<String> = parts.iter().flat_map(|p| open(*p)).collect();
+        let (v, a) = (info.has_video, info.has_audio);
+        let mut filter = String::new();
+        for i in 0..parts.len() {
+            if v {
+                filter.push_str(&format!("[{i}:v:0]"));
+            }
+            if a {
+                filter.push_str(&format!("[{i}:a:0]"));
+            }
+        }
+        filter.push_str(&format!("concat=n={}:v={}:a={}", parts.len(), v as u8, a as u8));
+        if v {
+            filter.push_str("[v]");
+        }
+        if a {
+            filter.push_str("[a]");
+        }
+        let mut output = s(&["-filter_complex", &filter]);
+        if v {
+            output.extend(s(&["-map", "[v]"]));
+        }
+        if a {
+            output.extend(s(&["-map", "[a]"]));
+        }
+        output.extend(codec);
+        return encode_to(input, output, dst, Some(total), on_progress, cancelled);
+    }
+    // rápido: copia cada parte para um arquivo temporário e emenda
+    let dir = std::env::temp_dir().join(format!("conver_cortes_{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let result = (|| {
+        let ext = tools::ext_lower(src);
+        let mut body = String::new();
+        let mut done = 0.0;
+        for (i, p) in parts.iter().enumerate() {
+            let tmp = dir.join(format!("{i}.{ext}"));
+            let span = p.1 - p.0;
+            let step = |f: f32| on_progress(((done + span * f as f64) / total) as f32 * 0.9);
+            encode_to(open(*p), codec.clone(), &tmp, Some(span), &step, cancelled)?;
+            done += span;
+            body.push_str(&format!("file '{}'\n", path_s(&tmp).replace('\'', "'\\''")));
+        }
+        let list = dir.join("lista.txt");
+        std::fs::write(&list, body).map_err(|e| e.to_string())?;
+        encode_to(s(&["-f", "concat", "-safe", "0", "-i", &path_s(&list)]), s(&["-map", "0", "-c", "copy"]), dst, None, &|_| {}, cancelled)
+    })();
+    let _ = std::fs::remove_dir_all(&dir);
+    result
+}
+
+/// Vários trechos de um arquivo, conforme `plan_cuts`. Um trecho só continua sendo um `trim` comum.
+pub fn cut(
+    src: &Path,
+    out_dir: Option<&Path>,
+    cuts: &[Cut],
+    together: bool,
+    precise: bool,
+    on_progress: &dyn Fn(f32),
+    cancelled: &dyn Fn() -> bool,
+) -> Result<(String, PathBuf), String> {
+    if let [c] = cuts {
+        if c.keep {
+            return trim(src, out_dir, c.start, c.end, precise, on_progress, cancelled);
+        }
+    }
+    let info = probe(src);
+    let dur = info.duration.ok_or("não foi possível ler a duração do arquivo.")?;
+    let plan = plan_cuts(cuts, dur, together)?;
+    let (ext, codec) = if precise {
+        reencode_for(src, info.has_video)
+    } else {
+        (tools::ext_lower(src), s(&["-map", "0", "-c", "copy", "-avoid_negative_ts", "make_zero"]))
+    };
+    let length = |list: &[(f64, f64)]| list.iter().map(|(a, b)| b - a).sum::<f64>();
+    let total: f64 = plan.iter().map(|l| length(l)).sum();
+    let mut done = 0.0;
+    let mut last = None;
+    let mut size = 0;
+    for (i, list) in plan.iter().enumerate() {
+        let suffix = if plan.len() == 1 { "_cortado".to_string() } else { format!("_trecho_{}", i + 1) };
+        let dst = tools::out_path(src, out_dir, &suffix, &ext);
+        let span = length(list);
+        let step = |f: f32| on_progress(((done + span * f as f64) / total) as f32);
+        write_parts(src, &info, list, &dst, precise, codec.clone(), &step, cancelled)?;
+        done += span;
+        size += tools::file_size(&dst);
+        last = Some(dst);
+    }
+    let dst = last.ok_or("não sobrou nenhum trecho.")?;
+    Ok((format!("{} arquivo(s) • {} • {}", plan.len(), fmt_time(total), tools::human_size(size)), dst))
+}
+
+/// Um quadro do vídeo, com `height` pixels de altura.
+pub fn frame_at(src: &Path, at: f64, height: u32) -> Result<image::RgbaImage, String> {
+    let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
+    let out = tools::command(&ff)
+        .args(["-v", "error", "-nostdin", "-ss", &format!("{at:.2}"), "-i"])
+        .arg(src)
+        .args(["-frames:v", "1", "-vf", &format!("scale=-2:{height}"), "-f", "image2pipe", "-c:v", "png", "-"])
+        .output()
+        .map_err(|e| e.to_string())?;
+    image::load_from_memory(&out.stdout).map(|i| i.to_rgba8()).map_err(|e| e.to_string())
+}
+
 /// Junta os vídeos na ordem dada. Com `precise`, recodifica tudo (aceita vídeos diferentes entre si);
 /// sem ele, só emenda (todos precisam ter o mesmo formato, resolução e codificação).
 pub fn merge(

@@ -608,9 +608,26 @@ fn t_trim(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let files = media_files(a)?;
     let start = time_arg(a, "start")?.unwrap_or(0.0);
     let end = time_arg(a, "end")?;
+    let mut cuts = media::parse_cuts(a.str("keep").as_deref().unwrap_or(""), true)?;
+    if cuts.is_empty() {
+        cuts.push(media::Cut { keep: true, start, end });
+    }
+    cuts.extend(media::parse_cuts(a.str("remove").as_deref().unwrap_or(""), false)?);
+    let together = a.choice("output", &[("together", true), ("separate", false)], true)?;
     let precise = a.bool_or("precise", true)?;
     let out = a.out_dir()?;
-    batch("Cortar", &files, ctx, |f, p| media::trim(f, out.as_deref(), start, end, precise, p, ctx.cancelled))
+    // arquivo de cortes: um para todos, ou "auto" para o <nome do vídeo>.cortes.json de cada um; quem não tem usa os
+    // demais argumentos
+    let preset = a.str("cuts_file").map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+    let shared = preset.as_deref().filter(|s| *s != "auto").map(|s| crate::cut_preset::read(Path::new(s))).transpose()?;
+    let auto = preset.as_deref() == Some("auto");
+    batch("Cortar", &files, ctx, |f, p| {
+        let own = if auto { crate::cut_preset::beside(f).map(|c| crate::cut_preset::read(&c)).transpose()? } else { shared.clone() };
+        match own {
+            Some(c) => media::cut(f, out.as_deref(), &c.cuts, c.together, c.precise.unwrap_or(precise), p, ctx.cancelled),
+            None => media::cut(f, out.as_deref(), &cuts, together, precise, p, ctx.cancelled),
+        }
+    })
 }
 
 fn t_video_merge(a: &Args, ctx: &Ctx) -> Result<Value, String> {
@@ -1559,8 +1576,12 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("videos"), "level": enum_prop("Compression level (ignored with target_mb).", &["light", "medium", "strong"], "medium"),
             "target_mb": num_prop("Target file size in MB (optional)."), "resolution": enum_prop("Max resolution.", &["original", "1080p", "720p", "480p"], "original"),
             "codec": enum_prop("Video codec.", &["h264", "h265"], "h264"), "audio_kbps": int_prop("Audio bitrate.", 32, 320, 128) }), &["files"]), t_video_compress),
-    tool!("media_trim", "Cortar", "Cut a part of videos or audios (start/end in seconds or mm:ss).",
+    tool!("media_trim", "Cortar", "Cut videos or audios: one part with start/end, or several with keep/remove (a part to remove can sit inside a part to keep). Output: <name>_trecho for one part, <name>_cortado when joined, <name>_trecho_1, _2... when separate.",
         schema(json!({ "files": files_prop("videos or audios"), "start": str_prop("Start (e.g. 10 or 0:10)."), "end": str_prop("End (optional; default = until the end)."),
+            "keep": str_prop("Parts to keep, e.g. \"0:10-1:00; 2:00-3:30\" (the end is optional). Replaces start/end."),
+            "remove": str_prop("Parts to take out, e.g. \"0:20-0:30\", even inside a part to keep."),
+            "cuts_file": str_prop("Path of a JSON file with all the cuts, which replaces keep/remove/start/end: {\"output\": \"separate\", \"precise\": true, \"cuts\": [{\"start\": \"0:10\", \"end\": \"1:00\"}, {\"start\": \"0:20\", \"end\": \"0:30\", \"action\": \"remove\"}]}. Use \"auto\" to read <video name>.cortes.json next to each video."),
+            "output": enum_prop("Several parts: together (one file) or separate (one file per part to keep; parts may overlap).", &["together", "separate"], "together"),
             "precise": bool_prop("Frame-accurate cut (re-encodes). false = instant cut at keyframes.", true) }), &["files"]), t_trim),
     tool!("video_merge", "Juntar vídeos", "Join videos one after another (in the given order) into one MP4.",
         schema(json!({ "files": files_prop("videos, in order"), "precise": bool_prop("Re-encode so different videos match.", true) }), &["files"]), t_video_merge),

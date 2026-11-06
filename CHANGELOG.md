@@ -1,5 +1,12 @@
 # Lista de mudanças
 
+## 1.10.0
+
+- **Vários cortes de uma vez:** em **Cortar trecho** e **Cortar áudio**, marque quantos trechos quiser para manter ou tirar, inclusive um dentro do outro. Um trecho para tirar dentro de um para manter abre um buraco nele; com um arquivo para cada trecho, um trecho pode ficar dentro de outro e os dois saem completos.
+- **Linha do tempo:** mostra os trechos e o que vai sobrar, com o quadro do vídeo no ponto escolhido. Clique para mover o ponto, arraste as bordas do trecho ou use **Início aqui** e **Fim aqui**.
+- **Arquivo de cortes:** um JSON pode dizer todos os cortes de um vídeo. Solte ele junto com o vídeo, use **Ler arquivo de cortes** ou deixe `<nome do vídeo>.cortes.json` ao lado do vídeo. **Salvar arquivo de cortes** gera um a partir da tela. O formato está no README.
+- **MCP e linha de comando:** `media_trim` aceita `keep`, `remove`, `output` e `cuts_file` (um caminho ou `auto`). Os mesmos ajustes valem nos fluxos.
+
 ## 1.9.2
 
 - **Colar da área de transferência:** tire um print e aperte Ctrl+V (ou o botão **Colar**) em uma ferramenta, sem salvar antes. Arquivos copiados no Explorer também entram. Os prints ficam em `Imagens\Conver\Prints`.

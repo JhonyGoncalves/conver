@@ -110,6 +110,10 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   que está dentro do contorno, atravessando vãos de 0,35% do lado; `clean_edge` tira o halo. `Detect::Nada` = só sai o que foi
   marcado. `segment.rs`: SlimSAM (`Strokes.cut`, "Remover objeto": um clique, sai sem preencher; o decodificador leva
   50 ms e o codificador guarda a última imagem). A LaMa continua em "Apagar e preencher".
+- Cortar: `media::plan_cuts` decide as partes (`Cut`: manter ou tirar; o que é tirado sai de tudo; sem `together`, um arquivo por trecho
+  para manter, mesmo sobrepostos), `media::cut` grava. `trim_page.rs`: linha do tempo; captura com `CONVER_CORTES=m:0:10-0:40;t:0:20-0:30`.
+- `cut_preset.rs`: arquivo JSON de cortes (`cuts`, `output`, `precise`; campo desconhecido é erro de propósito). `<vídeo>.cortes.json` ao
+  lado é lido sozinho (só esse nome: um `.json` genérico pode ser o info.json do yt-dlp). Op: `cuts_file` (caminho ou `auto`).
 - `paste.rs`: Ctrl+V e botão Colar. O egui engole o Ctrl+V sem texto (nem `Event::Key` chega), por isso `main::handle_paste` olha a
   tecla com `GetKeyState`. Prints vão para Imagens\Conver\Prints e entram por `add_paths`, como arquivos soltos.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),

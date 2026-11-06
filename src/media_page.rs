@@ -46,7 +46,7 @@ impl MTool {
                 "Deixe vídeos menores escolhendo um nível de compressão ou o tamanho final em MB.",
                 "Comprimir",
             ),
-            MTool::VTrim => ("Cortar trecho de vídeo", "Escolha o início e o fim e salve só aquele pedaço do vídeo.", "Cortar"),
+            MTool::VTrim => ("Cortar trecho de vídeo", "Marque um ou vários trechos para manter ou tirar, inclusive um dentro do outro.", "Cortar"),
             MTool::Merge => ("Juntar vídeos", "Una vários vídeos num só, na ordem da lista.", "Juntar"),
             MTool::Speed => (
                 "Mudar velocidade",
@@ -63,7 +63,7 @@ impl MTool {
                 "Converta entre MP3, WAV, FLAC, OGG, M4A e OPUS. Também tira o áudio de vídeos.",
                 "Converter",
             ),
-            MTool::ATrim => ("Cortar áudio", "Salve só um trecho de uma música ou gravação.", "Cortar"),
+            MTool::ATrim => ("Cortar áudio", "Marque um ou vários trechos de uma música ou gravação para manter ou tirar.", "Cortar"),
             MTool::Normalize => (
                 "Normalizar volume",
                 "Deixe o volume de vários áudios (ou vídeos) no mesmo nível, sem estourar.",
@@ -131,8 +131,7 @@ pub struct MediaPage {
     codec: Codec,
     audio: u32,
     // cortar
-    start: String,
-    end: String,
+    trim: crate::trim_page::TrimPanel,
     precise: bool,
     // juntar
     merge_precise: bool,
@@ -190,8 +189,7 @@ impl MediaPage {
             res: Res::Original,
             codec: Codec::H264,
             audio: 128,
-            start: "00:00:00".into(),
-            end: String::new(),
+            trim: crate::trim_page::TrimPanel::new(),
             precise: false,
             merge_precise: true,
             factor: 2.0,
@@ -225,21 +223,9 @@ impl MediaPage {
         }
     }
 
-    fn trim_range(&self) -> Result<(f64, Option<f64>), String> {
-        let start = if self.start.trim().is_empty() {
-            0.0
-        } else {
-            video::parse_timecode(&self.start).ok_or("Início inválido. Use o formato 00:01:30 (ou só segundos).")?
-        };
-        let end = if self.end.trim().is_empty() {
-            None
-        } else {
-            Some(video::parse_timecode(&self.end).ok_or("Fim inválido. Use o formato 00:02:45 (ou só segundos).")?)
-        };
-        if end.is_some_and(|e| e <= start) {
-            return Err("O fim precisa ser depois do início.".into());
-        }
-        Ok((start, end))
+    /// Lê um arquivo de cortes solto na janela.
+    pub fn load_cuts(&mut self, file: &std::path::Path) {
+        self.trim.load(file);
     }
 
     fn options_ui(&mut self, ui: &mut Ui, p: &Palette, durs: &Durations) {
@@ -290,15 +276,12 @@ impl MediaPage {
                 hint(ui, p, "O resultado é salvo em MP4 com o sufixo _comprimido.");
             }
             MTool::VTrim | MTool::ATrim => {
-                row(ui, p, "Início:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.start).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("00:00:00")).desired_width(110.0));
-                    if let Some(d) = self.queue.selected_path().and_then(|f| durs.get(f)) {
-                        hint(ui, p, &format!("duração do arquivo selecionado: {}", video::fmt_time(d)));
-                    }
-                });
-                row(ui, p, "Fim:", |ui| {
-                    ui.add(egui::TextEdit::singleline(&mut self.end).margin(crate::widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("até o fim")).desired_width(110.0));
-                });
+                let selected = self.queue.selected_path().cloned();
+                self.trim.ui(ui, p, selected.as_ref(), durs, self.tool == MTool::VTrim, self.precise, self.queue.files.len());
+                if let Some(b) = self.trim.wanted_precise.take() {
+                    self.precise = b;
+                }
+                ui.add_space(2.0);
                 row(ui, p, "Modo:", |ui| {
                     segmented(ui, p, &mut self.precise, &[(false, "Rápido (sem perda)"), (true, "Preciso (recodifica)")]);
                 });
@@ -311,9 +294,6 @@ impl MediaPage {
                         "Instantâneo e sem perda de qualidade; em vídeos, o corte pode cair até alguns segundos antes do início."
                     },
                 );
-                if let Err(e) = self.trim_range() {
-                    ui.label(RichText::new(crate::i18n::tr(e)).color(p.accent));
-                }
             }
             MTool::Merge => {
                 row(ui, p, "Modo:", |ui| {
@@ -545,7 +525,9 @@ impl MediaPage {
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette, durs: &Durations) {
         let (title, subtitle, action) = self.tool.texts();
         widgets::header(ui, p, title, subtitle);
-        widgets::file_list(ui, p, &mut self.queue, None, Some(durs), 190.0);
+        // no corte a altura vai para o quadro e a linha do tempo
+        let list = if matches!(self.tool, MTool::VTrim | MTool::ATrim) { 96.0 } else { 190.0 };
+        widgets::file_list(ui, p, &mut self.queue, None, Some(durs), list);
         ui.add_space(4.0);
         card(ui, p, |ui| self.options_ui(ui, p, durs));
         ui.add_space(4.0);
@@ -555,7 +537,7 @@ impl MediaPage {
             MTool::Merge | MTool::AMerge => self.queue.files.len() >= 2,
             MTool::Music => !self.queue.files.is_empty() && self.music.is_some(),
             MTool::Gif => !self.queue.files.is_empty() && (self.gif_start.trim().is_empty() || video::parse_timecode(&self.gif_start).is_some()),
-            MTool::VTrim | MTool::ATrim => !self.queue.files.is_empty() && self.trim_range().is_ok(),
+            MTool::VTrim | MTool::ATrim => !self.queue.files.is_empty() && self.trim.cuts().is_ok(),
             _ => !self.queue.files.is_empty(),
         };
         match widgets::action_bar(ui, p, &self.job, action, can) {
@@ -596,7 +578,8 @@ impl MediaPage {
             codec: self.codec,
             audio_kbps: self.audio,
         };
-        let (start, end) = self.trim_range().unwrap_or((0.0, None));
+        let (cuts, together) = (self.trim.cuts().unwrap_or_default(), self.trim.together);
+        let selected = self.queue.selected_path().cloned();
         let (precise, factor, keep_audio) = (self.precise, self.factor, self.keep_audio);
         let (frames, every, png) = (self.frames, self.every, self.png);
         let (afmt, aq, lufs, acodec, akbps, mono) = (self.afmt, self.aq, self.lufs, self.acodec, self.akbps, self.mono);
@@ -614,7 +597,14 @@ impl MediaPage {
                 match tool {
                     MTool::VConvert => video::convert(src, out, fmt, q, progress, &cancelled),
                     MTool::VCompress => video::compress(src, out, copts, progress, &cancelled),
-                    MTool::VTrim | MTool::ATrim => media::trim(src, out, start, end, precise, progress, &cancelled),
+                    MTool::VTrim | MTool::ATrim => match crate::cut_preset::beside(src).filter(|_| selected.as_deref() != Some(src)) {
+                        // o selecionado segue a tela, que pode ter sido editada; os outros, o próprio arquivo de cortes
+                        Some(f) => {
+                            let own = crate::cut_preset::read(&f)?;
+                            media::cut(src, out, &own.cuts, own.together, own.precise.unwrap_or(precise), progress, &cancelled)
+                        }
+                        None => media::cut(src, out, &cuts, together, precise, progress, &cancelled),
+                    },
                     MTool::Speed => media::speed(src, out, factor, keep_audio, progress, &cancelled),
                     MTool::AudioFrames if frames => media::extract_frames(src, out, every, png, progress, &cancelled),
                     MTool::AudioFrames => media::remove_audio(src, out, progress, &cancelled),

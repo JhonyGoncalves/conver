@@ -93,6 +93,23 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 **No dia a dia**
 - **Busca de ferramentas** (Ctrl+F): ache pelo que você quer fazer ("cortar", "tirar fundo", "youtube"), não só pelo nome exato
 - Arraste arquivos para a janela (ou para o ícone do Conver) e eles vão para a ferramenta certa
+- Em **Cortar trecho**, um arquivo JSON pode dizer todos os cortes: solte ele junto com o vídeo, use **Ler arquivo de cortes**, ou deixe
+  `<nome do vídeo>.cortes.json` ao lado do vídeo. **Salvar arquivo de cortes** gera um pronto para editar:
+
+  ```json
+  {
+    "output": "separate",
+    "precise": true,
+    "cuts": [
+      { "start": "0:10", "end": "1:00" },
+      { "start": "0:20", "end": "0:30", "action": "remove" },
+      { "start": "2:00", "end": "3:30" }
+    ]
+  }
+  ```
+
+  `start` é obrigatório; sem `end`, vai até o fim do vídeo. `action` é `keep` (padrão) ou `remove`, `output` é `together` ou `separate`.
+  Tempos em segundos ou como 1:30.
 - Tire um print e aperte Ctrl+V em uma ferramenta: ele entra direto, sem salvar antes
 - "Abrir com Conver" no menu do botão direito
 - **20 idiomas** (Configurações → Idioma): português, inglês, chinês, espanhol, árabe, francês, russo, indonésio, urdu, alemão, japonês, vietnamita, turco, hauçá, coreano, italiano, persa, suaíli, polonês e ucraniano

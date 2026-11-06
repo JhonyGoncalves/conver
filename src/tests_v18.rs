@@ -875,6 +875,129 @@ fn clipboard_image_and_files() {
 }
 
 #[test]
+fn cuts_plan() {
+    use crate::media::{Cut, parse_cuts, plan_cuts};
+    let keep = |start, end| Cut { keep: true, start, end: Some(end) };
+    let out = |start, end| Cut { keep: false, start, end: Some(end) };
+    // dois trechos: juntos ou separados
+    let two = [keep(10.0, 20.0), keep(30.0, 40.0)];
+    assert_eq!(plan_cuts(&two, 60.0, true).unwrap(), vec![vec![(10.0, 20.0), (30.0, 40.0)]]);
+    assert_eq!(plan_cuts(&two, 60.0, false).unwrap(), vec![vec![(10.0, 20.0)], vec![(30.0, 40.0)]]);
+    // um corte dentro de outro abre um buraco
+    let nested = [keep(10.0, 40.0), out(20.0, 30.0)];
+    assert_eq!(plan_cuts(&nested, 60.0, true).unwrap(), vec![vec![(10.0, 20.0), (30.0, 40.0)]]);
+    // só tirar: vale o arquivo inteiro
+    assert_eq!(plan_cuts(&[out(20.0, 30.0)], 60.0, true).unwrap(), vec![vec![(0.0, 20.0), (30.0, 60.0)]]);
+    // um trecho dentro do outro: juntos contam uma vez, separados saem os dois completos
+    let inside = [keep(10.0, 40.0), keep(20.0, 30.0)];
+    assert_eq!(plan_cuts(&inside, 60.0, true).unwrap(), vec![vec![(10.0, 40.0)]]);
+    assert_eq!(plan_cuts(&inside, 60.0, false).unwrap(), vec![vec![(10.0, 40.0)], vec![(20.0, 30.0)]]);
+    // sobreposição, ordem trocada, fim aberto e além do fim do arquivo
+    let messy = [Cut { keep: true, start: 50.0, end: None }, keep(0.0, 10.0), out(5.0, 15.0), out(12.0, 52.0), keep(58.0, 90.0)];
+    assert_eq!(plan_cuts(&messy, 60.0, true).unwrap(), vec![vec![(0.0, 5.0), (52.0, 60.0)]]);
+    // tirar tudo é erro, não um arquivo vazio
+    assert!(plan_cuts(&[keep(10.0, 20.0), out(5.0, 25.0)], 60.0, true).is_err());
+    // texto
+    assert_eq!(parse_cuts("0:10-1:00; 2:00-", true).unwrap(), vec![keep(10.0, 60.0), Cut { keep: true, start: 120.0, end: None }]);
+    assert!(parse_cuts("1:00", true).is_err() && parse_cuts("2:00-1:00", true).is_err());
+    assert_eq!(crate::video::fmt_time_fine(90.5), "01:30.5");
+    assert_eq!(crate::video::parse_timecode(&crate::video::fmt_time_fine(90.5)), Some(90.5));
+}
+
+#[test]
+fn cut_preset_file() {
+    use crate::cut_preset::{CutPreset, parse, to_json};
+    use crate::media::Cut;
+    let p = parse(r#"{ "output": "separate", "precise": false, "name": "aula", "cuts": [
+        { "start": "0:10", "end": 60, "comment": "abertura" },
+        { "start": 20.5, "end": "0:30", "action": "remove" },
+        { "start": "2:00" } ] }"#).unwrap();
+    assert_eq!(p.cuts, vec![
+        Cut { keep: true, start: 10.0, end: Some(60.0) },
+        Cut { keep: false, start: 20.5, end: Some(30.0) },
+        Cut { keep: true, start: 120.0, end: None },
+    ]);
+    assert!(!p.together);
+    assert_eq!(p.precise, Some(false));
+    // só a lista
+    let list = parse(r#"[{ "start": 1, "end": 2 }]"#).unwrap();
+    assert!(list.together && list.precise.is_none());
+    // o que se salva volta igual, sem arredondar os tempos
+    let exact = CutPreset { cuts: vec![Cut { keep: false, start: 1.125, end: Some(3725.5) }], together: false, precise: Some(true) };
+    assert_eq!(parse(&to_json(&exact)).unwrap(), exact);
+    // erros dizem onde está o problema; campo errado não vira corte errado
+    let err = |t: &str| parse(t).unwrap_err();
+    assert!(err("{").contains("JSON"));
+    assert!(err(r#"{ "cortes": [] }"#).contains("cortes"));
+    assert!(err(r#"{ "cuts": [] }"#).contains("vazia"));
+    assert!(err(r#"[{ "start": 1 }, { "inicio": 5 }]"#).contains("corte 2"));
+    assert!(err(r#"[{ "end": 5 }]"#).contains("start"));
+    assert!(err(r#"[{ "start": 9, "end": 5 }]"#).contains("corte 1"));
+    assert!(err(r#"[{ "start": "x" }]"#).contains("start"));
+    assert!(err(r#"[{ "start": 1, "action": "tirar" }]"#).contains("action"));
+    assert!(err(r#"{ "output": "x", "cuts": [{ "start": 1 }] }"#).contains("output"));
+}
+
+#[test]
+fn multiple_cuts_on_video() {
+    let d = crate::tests_v12::tmp("varios_cortes");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let src = d.join("clipe.mp4");
+    let ff = crate::tools::find_tool("ffmpeg").unwrap();
+    let made = crate::tools::command(&ff)
+        .args(["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=d=12:s=320x240:r=24", "-f", "lavfi", "-i", "sine=d=12", "-c:v", "libx264", "-g", "12", "-c:a", "aac", "-shortest"])
+        .arg(&src)
+        .status()
+        .unwrap();
+    assert!(made.success());
+    let run = |args: serde_json::Value| {
+        let r = crate::tests_v12::ctx_call("media_trim", args).unwrap();
+        assert_eq!(r["failed"], 0, "{r}");
+        std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap())
+    };
+    let file = src.display().to_string();
+    let near = |f: &std::path::Path, want: f64| {
+        let p = crate::video::probe(f);
+        let got = p.duration.unwrap();
+        assert!((got - want).abs() < 0.3, "{f:?}: {got} (esperado {want})");
+        assert!(p.has_video && p.has_audio);
+    };
+    // corte dentro de outro: de 1 a 9, sem 3 a 5 = 6 s
+    let a = run(serde_json::json!({ "files": [file], "keep": "1-9", "remove": "3-5" }));
+    assert!(a.file_name().unwrap().to_string_lossy().contains("_cortado"));
+    near(&a, 6.0);
+    // dois trechos sem recodificar
+    let b = run(serde_json::json!({ "files": [file], "keep": "0-2; 6-8", "precise": false, "out_dir": d.join("rapido").display().to_string() }));
+    near(&b, 4.0);
+    // um arquivo por trecho, um dentro do outro
+    let last = run(serde_json::json!({ "files": [file], "keep": "0-8; 2-4", "output": "separate", "out_dir": d.join("separados").display().to_string() }));
+    assert!(last.file_name().unwrap().to_string_lossy().contains("_trecho_2"));
+    near(&last, 2.0);
+    near(&last.with_file_name(last.file_name().unwrap().to_string_lossy().replace("_2", "_1")), 8.0);
+    // um trecho só continua igual
+    let one = run(serde_json::json!({ "files": [file], "start": "1", "end": "3", "out_dir": d.join("um").display().to_string() }));
+    assert!(one.file_name().unwrap().to_string_lossy().contains("_trecho."));
+    near(&one, 2.0);
+    // arquivo de cortes indicado
+    let list = d.join("meus cortes.json");
+    std::fs::write(&list, r#"{ "precise": true, "cuts": [{ "start": 1, "end": 9 }, { "start": 3, "end": 5, "action": "remove" }] }"#).unwrap();
+    let c = run(serde_json::json!({ "files": [file], "cuts_file": list.display().to_string(), "out_dir": d.join("arquivo").display().to_string() }));
+    near(&c, 6.0);
+    // "auto": o de mesmo nome ao lado do vídeo manda, e quem não tem usa os argumentos
+    assert_eq!(crate::cut_preset::beside(&src), None);
+    std::fs::write(d.join("clipe.cortes.json"), r#"[{ "start": 2, "end": 5 }]"#).unwrap();
+    assert!(crate::cut_preset::beside(&src).is_some());
+    let e = run(serde_json::json!({ "files": [file], "cuts_file": "auto", "start": "0", "end": "1", "out_dir": d.join("auto").display().to_string() }));
+    near(&e, 3.0);
+    // arquivo com erro não corta nada
+    std::fs::write(&list, r#"[{ "inicio": 3 }]"#).unwrap();
+    assert!(crate::tests_v12::ctx_call("media_trim", serde_json::json!({ "files": [file], "cuts_file": list.display().to_string() })).is_err());
+    // quadro para a prévia
+    assert_eq!(crate::media::frame_at(&src, 3.0, 120).unwrap().height(), 120);
+}
+
+#[test]
 fn explorer_select_argument() {
     use crate::tools::{explorer_path, select_arg};
     use std::path::Path;
