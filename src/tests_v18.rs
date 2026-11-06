@@ -815,6 +815,78 @@ fn background_refine() {
 }
 
 #[test]
+fn pasted_image_stays_visible() {
+    let d = std::env::temp_dir().join("conver_tests").join("colar");
+    let _ = std::fs::remove_dir_all(&d);
+    // print com alfa todo em zero: fica opaco
+    let f = crate::paste::save(image::RgbaImage::from_pixel(8, 8, image::Rgba([10, 20, 30, 0])), &d).unwrap();
+    assert_eq!(*image::open(&f).unwrap().to_rgba8().get_pixel(3, 3), image::Rgba([10, 20, 30, 255]));
+    // transparência de verdade continua
+    let mut img = image::RgbaImage::from_pixel(8, 8, image::Rgba([10, 20, 30, 255]));
+    img.put_pixel(0, 0, image::Rgba([0, 0, 0, 0]));
+    let g = crate::paste::save(img, &d).unwrap();
+    assert_ne!(f, g, "dois prints no mesmo segundo não se sobrepõem");
+    assert_eq!(image::open(&g).unwrap().to_rgba8().get_pixel(0, 0)[3], 0);
+}
+
+#[test]
+#[ignore] // lê a imagem que estiver na área de transferência (CONVER_PRINT_W = largura esperada)
+fn clipboard_real_print() {
+    let got = crate::paste::from_clipboard().unwrap();
+    println!("RESULT {got:?}");
+    let img = image::open(&got[0]).unwrap().to_rgba8();
+    assert_eq!(img.width().to_string(), std::env::var("CONVER_PRINT_W").unwrap());
+    assert!(img.pixels().any(|p| p[3] == 255), "o print não pode sair invisível");
+    let _ = std::fs::remove_file(&got[0]);
+}
+
+#[test]
+#[ignore] // usa a área de transferência do Windows (guarda o texto ou a imagem que estava lá e devolve no fim)
+fn clipboard_image_and_files() {
+    let mut c = arboard::Clipboard::new().unwrap();
+    let (text, old) = (c.get_text().ok(), c.get_image().ok());
+    let data = arboard::ImageData { width: 2, height: 1, bytes: vec![255, 0, 0, 255, 0, 0, 255, 255].into() };
+    c.set_image(data).unwrap();
+    let got = crate::paste::from_clipboard().unwrap();
+    println!("RESULT {got:?}");
+    assert_eq!(got.len(), 1);
+    let img = image::open(&got[0]).unwrap().to_rgba8();
+    assert_eq!(img.dimensions(), (2, 1));
+    assert_eq!(*img.get_pixel(0, 0), image::Rgba([255, 0, 0, 255]));
+    let _ = std::fs::remove_file(&got[0]);
+    // arquivos copiados entram como estão, sem cópia
+    let f = std::env::temp_dir().join("conver_tests").join("arquivo colado.png");
+    std::fs::create_dir_all(f.parent().unwrap()).unwrap();
+    image::RgbaImage::new(2, 2).save(&f).unwrap();
+    c.set().file_list(std::slice::from_ref(&f)).unwrap();
+    let same = crate::paste::from_clipboard().unwrap();
+    assert_eq!(same.len(), 1);
+    assert_eq!(same[0].canonicalize().unwrap(), f.canonicalize().unwrap());
+    // só texto: nada a colar
+    c.set_text("só texto").unwrap();
+    assert!(crate::paste::from_clipboard().unwrap().is_empty());
+    if let Some(i) = old {
+        let _ = c.set_image(i);
+    } else if let Some(t) = text {
+        let _ = c.set_text(t);
+    } else {
+        let _ = c.clear();
+    }
+}
+
+#[test]
+fn explorer_select_argument() {
+    use crate::tools::{explorer_path, select_arg};
+    use std::path::Path;
+    // aspas só em volta do caminho: é o que faz o Explorer selecionar em vez de abrir em Documentos
+    assert_eq!(select_arg(Path::new(r"C:\Users\Jhony Estudos\a b.png")), r#"/select,"C:\Users\Jhony Estudos\a b.png""#);
+    assert_eq!(explorer_path(Path::new("C:/Users/Jhony Estudos/a.png")), r"C:\Users\Jhony Estudos\a.png");
+    assert_eq!(explorer_path(Path::new(r"\\?\C:\pasta\a.png")), r"C:\pasta\a.png");
+    assert_eq!(explorer_path(Path::new(r"\\?\UNC\servidor\pasta\a.png")), r"\\servidor\pasta\a.png");
+    assert!(Path::new(&explorer_path(Path::new("relativo.png"))).is_absolute());
+}
+
+#[test]
 fn background_by_color_keeps_inside() {
     use crate::bgremove::{Detect, Interior, Refine, Strokes, cut, flat_background};
     // um anel ciano sobre fundo escuro: o miolo tem a cor do fundo

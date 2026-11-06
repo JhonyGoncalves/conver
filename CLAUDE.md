@@ -110,6 +110,8 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   que está dentro do contorno, atravessando vãos de 0,35% do lado; `clean_edge` tira o halo. `Detect::Nada` = só sai o que foi
   marcado. `segment.rs`: SlimSAM (`Strokes.cut`, "Remover objeto": um clique, sai sem preencher; o decodificador leva
   50 ms e o codificador guarda a última imagem). A LaMa continua em "Apagar e preencher".
+- `paste.rs`: Ctrl+V e botão Colar. O egui engole o Ctrl+V sem texto (nem `Event::Key` chega), por isso `main::handle_paste` olha a
+  tecla com `GetKeyState`. Prints vão para Imagens\Conver\Prints e entram por `add_paths`, como arquivos soltos.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;

@@ -299,11 +299,13 @@ pub struct FileQueue {
     kind: &'static str,
     /// Mostra botões para mudar a ordem (juntar vídeos, PDF).
     pub reorder: bool,
+    /// Aviso do botão Colar (área de transferência vazia, erro).
+    note: Option<String>,
 }
 
 impl FileQueue {
     pub fn new(exts: &'static [&'static str], kind: &'static str) -> Self {
-        Self { files: Vec::new(), selected: 0, exts, kind, reorder: false }
+        Self { files: Vec::new(), selected: 0, exts, kind, reorder: false, note: None }
     }
 
     pub fn ordered(mut self) -> Self {
@@ -313,6 +315,27 @@ impl FileQueue {
 
     pub fn accepts(&self, p: &Path) -> bool {
         p.is_file() && (self.exts.is_empty() || self.exts.contains(&tools::ext_lower(p).as_str()))
+    }
+
+    /// Aceita imagens (e por isso mostra o botão Colar).
+    fn takes_images(&self) -> bool {
+        self.exts.is_empty() || self.exts.contains(&"png")
+    }
+
+    /// Cola da área de transferência (arquivos ou um print).
+    pub fn paste(&mut self) {
+        self.note = match crate::paste::from_clipboard() {
+            Err(e) => Some(e),
+            Ok(files) => {
+                let first = self.files.len();
+                if self.add(files) > 0 {
+                    self.selected = first;
+                    None
+                } else {
+                    Some("a área de transferência não tem imagem.".to_string())
+                }
+            }
+        };
     }
 
     pub fn add(&mut self, paths: impl IntoIterator<Item = PathBuf>) -> usize {
@@ -361,11 +384,14 @@ pub fn file_list(
                 1 => "1 arquivo".to_string(),
                 n => format!("{n} arquivos"),
             };
-            ui.label(RichText::new(crate::i18n::tr(text)).family(bold()).color(p.text));
+            let title = RichText::new(crate::i18n::tr(text)).family(bold()).color(p.text);
             ui.with_layout(back(Align::Center), |ui| {
                 if secondary(ui, p, "Limpar", n > 0) {
                     q.files.clear();
                     q.selected = 0;
+                }
+                if q.takes_images() && secondary(ui, p, "Colar", true) {
+                    q.paste();
                 }
                 if secondary(ui, p, "+ Adicionar", true) {
                     q.pick();
@@ -384,8 +410,15 @@ pub fn file_list(
                         ui.label(RichText::new(crate::i18n::tr("ordem:")).size(12.5).color(p.muted));
                     }
                 }
+                // por último: numa coluna estreita, o título encurta em vez de entrar embaixo dos botões
+                ui.with_layout(fwd(Align::Center), |ui| {
+                    ui.add(egui::Label::new(title).truncate());
+                });
             });
         });
+        if let Some(n) = &q.note {
+            ui.label(RichText::new(crate::i18n::tr(n)).size(12.5).color(p.accent));
+        }
         ui.add_space(4.0);
 
         if q.files.is_empty() {
@@ -394,21 +427,27 @@ pub fn file_list(
             let painter = ui.painter();
             painter.rect_filled(rect, 10, if hovered { p.accent_soft } else { p.input });
             dashed_border(painter, rect.shrink(1.0), if hovered { p.accent } else { p.border });
-            painter.text(rect.center() - vec2(0.0, 22.0), Align2::CENTER_CENTER, crate::i18n::tr("⬇"), FontId::proportional(30.0), p.accent);
+            // a dica do Ctrl+V tem linha própria, só onde cabe
+            let print_tip = q.takes_images() && height >= 150.0;
+            let up = if print_tip { 10.0 } else { 0.0 };
+            painter.text(rect.center() - vec2(0.0, 22.0 + up), Align2::CENTER_CENTER, crate::i18n::tr("⬇"), FontId::proportional(30.0), p.accent);
             painter.text(
-                rect.center() + vec2(0.0, 14.0),
+                rect.center() + vec2(0.0, 14.0 - up),
                 Align2::CENTER_CENTER,
                 crate::i18n::tr("Arraste arquivos para cá"),
                 FontId::new(16.0, bold()),
                 p.text,
             );
             painter.text(
-                rect.center() + vec2(0.0, 38.0),
+                rect.center() + vec2(0.0, 38.0 - up),
                 Align2::CENTER_CENTER,
                 crate::i18n::tr("ou clique para selecionar"),
                 FontId::proportional(13.0),
                 p.muted,
             );
+            if print_tip {
+                painter.text(rect.center() + vec2(0.0, 48.0), Align2::CENTER_CENTER, crate::i18n::tr("Ctrl+V cola um print"), FontId::proportional(13.0), p.muted);
+            }
             if resp.on_hover_cursor(CursorIcon::PointingHand).clicked() {
                 q.pick();
             }

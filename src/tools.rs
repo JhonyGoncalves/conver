@@ -114,7 +114,7 @@ pub fn out_path(src: &Path, out_dir: Option<&Path>, suffix: &str, ext: &str) -> 
 }
 
 pub fn open_folder(p: &Path) {
-    let _ = Command::new("explorer").arg(p).spawn();
+    let _ = Command::new("explorer").arg(explorer_path(p)).spawn();
 }
 
 /// Pasta de dados do Conver (%APPDATA%\Conver).
@@ -221,11 +221,30 @@ pub fn open_file(p: &Path) {
     let _ = Command::new("explorer").arg(p).spawn();
 }
 
+/// Caminho como o Explorer aceita: completo, com `\\` e sem o prefixo `\\?\`. Com `/` ou esse prefixo, ele ignora o
+/// pedido e abre em Documentos.
+pub fn explorer_path(p: &Path) -> String {
+    // i18n: fora
+    let full = std::path::absolute(p).unwrap_or_else(|_| p.to_path_buf());
+    let s = full.to_string_lossy().replace('/', "\\");
+    match (s.strip_prefix(r"\\?\UNC\"), s.strip_prefix(r"\\?\")) {
+        (Some(unc), _) => format!(r"\\{unc}"),
+        (None, Some(local)) => local.to_string(),
+        _ => s,
+    }
+    // i18n: dentro
+}
+
+/// Argumento de "abrir com o arquivo selecionado". As aspas ficam só em volta do caminho: o `Command::arg` colocaria
+/// em volta de tudo, por causa dos espaços, e o Explorer não reconheceria o `/select` e abriria em Documentos.
+pub fn select_arg(p: &Path) -> String {
+    format!("/select,\"{}\"", explorer_path(p))
+}
+
 /// Abre o Explorer com o arquivo selecionado.
 pub fn show_in_folder(p: &Path) {
-    let mut arg = std::ffi::OsString::from("/select,");
-    arg.push(p);
-    let _ = Command::new("explorer").arg(arg).spawn();
+    use std::os::windows::process::CommandExt;
+    let _ = Command::new("explorer").raw_arg(select_arg(p)).spawn();
 }
 
 pub fn savings(before: u64, after: u64) -> String {

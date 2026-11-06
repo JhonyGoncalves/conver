@@ -290,15 +290,10 @@ impl OcrPage {
 
     /// Cola um print da área de transferência como imagem na lista.
     fn paste_image(&mut self) -> Result<(), String> {
-        let img = arboard::Clipboard::new().and_then(|mut c| c.get_image()).map_err(|_| "a área de transferência não tem imagem.")?;
-        let rgba = image::RgbaImage::from_raw(img.width as u32, img.height as u32, img.bytes.into_owned()).ok_or("imagem inválida.")?;
-        let dir = tools::app_dir().join("prints");
-        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-        let stamp: String = tools::now_string().chars().map(|c| if c.is_ascii_digit() { c } else { '-' }).collect();
-        let path = tools::unique_path(dir.join(format!("print_{stamp}.png")));
-        rgba.save(&path).map_err(|e| e.to_string())?;
         let first = self.queue.files.len();
-        self.queue.add([path]);
+        if self.queue.add(crate::paste::from_clipboard()?) == 0 {
+            return Err("a área de transferência não tem imagem.".into());
+        }
         self.queue.selected = first;
         Ok(())
     }
@@ -400,11 +395,6 @@ impl OcrPage {
                 hint(ui, p, "Outros idiomas: Configurações do Windows › Hora e idioma › Idioma › adicionar o idioma com \"Reconhecimento óptico\".");
             }
         });
-        if ui.input(|i| i.modifiers.ctrl && i.key_pressed(egui::Key::V)) && !ui.ctx().wants_keyboard_input() {
-            if let Err(e) = self.paste_image() {
-                self.msg = Some(format!("✖ {e}"));
-            }
-        }
         if let Some(m) = &self.msg {
             ui.label(RichText::new(crate::i18n::tr(m)).color(if m.starts_with('✔') { p.ok } else { p.accent }));
         }

@@ -1,5 +1,11 @@
 # Lista de mudanças
 
+## 1.9.2
+
+- **Colar da área de transferência:** tire um print e aperte Ctrl+V (ou o botão **Colar**) em uma ferramenta, sem salvar antes. Arquivos copiados no Explorer também entram. Os prints ficam em `Imagens\Conver\Prints`.
+- **Mostrar arquivo corrigido:** com espaço no caminho, o Explorer abria em Documentos. Agora ele abre a pasta certa, com o arquivo selecionado.
+- **Lista de arquivos:** em colunas estreitas, o título encurta em vez de ficar embaixo dos botões.
+
 ## 1.9.1
 
 - **Remover fundo mais preciso em logos, ícones e desenhos:** quando o fundo é de uma cor só, o recorte vai pela cor. As partes escuras de dentro do objeto ficam, os vãos mínimos do contorno se fecham sozinhos e a borda sai limpa, sem halo. Em "Achar o objeto" dá para escolher entre automático, IA ou cor do fundo; em "Interior do objeto", manter ou tirar o que está dentro do contorno (como o miolo da letra O).

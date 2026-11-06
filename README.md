@@ -93,6 +93,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 **No dia a dia**
 - **Busca de ferramentas** (Ctrl+F): ache pelo que você quer fazer ("cortar", "tirar fundo", "youtube"), não só pelo nome exato
 - Arraste arquivos para a janela (ou para o ícone do Conver) e eles vão para a ferramenta certa
+- Tire um print e aperte Ctrl+V em uma ferramenta: ele entra direto, sem salvar antes
 - "Abrir com Conver" no menu do botão direito
 - **20 idiomas** (Configurações → Idioma): português, inglês, chinês, espanhol, árabe, francês, russo, indonésio, urdu, alemão, japonês, vietnamita, turco, hauçá, coreano, italiano, persa, suaíli, polonês e ucraniano
 - Tema claro e escuro, aviso com som e notificação ao terminar tarefas longas

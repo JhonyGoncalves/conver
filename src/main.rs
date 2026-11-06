@@ -53,6 +53,7 @@ mod recorder;
 mod rename;
 mod screenrec;
 mod search;
+mod paste;
 mod segment;
 mod separate;
 mod theme;
@@ -358,6 +359,8 @@ struct ConverApp {
     welcome: Option<welcome::Welcome>,
     /// Downloads de modelos de IA em segundo plano (boas-vindas e Configurações).
     downloads: models::Downloads,
+    /// Ctrl+V seguro no quadro anterior (colar só uma vez por toque).
+    paste_held: bool,
     /// Pacote esperando a confirmação para ser apagado.
     confirm_remove: Option<models::Pack>,
     /// Ferramenta que o menu já rolou para mostrar.
@@ -441,6 +444,7 @@ impl ConverApp {
             captura: captura::from_env(),
             welcome: None,
             downloads: models::Downloads::default(),
+            paste_held: false,
             confirm_remove: None,
             nav_shown: None,
         };
@@ -699,6 +703,18 @@ impl ConverApp {
         self.cfg.save();
         self.pal = Palette::new(dark);
         theme::apply(ctx, &self.pal);
+    }
+
+    /// Ctrl+V fora de um campo de texto: cola arquivos copiados ou um print na tela atual, como se fossem soltos nela.
+    fn handle_paste(&mut self, ctx: &egui::Context) {
+        let held = ctx.input(|i| i.focused && i.modifiers.command) && paste::v_key_down();
+        let pressed = held && !self.paste_held;
+        self.paste_held = held;
+        if pressed && !ctx.wants_keyboard_input() {
+            if let Ok(files) = paste::from_clipboard() {
+                self.add_paths(files);
+            }
+        }
     }
 
     fn handle_drop(&mut self, ctx: &egui::Context) {
@@ -1383,6 +1399,7 @@ impl eframe::App for ConverApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.captura_frame(ctx);
         self.handle_drop(ctx);
+        self.handle_paste(ctx);
         // arquivos enviados por outra instância (menu do botão direito com o Conver já aberto)
         let received: Vec<PathBuf> = std::mem::take(&mut *self.inbox.lock().unwrap());
         if !received.is_empty() {
