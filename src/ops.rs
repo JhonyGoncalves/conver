@@ -1624,7 +1624,7 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("videos"), "subtitle": str_prop("Subtitle file path (optional)."),
             "size": enum_prop("Text size.", &["small", "medium", "large"], "medium"), "position": enum_prop("Position.", &["bottom", "top"], "bottom") }), &["files"]), t_burn_subs),
     tool!("video_add_music", "Música de fundo", "Add background music to videos (mixed or replacing the original audio).",
-        schema(json!({ "files": files_prop("videos"), "music": str_prop("Music file path."), "replace_audio": bool_prop("Replace the original audio.", false),
+        schema(json!({ "files": files_prop("videos"), "music": str_prop("Music file path. In a flow it may be left empty: an audio file linked into the node is used."), "replace_audio": bool_prop("Replace the original audio.", false),
             "volume": int_prop("Music volume in percent.", 0, 200, 30), "loop": bool_prop("Repeat the music until the end of the video.", true) }), &["files", "music"]), t_add_music),
     tool!("audio_convert", "Converter áudio", "Convert audios (or the audio of videos) to MP3, WAV, FLAC, OGG, M4A or OPUS.",
         schema(json!({ "files": files_prop("audios or videos"), "format": enum_prop("Target format.", &names(AFMTS), "mp3"),

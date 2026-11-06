@@ -97,6 +97,7 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   `special_editor` (cor, arquivo, pasta, microfone); `arg_hidden` esconde ajustes que não valem; `node_results`
   mostra a saída da última execução (`execucao.json`); `import_flow` confere os tipos de node. Teste
   `flow_nodes_in_portuguese` exige rótulo, valor e ajuda em português para todo node. Captura: `CONVER_FLUXO_NODE`.
+- `flow::run_tool`: com `music` vazio, o primeiro áudio que chega vira a música; ferramenta com `files` e `text` roda só com o texto.
 - Leva 1.9: `imagegen.rs` com `Engine` (Rápido, SDXL Lightning, Z-Image Turbo; Z-Image precisa de `--flash-attn on` em
   8 GB) e `edit` (`EditMode`: instrução com FLUX.2 klein `-r`, pintar com `--mask`, variar com `--strength`; imagem e
   máscara redimensionadas para múltiplos de 16); tela `editpage.rs`, op `image_edit` (o argumento é `how`, não `mode`).

@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 1.10.3
+
+- **Fluxos, voz:** o node **Texto para voz** agora roda só com o texto. Antes ele falhava se nenhum arquivo chegasse.
+- **Fluxos, música:** em **Música de fundo**, deixe a música em branco e ligue um áudio ao node, como uma narração gerada no próprio fluxo.
+
 ## 1.10.2
 
 - **Cor e desfoque:** nova ferramenta na seção Vídeo. Deixe vídeos em preto e branco, sépia ou com as cores invertidas, desfoque a imagem inteira e ajuste brilho, contraste e saturação, com prévia em qualquer ponto do vídeo. O som continua o mesmo, regravado em AAC. Para mudar só um pedaço, corte o trecho antes.

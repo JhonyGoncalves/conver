@@ -1098,15 +1098,24 @@ fn run_tool(
             other => other.clone(),
         }))
         .collect();
-    let files: Vec<String> = incoming.iter().filter_map(|i| i.path.as_ref()).map(|p| p.display().to_string()).collect();
+    let empty = |a: &Map<String, Value>, k: &str| a.get(k).is_none_or(|v| v.is_null() || v.as_str().is_some_and(|s| s.trim().is_empty()) || v.as_array().is_some_and(|x| x.is_empty()));
+    let mut files: Vec<String> = incoming.iter().filter_map(|i| i.path.as_ref()).map(|p| p.display().to_string()).collect();
+    // sem música escolhida, o áudio que chegou faz esse papel (uma narração gerada antes no fluxo, por exemplo)
+    if props.contains_key("music") && empty(&a, "music") {
+        if let Some(i) = files.iter().position(|f| crate::media::AUDIO_EXTS.contains(&tools::ext_lower(Path::new(f)).as_str())) {
+            a.insert("music".into(), json!(files.remove(i)));
+        }
+    }
     if props.contains_key("files") {
-        if files.is_empty() {
+        // ferramentas que aceitam arquivos ou texto (voz, por exemplo) podem rodar só com o texto
+        let has_text = props.contains_key("text") && (!empty(&a, "text") || !all_text.is_empty());
+        if !files.is_empty() {
+            a.insert("files".into(), json!(files));
+        } else if !has_text {
             return Err("nenhum arquivo chegou a este node.".into());
         }
-        a.insert("files".into(), json!(files));
     }
     // ferramentas que recebem texto: os links do download, o texto do QR Code
-    let empty = |a: &Map<String, Value>, k: &str| a.get(k).is_none_or(|v| v.is_null() || v.as_str().is_some_and(|s| s.trim().is_empty()) || v.as_array().is_some_and(|x| x.is_empty()));
     if props.contains_key("urls") && empty(&a, "urls") && !all_text.is_empty() {
         a.insert("urls".into(), json!(all_text.lines().map(str::trim).filter(|l| !l.is_empty()).collect::<Vec<_>>()));
     }

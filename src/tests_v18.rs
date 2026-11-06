@@ -1293,3 +1293,32 @@ fn video_adjust_color_and_blur() {
     let (sharp, soft) = (edges(neutral), edges(VideoAdjust { blur: 50, ..neutral }));
     assert!(sharp > 500 && soft * 5 < sharp, "o desfoque não suavizou o quadro: {soft} contra {sharp}");
 }
+
+#[test]
+fn flow_audio_link_becomes_music() {
+    use crate::flow::{Flow, Inputs, Link, Node, RunState};
+    let d = tmp("fluxo_musica");
+    let (video, voz) = (d.join("video.mp4"), d.join("voz.wav"));
+    ffmpeg(&["-f", "lavfi", "-i", "testsrc2=s=320x180:r=25:d=2", "-f", "lavfi", "-i", "sine=f=440:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", &video.to_string_lossy()], None);
+    ffmpeg(&["-f", "lavfi", "-i", "sine=f=880:d=1", &voz.to_string_lossy()], None);
+    let node = |id: u32, kind: &str, args: serde_json::Value| Node { id, kind: kind.into(), title: String::new(), args: args.as_object().cloned().unwrap_or_default(), pos: [0.0, 0.0] };
+    let link = |from: u32, to: u32| Link { from, port: "out".into(), to };
+    let flow = Flow {
+        name: "Teste áudio ligado".into(),
+        nodes: vec![
+            node(1, "input", json!({ "files": [video.to_string_lossy()] })),
+            node(2, "input", json!({ "files": [voz.to_string_lossy()] })),
+            node(3, "tool:video_add_music", json!({ "replace_audio": true, "volume": 100, "loop": false })),
+        ],
+        links: vec![link(1, 3), link(2, 3)],
+        ..Default::default()
+    };
+    let state = std::sync::Mutex::new(RunState::default());
+    let ctx = crate::ops::Ctx { progress: &|_| {}, cancelled: &|| false, log: &|_| {} };
+    let r = crate::flow::run(&flow, &Inputs { files: Vec::new(), texts: Vec::new() }, Some(&d), &state, &ctx, &Err("sem IA".to_string())).unwrap();
+    assert_eq!(r["failed_nodes"], 0, "{r}");
+    assert!(r["failed_inputs"].as_array().unwrap().is_empty(), "o áudio não pode ser tratado como vídeo: {r}");
+    let results = r["results"].as_array().unwrap();
+    assert_eq!(results.len(), 1, "{r}");
+    assert!(crate::video::probe(std::path::Path::new(results[0]["file"].as_str().unwrap())).has_video, "{r}");
+}
