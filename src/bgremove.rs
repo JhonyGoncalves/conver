@@ -63,9 +63,33 @@ pub fn mask(img: &DynamicImage) -> Result<GrayImage, String> {
     Ok(image::imageops::resize(&small_mask, img.width(), img.height(), FilterType::CatmullRom))
 }
 
+/// Como achar o que é fundo.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Detect {
+    /// Fundo de uma cor só (logos, ícones, desenhos) vai pela cor; o resto, pela IA.
+    #[default]
+    Auto,
+    Ia,
+    Cor,
+    /// Não tira fundo nenhum: só o que foi marcado sai.
+    Nada,
+}
+
+/// O que fazer com o que fica dentro do contorno do objeto e tem a cor do fundo.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Interior {
+    /// Mantém na detecção por cor; na IA, respeita o que ela decidiu (o vão de um braço é fundo de verdade).
+    #[default]
+    Auto,
+    Manter,
+    Tirar,
+}
+
 /// Ajustes finos do recorte.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Refine {
+    pub detect: Detect,
+    pub interior: Interior,
     /// Borda definida (`true`) ou suave, que guarda cabelo e pelos (`false`).
     pub hard: bool,
     /// Precisão de 0 a 100: mais alta corta mais (só o que a IA tem certeza que é o assunto); mais baixa mantém mais
@@ -81,12 +105,12 @@ pub struct Refine {
 
 impl Default for Refine {
     fn default() -> Self {
-        Self { hard: true, precision: 50.0, grow: 0, feather: 0.0, antialias: true }
+        Self { detect: Detect::Auto, interior: Interior::Auto, hard: true, precision: 50.0, grow: 0, feather: 0.0, antialias: true }
     }
 }
 
 /// Máximo (`dilate`) ou mínimo dos vizinhos num quadrado de raio `r` (separável: linhas, depois colunas).
-fn morph(mask: &GrayImage, r: u32, dilate: bool) -> GrayImage {
+pub fn morph(mask: &GrayImage, r: u32, dilate: bool) -> GrayImage {
     let (w, h) = mask.dimensions();
     let pick = |a: u8, b: u8| if dilate { a.max(b) } else { a.min(b) };
     let mut tmp = GrayImage::new(w, h);
@@ -108,9 +132,125 @@ fn morph(mask: &GrayImage, r: u32, dilate: bool) -> GrayImage {
     out
 }
 
-/// Aplica os ajustes à máscara crua do modelo. `keep` e `remove` (mesmo tamanho, branco = pintado) são os traços
+/// Distância entre duas cores (maior diferença entre os canais).
+fn color_dist(a: &[u8; 3], b: &[u8; 3]) -> u8 {
+    (0..3).map(|c| a[c].abs_diff(b[c])).max().unwrap_or(0)
+}
+
+/// Cor mais típica da borda da imagem (mediana de cada canal) e a fração da borda que tem essa cor.
+fn border_color(rgb: &image::RgbImage) -> ([u8; 3], f32) {
+    let (w, h) = rgb.dimensions();
+    let mut border = Vec::with_capacity(2 * (w + h) as usize);
+    border.extend((0..w).flat_map(|x| [rgb.get_pixel(x, 0).0, rgb.get_pixel(x, h - 1).0]));
+    border.extend((0..h).flat_map(|y| [rgb.get_pixel(0, y).0, rgb.get_pixel(w - 1, y).0]));
+    let mut bg = [0u8; 3];
+    for (c, v) in bg.iter_mut().enumerate() {
+        let mut values: Vec<u8> = border.iter().map(|p| p[c]).collect();
+        values.sort_unstable();
+        *v = values[values.len() / 2];
+    }
+    let same = border.iter().filter(|p| color_dist(p, &bg) <= 10).count();
+    (bg, same as f32 / border.len().max(1) as f32)
+}
+
+/// Cor do fundo, se a imagem tiver fundo de uma cor só: a borda quase toda igual (logos, ícones, desenhos, capturas).
+/// Fotos, mesmo em estúdio, têm ruído ou degradê e não passam.
+pub fn flat_background(rgb: &image::RgbImage) -> Option<[u8; 3]> {
+    let (bg, share) = border_color(rgb);
+    (share >= 0.97).then_some(bg)
+}
+
+/// Quanto cada pixel difere da cor do fundo, no formato da máscara da IA: 0 = igual ao fundo, 255 = bem diferente
+/// (60 níveis ou mais). Assim a precisão e a borda funcionam do mesmo jeito nos dois modos.
+fn color_mask(rgb: &image::RgbImage, bg: &[u8; 3]) -> GrayImage {
+    GrayImage::from_fn(rgb.width(), rgb.height(), |x, y| {
+        let d = color_dist(&rgb.get_pixel(x, y).0, bg) as u32;
+        image::Luma([(d * 255 / 60).min(255) as u8])
+    })
+}
+
+/// Fecha o que ficou dentro do contorno: só continua fundo o que alcança a borda da imagem sem atravessar o objeto.
+/// Desenhos costumam ter vãos mínimos entre os traços, por onde o fundo entraria: a busca anda com o objeto engrossado
+/// (uns 0,35% do lado menor) e depois volta essa mesma medida, para o lado de fora continuar exato.
+fn fill_inside(m: &mut GrayImage) {
+    let (w, h) = m.dimensions();
+    let gap = ((w.min(h) as f32 * 0.0035).round() as u32).max(1);
+    let wall = morph(m, gap, true);
+    let mut outside = GrayImage::new(w, h);
+    let mut todo = Vec::new();
+    for x in 0..w {
+        todo.extend([(x, 0), (x, h - 1)]);
+    }
+    for y in 0..h {
+        todo.extend([(0, y), (w - 1, y)]);
+    }
+    while let Some((x, y)) = todo.pop() {
+        if outside.get_pixel(x, y)[0] != 0 || wall.get_pixel(x, y)[0] >= 200 {
+            continue;
+        }
+        outside.put_pixel(x, y, image::Luma([255]));
+        if x > 0 {
+            todo.push((x - 1, y));
+        }
+        if x + 1 < w {
+            todo.push((x + 1, y));
+        }
+        if y > 0 {
+            todo.push((x, y - 1));
+        }
+        if y + 1 < h {
+            todo.push((x, y + 1));
+        }
+    }
+    let outside = morph(&outside, gap, true);
+    for (p, out) in m.pixels_mut().zip(outside.pixels()) {
+        if out[0] == 0 {
+            p[0] = 255;
+        }
+    }
+}
+
+/// Limpa a borda de um recorte por cor. Um pixel da borda é uma mistura do objeto com o fundo: a transparência vem de
+/// quanto ele se afasta do fundo, comparado à cor cheia do objeto ali perto, e a cor do fundo sai da mistura. Sem isso
+/// sobra um halo escuro em volta do objeto.
+pub fn clean_edge(rgb: &mut image::RgbImage, mask: &mut GrayImage, bg: &[u8; 3]) {
+    let (w, h) = rgb.dimensions();
+    let dist = GrayImage::from_fn(w, h, |x, y| image::Luma([color_dist(&rgb.get_pixel(x, y).0, bg)]));
+    let full = morph(&dist, 3, true);
+    let near_hole = morph(mask, 2, false);
+    for ((x, y, m), hole) in mask.enumerate_pixels_mut().zip(near_hole.pixels()) {
+        let peak = full.get_pixel(x, y)[0] as f32;
+        if m[0] == 0 || hole[0] != 0 || peak < 40.0 {
+            continue;
+        }
+        let a = (dist.get_pixel(x, y)[0] as f32 / peak).min(m[0] as f32 / 255.0);
+        m[0] = (a * 255.0).round() as u8;
+        if a > 0.02 && a < 0.98 {
+            let p = rgb.get_pixel_mut(x, y);
+            for c in 0..3 {
+                p[c] = ((p[c] as f32 - (1.0 - a) * bg[c] as f32) / a).round().clamp(0.0, 255.0) as u8;
+            }
+        }
+    }
+}
+
+/// Máscara crua de uma imagem conforme o `detect`, com a cor do fundo se a detecção foi por cor.
+pub fn raw_mask(rgb: &image::RgbImage, detect: Detect) -> Result<(GrayImage, Option<[u8; 3]>), String> {
+    let flat = match detect {
+        Detect::Nada => return Ok((GrayImage::from_pixel(rgb.width(), rgb.height(), image::Luma([255])), None)),
+        Detect::Ia => None,
+        Detect::Auto => flat_background(rgb),
+        Detect::Cor => Some(border_color(rgb).0),
+    };
+    match flat {
+        Some(bg) => Ok((color_mask(rgb, &bg), Some(bg))),
+        None => Ok((mask(&DynamicImage::ImageRgb8(rgb.clone()))?, None)),
+    }
+}
+
+/// Aplica os ajustes à máscara crua. `by_color` diz se ela veio da cor do fundo. `keep` e `remove` (mesmo tamanho, branco = pintado) são os traços
 /// do pincel: forçam o que fica e o que sai.
-pub fn refine(raw: &GrayImage, r: &Refine, keep: Option<&GrayImage>, remove: Option<&GrayImage>) -> GrayImage {
+pub fn refine(raw: &GrayImage, r: &Refine, by_color: bool, keep: Option<&GrayImage>, remove: Option<&GrayImage>) -> GrayImage {
     // precisão: o ponto de corte anda de 0,1 (mantém quase tudo) a 0,9 (só o que é certo); a transição é curta na
     // borda definida e larga na suave
     let c = 0.1 + 0.8 * (r.precision.clamp(0.0, 100.0) / 100.0);
@@ -124,15 +264,22 @@ pub fn refine(raw: &GrayImage, r: &Refine, keep: Option<&GrayImage>, remove: Opt
     if r.grow != 0 {
         m = morph(&m, r.grow.unsigned_abs(), r.grow > 0);
     }
-    for (mask, value) in [(keep, 255u8), (remove, 0u8)] {
-        if let Some(k) = mask.filter(|k| k.dimensions() == m.dimensions()) {
+    // o "manter" vem antes de fechar o interior (pintar sobre um vão do contorno fecha o objeto) e o "tirar" vem
+    // depois (tem a última palavra)
+    let paint = |m: &mut GrayImage, stroke: Option<&GrayImage>, value: u8| {
+        if let Some(k) = stroke.filter(|k| k.dimensions() == m.dimensions()) {
             for (o, s) in m.pixels_mut().zip(k.pixels()) {
                 if s[0] > 127 {
                     o[0] = value;
                 }
             }
         }
+    };
+    paint(&mut m, keep, 255);
+    if r.interior == Interior::Manter || (r.interior == Interior::Auto && by_color) {
+        fill_inside(&mut m);
     }
+    paint(&mut m, remove, 0);
     let sigma = r.feather.max(0.0) / 2.0 + if r.antialias { 0.7 } else { 0.0 };
     if sigma > 0.05 {
         m = image::imageops::blur(&m, sigma);
@@ -168,12 +315,14 @@ pub fn paint_mask(w: u32, h: u32, dots: &[Dot]) -> GrayImage {
     m
 }
 
-/// Pinceladas de uma imagem: o que fica, o que sai e os objetos que a IA deve apagar (preencher com o fundo).
+/// Pinceladas de uma imagem: o que fica, o que sai, os objetos que a IA deve apagar (preencher com o fundo) e os que
+/// ela deve reconhecer e remover, deixando transparente (`cut`: uma lista de pontos por objeto).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Strokes {
     pub keep: Vec<Dot>,
     pub remove: Vec<Dot>,
     pub erase: Vec<Dot>,
+    pub cut: Vec<Vec<Dot>>,
 }
 
 /// Apaga os objetos pintados (LaMa preenche com o fundo). Sem traços de apagar, devolve a imagem como está.
@@ -184,11 +333,29 @@ pub fn erase_objects(img: &image::RgbImage, s: &Strokes, cancelled: &dyn Fn() ->
     crate::inpaint::erase(img, &paint_mask(img.width(), img.height(), &s.erase), &|_| {}, cancelled)
 }
 
-/// Máscara final de uma imagem (já sem os objetos apagados): a do modelo, com os ajustes e o pincel.
-pub fn final_mask(rgb: &image::RgbImage, r: &Refine, s: &Strokes) -> Result<GrayImage, String> {
+/// Recorte pronto de uma imagem (já sem os objetos apagados): a imagem, limpa da cor do fundo na borda, e a máscara.
+pub fn cut(rgb: &image::RgbImage, r: &Refine, s: &Strokes) -> Result<(image::RgbImage, GrayImage), String> {
     let (w, h) = rgb.dimensions();
-    let raw = mask(&DynamicImage::ImageRgb8(rgb.clone()))?;
+    let (raw, flat) = raw_mask(rgb, r.detect)?;
     let keep = (!s.keep.is_empty()).then(|| paint_mask(w, h, &s.keep));
-    let remove = (!s.remove.is_empty()).then(|| paint_mask(w, h, &s.remove));
-    Ok(refine(&raw, r, keep.as_ref(), remove.as_ref()))
+    let mut remove = (!s.remove.is_empty()).then(|| paint_mask(w, h, &s.remove));
+    if !s.cut.is_empty() {
+        remove = Some(merge(remove, crate::segment::objects(rgb, &s.cut)?));
+    }
+    let mut m = refine(&raw, r, flat.is_some(), keep.as_ref(), remove.as_ref());
+    let mut img = rgb.clone();
+    if let Some(bg) = flat {
+        clean_edge(&mut img, &mut m, &bg);
+    }
+    Ok((img, m))
+}
+
+/// Junta duas máscaras do mesmo tamanho.
+pub fn merge(a: Option<GrayImage>, mut b: GrayImage) -> GrayImage {
+    if let Some(a) = a {
+        for (o, v) in b.pixels_mut().zip(a.pixels()) {
+            o[0] = o[0].max(v[0]);
+        }
+    }
+    b
 }

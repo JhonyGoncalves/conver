@@ -520,10 +520,12 @@ pub fn process(path: &Path, op: &ImageOp) -> Result<Output, String> {
             Ok(Output { bytes, fmt: src_fmt, suffix: "_limpa".into(), info, dims: (w, h) })
         }
         ImageOp::RemoveBg { bg, refine } => {
-            let raw = crate::bgremove::mask(&img)?;
-            let mask = crate::bgremove::refine(&raw, refine, None, None);
+            let (clean, mask) = crate::bgremove::cut(&img.to_rgb8(), refine, &Default::default())?;
             let mut rgba = img.to_rgba8();
-            for (p, a) in rgba.pixels_mut().zip(mask.pixels()) {
+            for ((p, c), a) in rgba.pixels_mut().zip(clean.pixels()).zip(mask.pixels()) {
+                p[0] = c[0];
+                p[1] = c[1];
+                p[2] = c[2];
                 p[3] = (p[3] as u16 * a[0] as u16 / 255) as u8;
             }
             let kept = mask.pixels().filter(|a| a[0] > 127).count() as f64 / mask.len().max(1) as f64 * 100.0;

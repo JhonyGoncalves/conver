@@ -33,7 +33,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 
 **Imagem**
 - **Ampliar com IA** (2× ou 4×, Real-ESRGAN): fotos pequenas, prints e imagens antigas sem borrar
-- **Remover fundo** com IA, no próprio computador e sem internet: fundo transparente (PNG) ou de uma cor, borda definida ou suave
+- **Remover fundo** com IA, no próprio computador e sem internet: fundo transparente (PNG) ou de uma cor, borda definida ou suave; logos e desenhos recortados pela cor do fundo, sem perder o interior; e remover um objeto com um clique, deixando transparente
 - **Gerar imagem** com IA a partir de uma descrição, usando a placa de vídeo, sem internet e sem limite (Stable Diffusion)
 - **Apagar objeto**: pinte por cima de uma pessoa, um texto ou uma marca d'água e a IA preenche o fundo
 - **Desfocar rostos** em fotos e vídeos (desfoque, pixelado ou tarja), sem internet

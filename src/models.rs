@@ -19,6 +19,7 @@ pub enum Pack {
     Transcribe,
     Separate,
     Erase,
+    Cut,
     Generate,
     GenerateXl,
     GenerateZ,
@@ -31,12 +32,13 @@ pub enum Pack {
 }
 
 impl Pack {
-    pub const ALL: [Pack; 12] = [
+    pub const ALL: [Pack; 13] = [
         Pack::Transcribe,
         Pack::Separate,
         Pack::Kokoro,
         Pack::Voice,
         Pack::Erase,
+        Pack::Cut,
         Pack::GenerateZ,
         Pack::GenerateXl,
         Pack::Generate,
@@ -52,6 +54,7 @@ impl Pack {
             Pack::Transcribe => "Transcrição (Whisper)",
             Pack::Separate => "Separar voz e instrumental (UVR)",
             Pack::Erase => "Apagar objeto (LaMa)",
+            Pack::Cut => "Remover objeto com um clique (SlimSAM)",
             Pack::Generate => "Gerar imagem — rápido (DreamShaper 8)",
             Pack::GenerateXl => "Gerar imagem — SDXL Lightning",
             Pack::GenerateZ => "Gerar imagem — Z-Image Turbo (melhor)",
@@ -70,6 +73,7 @@ impl Pack {
             Pack::Transcribe => "Legendas, Transcrever, Ditado ao vivo e Traduzir e dublar",
             Pack::Separate => "Separar voz e instrumental",
             Pack::Erase => "Apagar objeto",
+            Pack::Cut => "Remover fundo: clique em uma parte da imagem e ela sai, deixando transparente",
             Pack::Generate => "Gerar imagem, em 512 px: o mais leve, para placas de vídeo fracas",
             Pack::GenerateXl => "Gerar imagem, em 1024 px (placa de vídeo com 6 GB ou mais)",
             Pack::GenerateZ => "Gerar imagem, em 1024 px: o melhor resultado, entende pedidos longos e escreve textos na imagem",
@@ -88,6 +92,7 @@ impl Pack {
             Pack::Transcribe => vec![crate::transcribe::WModel::Rapido.spec()],
             Pack::Separate => vec![crate::separate::MODEL],
             Pack::Erase => vec![crate::inpaint::MODEL],
+            Pack::Cut => vec![crate::segment::ENCODER, crate::segment::DECODER],
             Pack::Generate => vec![crate::imagegen::MODEL],
             Pack::GenerateXl => crate::imagegen::Engine::Xl.files(),
             Pack::GenerateZ => crate::imagegen::Engine::ZImage.files(),

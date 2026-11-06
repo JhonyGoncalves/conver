@@ -1,5 +1,6 @@
-//! Tela "Remover fundo": recorte automático com ajuste fino (precisão, borda, suavização, anticerrilhado), pincel
-//! para manter ou tirar partes e para apagar objetos com a IA do "Apagar objeto", tudo com prévia ao vivo.
+//! Tela "Remover fundo": recorte automático (IA ou cor do fundo) com ajuste fino, pincel para manter ou tirar partes,
+//! remover um objeto com um clique (fica transparente) e apagar objetos com a IA do "Apagar objeto" (preenche), tudo
+//! com prévia ao vivo.
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -9,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use eframe::egui::{self, Align2, Color32, FontId, RichText, Sense, Stroke, StrokeKind, Ui, vec2};
 use image::{GrayImage, RgbImage, RgbaImage};
 
-use crate::bgremove::{Dot, Refine, Strokes};
+use crate::bgremove::{Detect, Dot, Interior, Refine, Strokes};
 use crate::i18n::tr;
 use crate::imaging::Background;
 use crate::job::{Job, LogKind};
@@ -26,6 +27,8 @@ pub enum Brush {
     Manter,
     /// Pintar o que deve sair.
     Tirar,
+    /// Clicar num objeto: a IA reconhece o contorno e ele sai, deixando transparente.
+    Recortar,
     /// Pintar um objeto para a IA apagar (preencher com o fundo).
     Objeto,
 }
@@ -33,7 +36,15 @@ pub enum Brush {
 /// Lado maior da imagem usada na prévia.
 const PREVIEW_SIDE: u32 = 900;
 
-type Stage = (String, Result<(RgbImage, GrayImage), String>);
+/// Etapa pesada pronta: imagem, máscara crua, cor do fundo (se foi por cor) e os objetos reconhecidos.
+struct Heavy {
+    img: RgbImage,
+    raw: GrayImage,
+    flat: Option<[u8; 3]>,
+    objects: Option<GrayImage>,
+}
+
+type Stage = (String, Result<Heavy, String>);
 
 pub struct BgPage {
     pub queue: FileQueue,
@@ -42,7 +53,7 @@ pub struct BgPage {
     bg: Background,
     bg_color: [u8; 3],
     refine: Refine,
-    /// Só apaga os objetos pintados e mantém o fundo.
+    /// Não tira o fundo: só sai o que foi marcado.
     only_erase: bool,
     brush: Brush,
     brush_size: f32,
@@ -53,8 +64,8 @@ pub struct BgPage {
     cur: Option<PathBuf>,
     base: Option<RgbImage>,
     tex_orig: Option<egui::TextureHandle>,
-    /// Etapa pesada da prévia (apagar objetos + máscara da IA), feita numa thread: chave e resultado.
-    stage: Option<(String, RgbImage, GrayImage)>,
+    /// Etapa pesada da prévia (apagar objetos, máscara, objetos clicados), feita numa thread: chave e resultado.
+    stage: Option<(String, Heavy)>,
     pending: Arc<Mutex<Option<Stage>>>,
     busy: Arc<AtomicBool>,
     wanted: String,
@@ -98,10 +109,16 @@ impl BgPage {
                 Brush::Manter => s.keep.extend(dots),
                 Brush::Tirar => s.remove.extend(dots),
                 Brush::Objeto => s.erase.extend(dots),
+                Brush::Recortar => s.cut.push(dots.clone()),
                 Brush::Ver => {}
             }
         }
         s
+    }
+
+    /// Ajustes valendo agora ("só o que foi marcado" não tira fundo).
+    fn current(&self) -> Refine {
+        if self.only_erase { Refine { detect: Detect::Nada, ..Refine::default() } } else { self.refine }
     }
 
     /// Abre o arquivo escolhido na lista (imagem reduzida para a prévia).
@@ -135,26 +152,28 @@ impl BgPage {
     fn update_preview(&mut self, ctx: &egui::Context) {
         let (Some(f), Some(base)) = (self.cur.clone(), self.base.clone()) else { return };
         let s = self.strokes_of(&f);
-        let key1 = format!("{f:?}|{:?}|{}", s.erase, self.only_erase);
+        let refine = self.current();
+        let key1 = format!("{f:?}|{:?}|{:?}|{:?}", s.erase, s.cut, refine.detect);
         if let Some((k, r)) = self.pending.lock().unwrap().take() {
             match r {
-                Ok((img, raw)) => {
-                    self.stage = Some((k, img, raw));
+                Ok(h) => {
+                    self.stage = Some((k, h));
                     self.err = None;
                 }
                 Err(e) => self.err = Some(e),
             }
         }
-        if self.stage.as_ref().is_none_or(|(k, _, _)| *k != key1) {
+        if self.stage.as_ref().is_none_or(|(k, _)| *k != key1) {
             // uma de cada vez; um pedido que deu erro não é repetido até algo mudar
             if !self.busy.load(Ordering::Relaxed) && self.wanted != key1 {
                 self.wanted = key1.clone();
                 self.busy.store(true, Ordering::Relaxed);
-                let (pending, busy, ctx, only) = (self.pending.clone(), self.busy.clone(), ctx.clone(), self.only_erase);
+                let (pending, busy, ctx) = (self.pending.clone(), self.busy.clone(), ctx.clone());
                 std::thread::spawn(move || {
                     let r = crate::bgremove::erase_objects(&base, &s, &|| false).and_then(|img| {
-                        let raw = if only { GrayImage::from_pixel(img.width(), img.height(), image::Luma([255])) } else { crate::bgremove::mask(&image::DynamicImage::ImageRgb8(img.clone()))? };
-                        Ok((img, raw))
+                        let (raw, flat) = crate::bgremove::raw_mask(&img, refine.detect)?;
+                        let objects = if s.cut.is_empty() { None } else { Some(crate::segment::objects(&img, &s.cut)?) };
+                        Ok(Heavy { img, raw, flat, objects })
                     });
                     *pending.lock().unwrap() = Some((key1, r));
                     busy.store(false, Ordering::Relaxed);
@@ -163,20 +182,23 @@ impl BgPage {
             }
             return;
         }
-        let Some((_, img, raw)) = &self.stage else { return };
-        let key2 = format!("{key1}|{:?}|{:?}|{:?}|{:?}", self.refine, s.keep, s.remove, self.bg);
+        let Some((_, h)) = &self.stage else { return };
+        let key2 = format!("{key1}|{refine:?}|{:?}|{:?}|{:?}", s.keep, s.remove, self.bg);
         if key2 == self.tex_key {
             return;
         }
-        let (w, h) = img.dimensions();
-        let mask = if self.only_erase {
-            raw.clone()
-        } else {
-            let keep = (!s.keep.is_empty()).then(|| crate::bgremove::paint_mask(w, h, &s.keep));
-            let remove = (!s.remove.is_empty()).then(|| crate::bgremove::paint_mask(w, h, &s.remove));
-            crate::bgremove::refine(raw, &self.refine, keep.as_ref(), remove.as_ref())
-        };
-        let out = compose(img, &mask, self.bg);
+        let (w, ih) = h.img.dimensions();
+        let keep = (!s.keep.is_empty()).then(|| crate::bgremove::paint_mask(w, ih, &s.keep));
+        let mut remove = (!s.remove.is_empty()).then(|| crate::bgremove::paint_mask(w, ih, &s.remove));
+        if let Some(o) = &h.objects {
+            remove = Some(crate::bgremove::merge(remove, o.clone()));
+        }
+        let mut mask = crate::bgremove::refine(&h.raw, &refine, h.flat.is_some(), keep.as_ref(), remove.as_ref());
+        let mut img = h.img.clone();
+        if let Some(bg) = &h.flat {
+            crate::bgremove::clean_edge(&mut img, &mut mask, bg);
+        }
+        let out = compose(&img, &mask, if self.only_erase { Background::Transparente } else { self.bg });
         self.tex = Some(texture(ctx, "fundo_resultado", &out));
         self.tex_key = key2;
     }
@@ -193,8 +215,8 @@ impl BgPage {
             // pincel
             ui.horizontal_wrapped(|ui| {
                 ui.label(RichText::new(tr("Pincel:")).color(p.text));
-                segmented(ui, p, &mut self.brush, &[(Brush::Ver, "Só ver"), (Brush::Manter, "Manter"), (Brush::Tirar, "Tirar"), (Brush::Objeto, "Apagar objeto (IA)")]);
-                if self.brush != Brush::Ver {
+                segmented(ui, p, &mut self.brush, &[(Brush::Ver, "Só ver"), (Brush::Manter, "Manter"), (Brush::Tirar, "Tirar"), (Brush::Recortar, "Remover objeto"), (Brush::Objeto, "Apagar e preencher (IA)")]);
+                if !matches!(self.brush, Brush::Ver | Brush::Recortar) {
                     ui.add(egui::Slider::new(&mut self.brush_size, 4.0..=120.0).show_value(false));
                 }
                 let has = self.cur.as_ref().is_some_and(|f| self.strokes.get(f).is_some_and(|v| !v.is_empty()));
@@ -212,9 +234,10 @@ impl BgPage {
             });
             self.canvas(ui, p, running);
             let tip = match self.brush {
-                Brush::Ver => "Escolha \"Manter\" ou \"Tirar\" e pinte para corrigir o recorte; \"Apagar objeto\" tira uma coisa da foto e a IA preenche com o fundo.",
+                Brush::Ver => "Escolha \"Manter\" ou \"Tirar\" e pinte para corrigir o recorte; \"Remover objeto\" tira uma parte com um clique e deixa transparente.",
                 Brush::Manter => "Pinte o que deve ficar na imagem (verde).",
                 Brush::Tirar => "Pinte o que deve sair junto com o fundo (vermelho).",
+                Brush::Recortar => "Clique em um objeto: a IA reconhece o contorno e ele sai, deixando transparente, sem nada novo no lugar. Pegou pouco ou demais? Use Desfazer e clique em outro ponto, ou arraste por cima dele.",
                 Brush::Objeto => "Pinte um objeto, pessoa ou texto: a IA apaga e preenche com o que estaria atrás.",
             };
             hint(ui, p, tip);
@@ -243,9 +266,16 @@ impl BgPage {
                 }
             });
             row(ui, p, "O que fazer:", |ui| {
-                segmented(ui, p, &mut self.only_erase, &[(false, "Tirar o fundo"), (true, "Só apagar os objetos pintados")]);
+                segmented(ui, p, &mut self.only_erase, &[(false, "Tirar o fundo"), (true, "Só tirar o que eu marcar")]);
             });
             if !self.only_erase {
+                row(ui, p, "Achar o objeto:", |ui| {
+                    segmented(ui, p, &mut self.refine.detect, &[(Detect::Auto, "Automático"), (Detect::Ia, "IA (fotos)"), (Detect::Cor, "Cor do fundo (logos, desenhos)")]);
+                });
+                row(ui, p, "Interior do objeto:", |ui| {
+                    segmented(ui, p, &mut self.refine.interior, &[(Interior::Auto, "Automático"), (Interior::Manter, "Manter"), (Interior::Tirar, "Tirar")]);
+                });
+                hint(ui, p, "Num desenho de contorno, \"Manter\" guarda as partes escuras de dentro; \"Tirar\" vaza buracos, como o miolo da letra O. Se o contorno tiver um vão, pinte \"Manter\" sobre ele para fechar.");
                 row(ui, p, "Borda:", |ui| {
                     segmented(ui, p, &mut self.refine.hard, &[(true, "Definida"), (false, "Suave (cabelo, pelos)")]);
                 });
@@ -270,30 +300,36 @@ impl BgPage {
             if self.strokes.values().flatten().any(|(k, _)| *k == Brush::Objeto) {
                 crate::ai::model_hint(ui, p, &crate::inpaint::MODEL);
             }
+            if self.brush == Brush::Recortar || self.strokes.values().flatten().any(|(k, _)| *k == Brush::Recortar) {
+                crate::ai::model_hint(ui, p, &crate::segment::ENCODER);
+            }
         });
         ui.add_space(4.0);
         self.out.ui(ui, p);
-        let ready = !self.queue.files.is_empty() && (!self.only_erase || self.strokes.values().flatten().any(|(k, _)| *k == Brush::Objeto));
-        match widgets::action_bar(ui, p, &self.job, if self.only_erase { "Apagar objetos" } else { "Remover fundo" }, ready) {
+        let marked = self.strokes.values().flatten().any(|(k, d)| *k != Brush::Manter && !d.is_empty());
+        let ready = !self.queue.files.is_empty() && (!self.only_erase || marked);
+        match widgets::action_bar(ui, p, &self.job, if self.only_erase { "Remover o que marquei" } else { "Remover fundo" }, ready) {
             Act::Start => {
                 let files = self.queue.files.clone();
                 let strokes: HashMap<PathBuf, Strokes> = files.iter().map(|f| (f.clone(), self.strokes_of(f))).collect();
-                let (out, bg, refine, only) = (self.out.path.clone(), self.bg, self.refine, self.only_erase);
+                let (out, bg, refine, only) = (self.out.path.clone(), self.bg, self.current(), self.only_erase);
                 self.job.start(ui.ctx(), move |ctl| {
                     run_batch(ctl, title, &files, |src, progress| {
                         let s = strokes.get(src).cloned().unwrap_or_default();
-                        if only && s.erase.is_empty() {
-                            return Err(tr("nada pintado para apagar nesta imagem."));
+                        // saiu algo sem nada no lugar: a imagem fica com transparência
+                        let holes = !s.remove.is_empty() || !s.cut.is_empty();
+                        if only && !holes && s.erase.is_empty() {
+                            return Err(tr("nada marcado nesta imagem."));
                         }
                         let img = crate::imaging::load(src)?;
                         progress(0.1);
                         let rgb = crate::bgremove::erase_objects(&img.to_rgb8(), &s, &|| ctl.cancelled())?;
                         progress(0.5);
                         let (w, h) = rgb.dimensions();
-                        let mask = if only { GrayImage::from_pixel(w, h, image::Luma([255])) } else { crate::bgremove::final_mask(&rgb, &refine, &s)? };
+                        let (clean, mask) = crate::bgremove::cut(&rgb, &refine, &s)?;
                         progress(0.8);
-                        let rgba = compose(&rgb, &mask, if only { Background::Cor(0, 0, 0) } else { bg });
-                        let transparent = !only && bg == Background::Transparente;
+                        let transparent = if only { holes } else { bg == Background::Transparente };
+                        let rgba = compose(&clean, &mask, if transparent { Background::Transparente } else if only { Background::Cor(0, 0, 0) } else { bg });
                         let ext = if transparent { "png" } else if matches!(crate::tools::ext_lower(src).as_str(), "jpg" | "jpeg") { "jpg" } else { "png" };
                         let dst = crate::tools::unique_path(crate::tools::out_path(src, out.as_deref(), if only { "_apagado" } else { "_sem_fundo" }, ext));
                         let saved = if ext == "jpg" { image::DynamicImage::ImageRgba8(rgba).to_rgb8().save(&dst) } else { rgba.save(&dst) };
@@ -327,7 +363,7 @@ impl BgPage {
         let r = egui::Rect::from_center_size(rect.center(), shown);
         let uv = egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0));
         let tex = if self.show_original { self.tex_orig.clone() } else { self.tex.clone().or_else(|| self.tex_orig.clone()) };
-        if !self.show_original && self.tex.is_some() && self.bg == Background::Transparente && !self.only_erase {
+        if !self.show_original && self.tex.is_some() && (self.only_erase || self.bg == Background::Transparente) {
             widgets::checkerboard(&painter, r);
         }
         if let Some(t) = tex {
@@ -357,11 +393,13 @@ impl BgPage {
                 }
             }
             if let Some(h) = resp.hover_pos().filter(|h| r.contains(*h)) {
-                painter.circle_stroke(h, self.brush_size / 2.0, Stroke::new(1.5f32, p.accent));
+                if self.brush != Brush::Recortar {
+                    painter.circle_stroke(h, self.brush_size / 2.0, Stroke::new(1.5f32, p.accent));
+                }
                 ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
             }
         }
-        // traços por cima: verde = manter, vermelho = tirar, cinza = objeto a apagar
+        // traços por cima: verde = manter, vermelho = tirar, cinza = objeto a apagar; os cliques viram um ponto
         if !self.show_original {
             if let Some(list) = self.cur.as_ref().and_then(|f| self.strokes.get(f)) {
                 for (kind, dots) in list {
@@ -371,6 +409,12 @@ impl BgPage {
                         _ => p.muted,
                     };
                     let c = Color32::from_rgba_unmultiplied(c.r(), c.g(), c.b(), 90);
+                    if *kind == Brush::Recortar {
+                        for d in dots.iter().step_by(4) {
+                            painter.circle_stroke(egui::pos2(r.left() + d.x * r.width(), r.top() + d.y * r.height()), 4.0, Stroke::new(2.0f32, p.accent));
+                        }
+                        continue;
+                    }
                     for d in dots {
                         painter.circle_filled(egui::pos2(r.left() + d.x * r.width(), r.top() + d.y * r.height()), d.r * r.width(), c);
                     }

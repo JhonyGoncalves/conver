@@ -33,13 +33,15 @@ Pincel:
 Só ver
 Manter
 Tirar
-Apagar objeto (IA)
+Remover objeto
+Apagar e preencher (IA)
 Desfazer
 Limpar
 Ver o original
-Escolha "Manter" ou "Tirar" e pinte para corrigir o recorte; "Apagar objeto" tira uma coisa da foto e a IA preenche com o fundo.
+Escolha "Manter" ou "Tirar" e pinte para corrigir o recorte; "Remover objeto" tira uma parte com um clique e deixa transparente.
 Pinte o que deve ficar na imagem (verde).
 Pinte o que deve sair junto com o fundo (vermelho).
+Clique em um objeto: a IA reconhece o contorno e ele sai, deixando transparente, sem nada novo no lugar. Pegou pouco ou demais? Use Desfazer e clique em outro ponto, ou arraste por cima dele.
 Pinte um objeto, pessoa ou texto: a IA apaga e preenche com o que estaria atrás.
 Fundo novo:
 Transparente
@@ -48,7 +50,13 @@ Preto
 Cor
 O que fazer:
 Tirar o fundo
-Só apagar os objetos pintados
+Só tirar o que eu marcar
+Achar o objeto:
+Automático
+IA (fotos)
+Cor do fundo (logos, desenhos)
+Interior do objeto:
+Num desenho de contorno, "Manter" guarda as partes escuras de dentro; "Tirar" vaza buracos, como o miolo da letra O. Se o contorno tiver um vão, pinte "Manter" sobre ele para fechar.
 Borda:
 Definida
 Suave (cabelo, pelos)
@@ -61,8 +69,8 @@ Anticerrilhado:
 Borda lisa, sem "escadinha"
 Voltar ao padrão
 Os ajustes valem para todas as imagens da lista; as pinceladas, só para a imagem em que você pintou.
-Apagar objetos
-nada pintado para apagar nesta imagem.
+Remover o que marquei
+nada marcado nesta imagem.
 não foi possível salvar: {e}
 fundo removido • {kept:.0}% da imagem mantida
 Adicione uma imagem para começar.
@@ -135,7 +143,6 @@ Legende vídeos com o Whisper, no seu PC e sem internet: grave direto ou revise 
 ✖ nenhuma fala encontrada no vídeo.
 ✔ {} frases. Corrija o que precisar e grave no vídeo.
 Modo:
-Automático
 Revisar o texto antes
 Transcreve o vídeo escolhido e mostra as frases para você corrigir antes de gravar.
 Transcreve e grava a legenda em todos os vídeos da lista, sem parar.
@@ -812,6 +819,8 @@ Precisão (%)
 Ajustar a borda (px)
 Suavizar a borda (px)
 Anticerrilhado
+Achar o objeto
+Interior do objeto
 Como editar
 Orientação
 Limpeza
@@ -1323,6 +1332,7 @@ escolha a música.
 Transcrição (Whisper)
 Separar voz e instrumental (UVR)
 Apagar objeto (LaMa)
+Remover objeto com um clique (SlimSAM)
 Gerar imagem — rápido (DreamShaper 8)
 Gerar imagem — SDXL Lightning
 Gerar imagem — Z-Image Turbo (melhor)
@@ -1333,6 +1343,7 @@ IA de linguagem (Qwen 3.5 2B)
 Voz (Piper)
 Voz natural (Kokoro)
 Legendas, Transcrever, Ditado ao vivo e Traduzir e dublar
+Remover fundo: clique em uma parte da imagem e ela sai, deixando transparente
 Gerar imagem, em 512 px: o mais leve, para placas de vídeo fracas
 Gerar imagem, em 1024 px (placa de vídeo com 6 GB ou mais)
 Gerar imagem, em 1024 px: o melhor resultado, entende pedidos longos e escreve textos na imagem

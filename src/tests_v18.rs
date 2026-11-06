@@ -795,23 +795,120 @@ fn background_refine() {
     let raw = image::GrayImage::from_fn(100, 20, |x, _| image::Luma([(x as f32 / 99.0 * 255.0) as u8]));
     let kept = |m: &image::GrayImage| m.pixels().filter(|p| p[0] > 127).count();
     let base = Refine { antialias: false, ..Default::default() };
-    let mid = refine(&raw, &base, None, None);
-    let strict = refine(&raw, &Refine { precision: 90.0, ..base }, None, None);
-    let loose = refine(&raw, &Refine { precision: 10.0, ..base }, None, None);
+    let mid = refine(&raw, &base, false, None, None);
+    let strict = refine(&raw, &Refine { precision: 90.0, ..base }, false, None, None);
+    let loose = refine(&raw, &Refine { precision: 10.0, ..base }, false, None, None);
     assert!(kept(&strict) < kept(&mid) && kept(&mid) < kept(&loose), "precisão maior corta mais");
-    let grown = refine(&raw, &Refine { grow: 5, ..base }, None, None);
+    let grown = refine(&raw, &Refine { grow: 5, ..base }, false, None, None);
     assert!(kept(&grown) > kept(&mid), "engrossar mantém mais");
     // pincel: manter à esquerda e tirar à direita
     let keep = paint_mask(100, 20, &[Dot { x: 0.05, y: 0.5, r: 0.04 }]);
     let remove = paint_mask(100, 20, &[Dot { x: 0.95, y: 0.5, r: 0.04 }]);
-    let painted = refine(&raw, &base, Some(&keep), Some(&remove));
+    let painted = refine(&raw, &base, false, Some(&keep), Some(&remove));
     assert_eq!(painted.get_pixel(5, 10)[0], 255);
     assert_eq!(painted.get_pixel(95, 10)[0], 0);
     // anticerrilhado: a borda definida ganha tons intermediários
-    let hard = refine(&raw, &Refine { hard: true, antialias: false, ..base }, None, None);
-    let smooth = refine(&raw, &Refine { hard: true, antialias: true, ..base }, None, None);
+    let hard = refine(&raw, &Refine { hard: true, antialias: false, ..base }, false, None, None);
+    let smooth = refine(&raw, &Refine { hard: true, antialias: true, ..base }, false, None, None);
     let mids = |m: &image::GrayImage| m.pixels().filter(|p| p[0] > 10 && p[0] < 245).count();
     assert!(mids(&smooth) >= mids(&hard));
+}
+
+#[test]
+fn background_by_color_keeps_inside() {
+    use crate::bgremove::{Detect, Interior, Refine, Strokes, cut, flat_background};
+    // um anel ciano sobre fundo escuro: o miolo tem a cor do fundo
+    let (bg, line) = (image::Rgb([18u8, 18, 19]), image::Rgb([0u8, 190, 255]));
+    let ring = image::RgbImage::from_fn(120, 120, |x, y| {
+        let d = ((x as f32 - 60.0).powi(2) + (y as f32 - 60.0).powi(2)).sqrt();
+        if (30.0..38.0).contains(&d) { line } else { bg }
+    });
+    assert_eq!(flat_background(&ring), Some([18, 18, 19]));
+    let (clean, m) = cut(&ring, &Refine::default(), &Strokes::default()).unwrap();
+    // pixel de borda meio a meio entre o traço e o fundo: fica meio transparente e com a cor cheia do traço
+    let mut blend = ring.clone();
+    blend.put_pixel(60, 21, image::Rgb([9, 104, 137]));
+    let (c, a) = cut(&blend, &Refine { antialias: false, ..Default::default() }, &Strokes::default()).unwrap();
+    assert!((100..=155).contains(&a.get_pixel(60, 21)[0]), "alfa da borda: {}", a.get_pixel(60, 21)[0]);
+    assert!(c.get_pixel(60, 21)[2] > 235, "cor da borda: {:?}", c.get_pixel(60, 21));
+    assert_eq!(m.get_pixel(60, 60)[0], 255, "o interior fica");
+    assert_eq!(m.get_pixel(5, 5)[0], 0, "o fundo sai");
+    assert_eq!(m.get_pixel(60, 26)[0], 255, "o traço fica");
+    assert_eq!(*clean.get_pixel(60, 60), bg, "o interior não muda de cor");
+    // tirar o interior, como dentro de um O
+    let open = Refine { interior: Interior::Tirar, ..Default::default() };
+    assert_eq!(cut(&ring, &open, &Strokes::default()).unwrap().1.get_pixel(60, 60)[0], 0);
+    // um vão no contorno: pintar "manter" sobre ele fecha o objeto
+    let mut gap = ring.clone();
+    for y in 20..32 {
+        for x in 57..63 {
+            gap.put_pixel(x, y, bg);
+        }
+    }
+    assert_eq!(cut(&gap, &Refine::default(), &Strokes::default()).unwrap().1.get_pixel(60, 60)[0], 0, "com vão grande, o fundo entra");
+    // vão mínimo entre dois traços: fecha sozinho, e o lado de fora continua exato
+    let mut tiny = ring.clone();
+    for y in 20..32 {
+        for x in 59..61 {
+            tiny.put_pixel(x, y, bg);
+        }
+    }
+    let t = cut(&tiny, &Refine::default(), &Strokes::default()).unwrap().1;
+    assert_eq!(t.get_pixel(60, 60)[0], 255, "vão mínimo fecha");
+    assert_eq!(t.get_pixel(5, 5)[0], 0);
+    assert_eq!(t.get_pixel(60, 18)[0], 0, "fora do traço continua fundo");
+    let dot = crate::bgremove::Dot { x: 0.5, y: 22.0 / 120.0, r: 0.06 };
+    let closed = Strokes { keep: vec![crate::bgremove::Dot { y: 26.0 / 120.0, ..dot }, dot], ..Default::default() };
+    assert_eq!(cut(&gap, &Refine::default(), &closed).unwrap().1.get_pixel(60, 60)[0], 255, "pintado, fecha");
+    // só o que foi marcado sai
+    let nothing = Refine { detect: Detect::Nada, ..Default::default() };
+    let marked = Strokes { remove: vec![crate::bgremove::Dot { x: 0.1, y: 0.1, r: 0.05 }], ..Default::default() };
+    let only = cut(&ring, &nothing, &marked).unwrap().1;
+    assert!(only.get_pixel(60, 60)[0] == 255 && only.get_pixel(12, 12)[0] == 0 && only.get_pixel(110, 110)[0] == 255);
+    // foto com degradê não é fundo de uma cor só
+    let photo = image::RgbImage::from_fn(120, 120, |x, y| image::Rgb([(x * 2) as u8, (y * 2) as u8, 90]));
+    assert_eq!(flat_background(&photo), None);
+}
+
+#[test]
+#[ignore] // baixa o SlimSAM (113 MB)
+fn segment_click_removes_object() {
+    use crate::bgremove::{Detect, Dot, Refine, Strokes, cut};
+    // dois círculos separados sobre um fundo liso: clicar em um tira só ele
+    let img = image::RgbImage::from_fn(400, 300, |x, y| {
+        let inside = |cx: f32, cy: f32| ((x as f32 - cx).powi(2) + (y as f32 - cy).powi(2)).sqrt() < 60.0;
+        if inside(110.0, 150.0) { image::Rgb([220, 40, 40]) } else if inside(290.0, 150.0) { image::Rgb([40, 80, 220]) } else { image::Rgb([235, 235, 225]) }
+    });
+    let s = Strokes { cut: vec![vec![Dot { x: 110.0 / 400.0, y: 0.5, r: 0.01 }]], ..Default::default() };
+    let t = std::time::Instant::now();
+    let m = cut(&img, &Refine { detect: Detect::Nada, ..Default::default() }, &s).unwrap().1;
+    println!("RESULT segment: {:.1} s", t.elapsed().as_secs_f32());
+    assert_eq!(m.get_pixel(110, 150)[0], 0, "o objeto clicado sai");
+    assert_eq!(m.get_pixel(290, 150)[0], 255, "o outro fica");
+    assert_eq!(m.get_pixel(200, 40)[0], 255, "o fundo fica");
+    let t = std::time::Instant::now();
+    let again = cut(&img, &Refine { detect: Detect::Nada, ..Default::default() }, &s).unwrap().1;
+    println!("RESULT segundo clique: {:.2} s", t.elapsed().as_secs_f32());
+    assert_eq!(again, m);
+    if let Ok(robo) = std::env::var("CONVER_ROBO") {
+        let rgb = image::open(&robo).unwrap().to_rgb8();
+        let (w, h) = (rgb.width() as f32, rgb.height() as f32);
+        let name = std::path::Path::new(&robo).with_extension("");
+        let (clean, base) = cut(&rgb, &Refine::default(), &Strokes::default()).unwrap();
+        let save = |m: &image::GrayImage, c: &image::RgbImage, suffix: &str| {
+            let out = image::RgbaImage::from_fn(rgb.width(), rgb.height(), |x, y| {
+                let p = c.get_pixel(x, y);
+                image::Rgba([p[0], p[1], p[2], m.get_pixel(x, y)[0]])
+            });
+            out.save(format!("{}_{suffix}.png", name.display())).unwrap();
+        };
+        save(&base, &clean, "cor");
+        for (suffix, x, y) in [("clique_seta", 122.0, 272.0), ("clique_antena", 145.0, 20.0), ("clique_chave", 245.0, 195.0)] {
+            let s = Strokes { cut: vec![vec![Dot { x: x / w, y: y / h, r: 0.01 }]], ..Default::default() };
+            let (c, m) = cut(&rgb, &Refine::default(), &s).unwrap();
+            save(&m, &c, suffix);
+        }
+    }
 }
 
 #[test]

@@ -53,6 +53,7 @@ mod recorder;
 mod rename;
 mod screenrec;
 mod search;
+mod segment;
 mod separate;
 mod theme;
 mod tools;

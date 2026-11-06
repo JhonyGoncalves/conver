@@ -384,7 +384,10 @@ fn t_image_remove_bg(a: &Args, ctx: &Ctx) -> Result<Value, String> {
             Background::Cor(r, g, b)
         }
     };
+    use crate::bgremove::{Detect, Interior};
     let refine = crate::bgremove::Refine {
+        detect: a.choice("detect", &[("auto", Detect::Auto), ("ai", Detect::Ia), ("color", Detect::Cor)], Detect::Auto)?,
+        interior: a.choice("interior", &[("auto", Interior::Auto), ("keep", Interior::Manter), ("remove", Interior::Tirar)], Interior::Auto)?,
         hard: a.choice("edge", &[("hard", true), ("soft", false)], true)?,
         precision: a.num_or("precision", 50.0)?.clamp(0.0, 100.0) as f32,
         grow: a.num_or("grow", 0.0)?.clamp(-30.0, 30.0) as i32,
@@ -1512,6 +1515,8 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("images") }), &["files"]), t_image_strip),
     tool!("image_remove_background", "Remover fundo", "Remove the background of photos with a local AI model. Transparent output is saved as PNG.",
         schema(json!({ "files": files_prop("images"), "background": str_prop("\"transparent\" (default) or a color like \"#ffffff\"."),
+            "detect": enum_prop("How to find the background: auto (solid-color backgrounds by color, the rest by AI), ai (photos) or color (logos, icons, drawings).", &["auto", "ai", "color"], "auto"),
+            "interior": enum_prop("Background-colored areas enclosed by the object: auto (kept when detecting by color), keep or remove (e.g. inside the letter O).", &["auto", "keep", "remove"], "auto"),
             "edge": enum_prop("Edge style: hard (crisp) or soft (better for hair).", &["hard", "soft"], "hard"),
             "precision": int_prop("Cut precision 0-100: higher cuts more (only what is surely the subject), lower keeps more (shadows, loose hair).", 0, 100, 50),
             "grow": int_prop("Grow (positive) or shrink (negative) the cutout, in pixels.", -30, 30, 0),

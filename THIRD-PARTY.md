@@ -87,6 +87,13 @@ O Conver não é derivado do FFmpeg: ele apenas executa o `ffmpeg.exe` como um p
     <https://huggingface.co/Comfy-Org/flux2-klein-4B>, `flux2-vae.safetensors`
     (`868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3`).
 
+## Remover objeto com um clique
+
+- Não vem no download: **SlimSAM** (Chen et al., <https://github.com/czg1225/SlimSAM>, licença **Apache 2.0**), na
+  conversão ONNX de <https://huggingface.co/Xenova/slimsam-50-uniform>: `vision_encoder.onnx`
+  (`4ffb40bdee86cbfb7ec96ecefc6f0cdeba3f1f160a8f091084cdb1cde3ac7fdd`) e `prompt_encoder_mask_decoder.onnx`
+  (`f4514391764fbd56e08e119060d874ecd7d52994bfb1968af159e12d4943b5bb`), baixados no primeiro uso (SHA-256 conferido).
+
 ## Vozes Kokoro
 
 - Não vêm no download: **Kokoro 82M v1.0** (hexgrad, <https://huggingface.co/hexgrad/Kokoro-82M>, licença **Apache 2.0**),

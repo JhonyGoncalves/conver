@@ -1,5 +1,11 @@
 # Lista de mudanças
 
+## 1.9.1
+
+- **Remover fundo mais preciso em logos, ícones e desenhos:** quando o fundo é de uma cor só, o recorte vai pela cor. As partes escuras de dentro do objeto ficam, os vãos mínimos do contorno se fecham sozinhos e a borda sai limpa, sem halo. Em "Achar o objeto" dá para escolher entre automático, IA ou cor do fundo; em "Interior do objeto", manter ou tirar o que está dentro do contorno (como o miolo da letra O).
+- **Remover objeto:** clique em uma parte da imagem, a IA reconhece o contorno e ela sai, deixando transparente, sem nada novo no lugar (SlimSAM, 113 MB, baixado no primeiro uso). Com "Só tirar o que eu marcar", o fundo fica e só o que você marcou sai. O pincel que apaga e preenche com a LaMa agora se chama "Apagar e preencher (IA)".
+- **MCP e linha de comando:** `image_remove_background` aceita `detect` e `interior`.
+
 ## 1.9.0
 
 ### Novidades

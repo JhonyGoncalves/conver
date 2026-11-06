@@ -105,6 +105,11 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   `espeak-ng.dll` do Piper por FFI (`LoadLibraryW`, IPA com "^" e a troca do misaki); o sherpa-onnx foi descartado (a 2.0
   não tem português e estraga UTF-8 no argv do Windows). `tts::AnyVoice` une Piper e Kokoro (Kokoro primeiro).
   `Job::done_folder` aceita arquivo: o botão vira "Mostrar arquivo".
+- Recorte: `bgremove::cut` junta tudo. `Detect` escolhe IA ou cor do fundo (`flat_background`: borda 97% igual); a máscara por
+  cor (`color_mask`) tem o formato da da IA, e por isso precisão e borda valem nos dois. `Interior`/`fill_inside` fecham o
+  que está dentro do contorno, atravessando vãos de 0,35% do lado; `clean_edge` tira o halo. `Detect::Nada` = só sai o que foi
+  marcado. `segment.rs`: SlimSAM (`Strokes.cut`, "Remover objeto": um clique, sai sem preencher; o decodificador leva
+  50 ms e o codificador guarda a última imagem). A LaMa continua em "Apagar e preencher".
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;
