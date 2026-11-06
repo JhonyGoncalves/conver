@@ -1265,3 +1265,31 @@ fn image_edit_paint_and_vary() {
     // pintar sem máscara é erro claro
     assert!(ctx_call("image_edit", json!({ "files": [src.display().to_string()], "prompt": "x", "how": "paint" })).is_err());
 }
+
+#[test]
+fn video_adjust_color_and_blur() {
+    use crate::imaging::Filter;
+    use crate::media_extra::{VideoAdjust, adjust_preview, adjust_video};
+    let d = tmp("ajuste_video");
+    let src = d.join("colorido.mp4");
+    ffmpeg(&["-f", "lavfi", "-i", "testsrc2=s=640x360:r=25:d=2", "-f", "lavfi", "-i", "sine=f=440:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", &src.to_string_lossy()], None);
+    let neutral = VideoAdjust { brightness: 0, contrast: 0, saturation: 0, filter: Filter::Nenhum, blur: 0 };
+    assert!(adjust_video(&src, None, neutral, &|_| {}, &|| false).is_err(), "sem ajuste não deve gerar arquivo");
+
+    // preto e branco: nenhum pixel com cor, e o som continua
+    let bw = VideoAdjust { filter: Filter::PretoBranco, ..neutral };
+    let (_, dst) = adjust_video(&src, Some(&d), bw, &|_| {}, &|| false).unwrap();
+    let info = crate::video::probe(&dst);
+    assert!(info.has_audio && info.size == Some((640, 360)));
+    assert!((info.duration.unwrap() - 2.0).abs() < 0.2);
+    let frame = image::load_from_memory(&adjust_preview(&dst, 0.5, neutral).unwrap()).unwrap().to_rgb8();
+    assert!(frame.pixels().all(|c| c.0.iter().max().unwrap() - c.0.iter().min().unwrap() < 12), "ficou cor no preto e branco");
+
+    // desfoque: uma borda só fica mais larga, então a soma das diferenças muda pouco; o que some são os saltos bruscos
+    let edges = |a: VideoAdjust| -> u64 {
+        let img = image::load_from_memory(&adjust_preview(&src, 0.5, a).unwrap()).unwrap().to_luma8();
+        img.rows().map(|r| r.map(|p| p.0[0] as i64).collect::<Vec<_>>().windows(2).filter(|w| (w[0] - w[1]).abs() > 12).count() as u64).sum()
+    };
+    let (sharp, soft) = (edges(neutral), edges(VideoAdjust { blur: 50, ..neutral }));
+    assert!(sharp > 500 && soft * 5 < sharp, "o desfoque não suavizou o quadro: {soft} contra {sharp}");
+}

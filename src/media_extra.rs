@@ -2,6 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
+use crate::imaging::Filter;
 use crate::media::{AFmt, audio_args, encode_to, keep_or_mp4, path_s};
 use crate::tools;
 use crate::video::{VQuality, fmt_time, probe, run, s};
@@ -266,4 +267,106 @@ pub fn merge_audio(
     out.extend(audio_args(fmt, VQuality::Alta).into_iter().skip(3));
     encode_to(input, out, &dst, Some(total), on_progress, cancelled)?;
     Ok((format!("{} arquivos • {} • {}", files.len(), fmt_time(total), tools::human_size(tools::file_size(&dst))), dst))
+}
+
+/// Cor e desfoque de um vídeo. Brilho, contraste e saturação vão de −100 a 100, como nas imagens; desfoque de 0 a 100.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub struct VideoAdjust {
+    pub brightness: i16,
+    pub contrast: i16,
+    pub saturation: i16,
+    pub filter: Filter,
+    pub blur: u8,
+}
+
+impl VideoAdjust {
+    pub fn is_neutral(self) -> bool {
+        self == Self { brightness: 0, contrast: 0, saturation: 0, filter: Filter::Nenhum, blur: 0 }
+    }
+
+    // i18n: fora
+    /// Filtros do ffmpeg. O desfoque acompanha a altura, para ficar igual em 720p e em 1080p.
+    fn chain(self, height: u32) -> String {
+        let mut parts = Vec::new();
+        if (self.brightness, self.contrast, self.saturation) != (0, 0, 0) {
+            let (b, c, sat) = (self.brightness as f64 / 200.0, 1.0 + self.contrast as f64 / 100.0, 1.0 + self.saturation as f64 / 100.0);
+            parts.push(format!("eq=brightness={b:.3}:contrast={c:.3}:saturation={sat:.3}"));
+        }
+        match self.filter {
+            Filter::Nenhum => {}
+            Filter::PretoBranco => parts.push("hue=s=0".into()),
+            Filter::Sepia => parts.push("colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131".into()),
+            Filter::Inverter => parts.push("negate".into()),
+        }
+        if self.blur > 0 {
+            let sigma = (self.blur as f64 / 100.0 * height as f64 / 18.0).max(0.5);
+            parts.push(format!("gblur=sigma={sigma:.2}"));
+        }
+        parts.join(",")
+    }
+    // i18n: dentro
+
+    fn label(self) -> String {
+        let mut parts = Vec::new();
+        for (name, v) in [("brilho", self.brightness), ("contraste", self.contrast), ("saturação", self.saturation)] {
+            if v != 0 {
+                parts.push(format!("{name} {v:+}"));
+            }
+        }
+        if self.filter != Filter::Nenhum {
+            parts.push(self.filter.label().to_lowercase());
+        }
+        if self.blur > 0 {
+            parts.push(format!("desfoque {}", self.blur));
+        }
+        parts.join(" • ")
+    }
+}
+
+/// Aplica cor e desfoque ao vídeo inteiro. O som continua o mesmo.
+pub fn adjust_video(
+    src: &Path,
+    out_dir: Option<&Path>,
+    adjust: VideoAdjust,
+    on_progress: &dyn Fn(f32),
+    cancelled: &dyn Fn() -> bool,
+) -> Result<(String, PathBuf), String> {
+    if adjust.is_neutral() {
+        return Err("escolha pelo menos um ajuste.".into());
+    }
+    let info = probe(src);
+    if !info.has_video {
+        return Err("o arquivo não tem vídeo.".into());
+    }
+    let chain = adjust.chain(info.size.map_or(720, |(_, h)| h));
+    let dst = tools::out_path(src, out_dir, "_ajustado", &keep_or_mp4(src));
+    encode_to(
+        s(&["-i", &path_s(src)]),
+        s(&["-map", "0:v:0", "-map", "0:a:0?", "-vf", &chain, "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k"]),
+        &dst,
+        info.duration,
+        on_progress,
+        cancelled,
+    )?;
+    Ok((adjust.label(), dst))
+}
+
+/// Um quadro do vídeo (em `pos`, de 0 a 1 da duração) com os ajustes, em PNG, para a prévia.
+pub fn adjust_preview(src: &Path, pos: f32, adjust: VideoAdjust) -> Result<Vec<u8>, String> {
+    let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
+    let info = probe(src);
+    let at = info.duration.unwrap_or(0.0) * pos.clamp(0.0, 0.99) as f64;
+    let chain = adjust.chain(info.size.map_or(720, |(_, h)| h));
+    let filter = if chain.is_empty() { "scale=-2:360".to_string() } else { format!("{chain},scale=-2:360") };
+    let out = tools::command(&ff)
+        .args(["-v", "error", "-nostdin", "-ss", &format!("{at:.2}"), "-i"])
+        .arg(src)
+        .args(["-frames:v", "1", "-vf", &filter, "-f", "image2pipe", "-c:v", "png", "-"])
+        .output()
+        .map_err(|e| e.to_string())?;
+    if out.stdout.is_empty() {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    Ok(out.stdout)
 }

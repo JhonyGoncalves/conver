@@ -632,6 +632,20 @@ fn t_trim(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     })
 }
 
+fn t_video_adjust(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = media_files(a)?;
+    let v = |k: &str| -> Result<i16, String> { Ok(a.num_or(k, 0.0)?.clamp(-100.0, 100.0) as i16) };
+    let adjust = media_extra::VideoAdjust {
+        brightness: v("brightness")?,
+        contrast: v("contrast")?,
+        saturation: v("saturation")?,
+        filter: a.choice("filter", &[("none", Filter::Nenhum), ("grayscale", Filter::PretoBranco), ("sepia", Filter::Sepia), ("invert", Filter::Inverter)], Filter::Nenhum)?,
+        blur: a.num_or("blur", 0.0)?.clamp(0.0, 100.0) as u8,
+    };
+    let out = a.out_dir()?;
+    batch("Cor e desfoque", &files, ctx, |f, p| media_extra::adjust_video(f, out.as_deref(), adjust, p, ctx.cancelled))
+}
+
 fn t_video_merge(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let files = media_files(a)?;
     if files.len() < 2 {
@@ -1586,6 +1600,10 @@ pub static TOOLS: &[Tool] = &[
             "output": enum_prop("Several parts: together (one file) or separate (one file per part to keep; parts may overlap).", &["together", "separate"], "together"),
             "cut_mode": enum_prop("fast (copy, cuts land on keyframes), precise (re-encode everything) or smart (exact, re-encodes only around the cuts and the audio; H.264 in MP4/MOV/MKV, otherwise precise).", &["fast", "precise", "smart"], "precise"),
             "precise": bool_prop("Older form of cut_mode: true = precise, false = fast.", true) }), &["files"]), t_trim),
+    tool!("video_adjust", "Cor e desfoque", "Change the colors of whole videos and blur them: brightness, contrast and saturation (-100..100), a filter (grayscale = black and white, sepia, invert) and blur (0..100). The audio stays the same.",
+        schema(json!({ "files": files_prop("videos"), "brightness": int_prop("Brightness.", -100, 100, 0), "contrast": int_prop("Contrast.", -100, 100, 0),
+            "saturation": int_prop("Saturation.", -100, 100, 0), "filter": enum_prop("Filter.", &["none", "grayscale", "sepia", "invert"], "none"),
+            "blur": int_prop("Blur strength; 50 hides most details.", 0, 100, 0) }), &["files"]), t_video_adjust),
     tool!("video_merge", "Juntar vídeos", "Join videos one after another (in the given order) into one MP4.",
         schema(json!({ "files": files_prop("videos, in order"), "precise": bool_prop("Re-encode so different videos match.", true) }), &["files"]), t_video_merge),
     tool!("video_speed", "Velocidade", "Speed up or slow down videos/audios (0.25x to 4x).",

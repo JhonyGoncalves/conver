@@ -354,6 +354,92 @@ impl FacesPage {
     }
 }
 
+// ================================================================ cor e desfoque de vídeo
+
+// i18n: fora
+const ADJUST_EXTS: &[&str] = &["mp4", "mkv", "avi", "mov", "webm", "m4v", "wmv", "flv", "ts"];
+// i18n: dentro
+
+pub struct VideoAdjustPage {
+    pub queue: FileQueue,
+    out: OutDir,
+    job: Job,
+    adjust: crate::media_extra::VideoAdjust,
+    /// Ponto do vídeo mostrado na prévia, de 0 a 1.
+    pos: f32,
+    prev: LivePreview,
+}
+
+impl VideoAdjustPage {
+    pub fn new() -> Self {
+        use crate::imaging::Filter;
+        Self {
+            queue: FileQueue::new(ADJUST_EXTS, "Vídeos"),
+            out: OutDir::same_as_source(),
+            job: Job::default(),
+            adjust: crate::media_extra::VideoAdjust { brightness: 0, contrast: 0, saturation: 0, filter: Filter::Nenhum, blur: 0 },
+            pos: 0.5,
+            prev: LivePreview::default(),
+        }
+    }
+
+    pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
+        use crate::imaging::Filter;
+        let title = "Cor e desfoque";
+        widgets::header(ui, p, title, "Deixe vídeos em preto e branco, desfocados ou com outras cores, ajustando brilho, contraste e saturação.");
+        widgets::file_list(ui, p, &mut self.queue, None, None, 120.0);
+        ui.add_space(4.0);
+        let (adjust, pos) = (self.adjust, self.pos);
+        if let Some(src) = self.queue.selected_path().cloned() {
+            self.prev.update(ui.ctx(), format!("{src:?}|{adjust:?}|{pos}"), move || crate::media_extra::adjust_preview(&src, pos, adjust));
+        }
+        card(ui, p, |ui| {
+            ui.horizontal_top(|ui| {
+                crate::widgets::vt(ui, |ui| {
+                    ui.set_width((ui.available_width() - 316.0).max(300.0));
+                    let a = &mut self.adjust;
+                    for (label, v) in [("Brilho:", &mut a.brightness), ("Contraste:", &mut a.contrast), ("Saturação:", &mut a.saturation)] {
+                        row(ui, p, label, |ui| {
+                            ui.add(egui::Slider::new(v, -100..=100));
+                            if *v != 0 && widgets::secondary(ui, p, "Zerar", true) {
+                                *v = 0;
+                            }
+                        });
+                    }
+                    row(ui, p, "Filtro:", |ui| {
+                        let opts: Vec<(Filter, &str)> = Filter::ALL.iter().map(|f| (*f, f.label())).collect();
+                        segmented(ui, p, &mut a.filter, &opts);
+                    });
+                    row(ui, p, "Desfoque:", |ui| {
+                        ui.add(egui::Slider::new(&mut a.blur, 0..=100));
+                    });
+                    row(ui, p, "Quadro da prévia:", |ui| {
+                        ui.add(egui::Slider::new(&mut self.pos, 0.0..=1.0).show_value(false));
+                    });
+                    hint(ui, p, "O som do vídeo continua o mesmo. Para mudar só um pedaço, corte o trecho antes.");
+                });
+                ui.add_space(8.0);
+                crate::widgets::vt(ui, |ui| {
+                    ui.set_width(296.0);
+                    self.prev.show(ui, p, vec2(296.0, 240.0), if self.queue.selected_path().is_some() { "Preparando…" } else { "Adicione vídeos para ver a prévia." });
+                });
+            });
+        });
+        ui.add_space(4.0);
+        self.out.ui(ui, p);
+        match widgets::action_bar(ui, p, &self.job, "Aplicar ajustes", !self.queue.files.is_empty() && !self.adjust.is_neutral()) {
+            Act::Start => {
+                let (files, out, adjust) = (self.queue.files.clone(), self.out.path.clone(), self.adjust);
+                self.job.start(ui.ctx(), move |ctl| {
+                    run_batch(ctl, title, &files, |src, progress| crate::media_extra::adjust_video(src, out.as_deref(), adjust, progress, &|| ctl.cancelled()));
+                });
+            }
+            Act::Cancel => self.job.cancel(),
+            Act::None => {}
+        }
+    }
+}
+
 // ============================================================== traduzir legendas e dublar
 
 // i18n: fora

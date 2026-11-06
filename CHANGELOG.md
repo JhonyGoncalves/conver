@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 1.10.2
+
+- **Cor e desfoque:** nova ferramenta na seção Vídeo. Deixe vídeos em preto e branco, sépia ou com as cores invertidas, desfoque a imagem inteira e ajuste brilho, contraste e saturação, com prévia em qualquer ponto do vídeo. O som continua o mesmo, regravado em AAC. Para mudar só um pedaço, corte o trecho antes.
+- **MCP, linha de comando e fluxos:** nova ferramenta `video_adjust`.
+
 ## 1.10.1
 
 - **Corte Inteligente:** novo modo em **Cortar trecho**, no ponto exato e bem mais rápido que o Preciso. Só o começo e o fim de cada trecho são regravados, e o resto do vídeo é copiado sem perda. O áudio é regravado em AAC, e só a primeira faixa de áudio é mantida. Funciona com H.264 de 8 bits em MP4, MOV e MKV; vídeos girados, como muitos de celular, e outros formatos usam o Preciso, e o resultado avisa. As emendas são conferidas no fim e, se algo falhar, o corte é refeito no Preciso.

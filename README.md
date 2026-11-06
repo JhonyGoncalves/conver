@@ -49,6 +49,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Converter (MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF, MP3) e comprimir (por nível ou pelo tamanho final em MB)
 - Cortar trecho, juntar vídeos, mudar velocidade (0,25× a 4×)
 - Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
+- Cor e desfoque: preto e branco, sépia, inverter, desfoque, brilho, contraste e saturação
 - Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
 - **Traduzir e dublar**: legendas traduzidas por uma IA local e, se quiser, a dublagem com as vozes naturais do Kokoro, no tempo da legenda
 - **Legendas** com o Whisper: automáticas ou revisando o texto antes, paradas ou animadas palavra por palavra (estilo Reels/TikTok), com estilos prontos e ajuste de fonte, cores, contorno, faixa e posição

@@ -89,6 +89,7 @@ pub fn keywords(id: &str) -> &'static str {
         "v_trim" => "cortar video trecho aparar recortar parte clip pedaco inicio fim trim cut clip",
         "v_merge" => "juntar videos unir mesclar combinar concatenar emendar merge join combine",
         "v_speed" => "velocidade acelerar desacelerar camera lenta rapido devagar timelapse speed slow motion fast",
+        "v_adjust" => "preto e branco p&b cinza sepia desfoque desfocar borrar blur cor cores colorir filtro brilho contraste saturacao inverter grayscale black and white color",
         "v_transform" => "girar video rotacionar virar espelhar recortar vertical reels tiktok shorts 9 16 quadrado rotate crop",
         "v_gif" => "gif animado video para gif converter gif meme animacao animated",
         "v_subs" => "legenda queimar legenda embutir legenda srt ass vtt colocar legenda subtitulo subtitles burn hardsub caption",

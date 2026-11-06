@@ -120,6 +120,7 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   recua 3/23 s, daí `SEEK_SLACK`; `-to` com `-c copy` para pelo dts, daí `packets_between` + `-frames:v`.
 - `paste.rs`: Ctrl+V e botão Colar. O egui engole o Ctrl+V sem texto (nem `Event::Key` chega), por isso `main::handle_paste` olha a
   tecla com `GetKeyState`. Prints vão para Imagens\Conver\Prints e entram por `add_paths`, como arquivos soltos.
+- `media_extra::adjust_video` (`VideoAdjust`): cor e desfoque do vídeo inteiro por filtros do ffmpeg, com os mesmos intervalos e `Filter` de `image_adjust`; tela em `extras6.rs`, op `video_adjust`.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;
