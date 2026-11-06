@@ -169,6 +169,7 @@ falta a lista "cuts".
 a lista "cuts" está vazia.
 "output" deve ser "together" ou "separate".
 "precise" deve ser true ou false.
+"mode" deve ser "fast", "precise" ou "smart".
 não foi possível ler {}: {}
 o reconhecimento de fala não respondeu: {e}
 Preparando o modelo…
@@ -864,6 +865,7 @@ Tamanho
 Girar (graus)
 Corte preciso
 Arquivo de cortes (JSON ou auto)
+Modo do corte
 Trechos para manter
 Trechos para tirar
 Páginas
@@ -937,6 +939,7 @@ Sépia
 Inverter
 Pequeno
 Grande
+Inteligente
 Juntar em um arquivo
 Um arquivo para cada trecho
 Suave
@@ -1216,6 +1219,7 @@ o fim precisa ser depois do início.
 não sobrou nenhum trecho.
 não foi possível ler a duração do arquivo.
 {} arquivo(s) • {} • {}
+feito no modo Preciso: {}
 adicione pelo menos 2 vídeos.
 {} não tem vídeo.
 {} vídeos • {}{extra} • {}
@@ -1273,6 +1277,7 @@ O resultado é salvo em MP4 com o sufixo _comprimido.
 Rápido (sem perda)
 Preciso (recodifica)
 Corta exatamente nos tempos informados; demora mais porque regrava o arquivo.
+No ponto exato, regravando só o começo e o fim de cada trecho; o resto do vídeo é copiado sem perda. O áudio é regravado. Para H.264 em MP4, MOV e MKV; nos outros casos usa o Preciso.
 Instantâneo e sem perda de qualidade; em vídeos, o corte pode cair até alguns segundos antes do início.
 Recodificar (recomendado)
 Rápido (só emendar)
@@ -1525,6 +1530,13 @@ Só o instrumental (karaokê)
 falha ao salvar: {}
 o áudio é curto demais (menos de meio segundo).
 {} • {dur}
+só funciona com MP4, MOV e MKV
+o arquivo não tem vídeo
+só funciona com vídeo H.264
+só funciona com vídeo de 8 bits
+não funciona com vídeo entrelaçado
+não funciona com vídeo girado, como os de celular
+perfil de H.264 não aceito
 {} → {} ({sign}{:.0}%)
 Equilibrado (264 MB)
 Preciso (574 MB)
@@ -1593,6 +1605,7 @@ Ler arquivo de cortes
 Salvar arquivo de cortes
 Com vários arquivos, quem tem um .cortes.json com o próprio nome ao lado usa o dele; os outros usam os trechos acima.
 Um trecho para tirar dentro de um trecho para manter abre um buraco nele. Com um arquivo para cada trecho, um trecho pode ficar dentro de outro e os dois saem completos.
+No modo Rápido, um corte vai começar {} s antes do marcado, no quadro-chave anterior. Para o ponto exato, use Inteligente.
 No modo Rápido, cada emenda cai no quadro-chave mais próximo e pode sobrar um pouco do que você tirou. Para cortar no ponto exato, use Preciso.
 Português (Brasil) — Faber, masculina
 Português (Brasil) — Cadu, masculina

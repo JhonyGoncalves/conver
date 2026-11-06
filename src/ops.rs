@@ -614,7 +614,9 @@ fn t_trim(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     }
     cuts.extend(media::parse_cuts(a.str("remove").as_deref().unwrap_or(""), false)?);
     let together = a.choice("output", &[("together", true), ("separate", false)], true)?;
-    let precise = a.bool_or("precise", true)?;
+    use media::CutMode;
+    let default = if a.bool_or("precise", true)? { CutMode::Preciso } else { CutMode::Rapido };
+    let mode = a.choice("cut_mode", &[("fast", CutMode::Rapido), ("precise", CutMode::Preciso), ("smart", CutMode::Inteligente)], default)?;
     let out = a.out_dir()?;
     // arquivo de cortes: um para todos, ou "auto" para o <nome do vídeo>.cortes.json de cada um; quem não tem usa os
     // demais argumentos
@@ -624,8 +626,8 @@ fn t_trim(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     batch("Cortar", &files, ctx, |f, p| {
         let own = if auto { crate::cut_preset::beside(f).map(|c| crate::cut_preset::read(&c)).transpose()? } else { shared.clone() };
         match own {
-            Some(c) => media::cut(f, out.as_deref(), &c.cuts, c.together, c.precise.unwrap_or(precise), p, ctx.cancelled),
-            None => media::cut(f, out.as_deref(), &cuts, together, precise, p, ctx.cancelled),
+            Some(c) => media::cut(f, out.as_deref(), &c.cuts, c.together, c.mode.unwrap_or(mode), p, ctx.cancelled),
+            None => media::cut(f, out.as_deref(), &cuts, together, mode, p, ctx.cancelled),
         }
     })
 }
@@ -1580,9 +1582,10 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("videos or audios"), "start": str_prop("Start (e.g. 10 or 0:10)."), "end": str_prop("End (optional; default = until the end)."),
             "keep": str_prop("Parts to keep, e.g. \"0:10-1:00; 2:00-3:30\" (the end is optional). Replaces start/end."),
             "remove": str_prop("Parts to take out, e.g. \"0:20-0:30\", even inside a part to keep."),
-            "cuts_file": str_prop("Path of a JSON file with all the cuts, which replaces keep/remove/start/end: {\"output\": \"separate\", \"precise\": true, \"cuts\": [{\"start\": \"0:10\", \"end\": \"1:00\"}, {\"start\": \"0:20\", \"end\": \"0:30\", \"action\": \"remove\"}]}. Use \"auto\" to read <video name>.cortes.json next to each video."),
+            "cuts_file": str_prop("Path of a JSON file with all the cuts, which replaces keep/remove/start/end: {\"output\": \"separate\", \"mode\": \"smart\", \"cuts\": [{\"start\": \"0:10\", \"end\": \"1:00\"}, {\"start\": \"0:20\", \"end\": \"0:30\", \"action\": \"remove\"}]}. Use \"auto\" to read <video name>.cortes.json next to each video."),
             "output": enum_prop("Several parts: together (one file) or separate (one file per part to keep; parts may overlap).", &["together", "separate"], "together"),
-            "precise": bool_prop("Frame-accurate cut (re-encodes). false = instant cut at keyframes.", true) }), &["files"]), t_trim),
+            "cut_mode": enum_prop("fast (copy, cuts land on keyframes), precise (re-encode everything) or smart (exact, re-encodes only around the cuts and the audio; H.264 in MP4/MOV/MKV, otherwise precise).", &["fast", "precise", "smart"], "precise"),
+            "precise": bool_prop("Older form of cut_mode: true = precise, false = fast.", true) }), &["files"]), t_trim),
     tool!("video_merge", "Juntar vídeos", "Join videos one after another (in the given order) into one MP4.",
         schema(json!({ "files": files_prop("videos, in order"), "precise": bool_prop("Re-encode so different videos match.", true) }), &["files"]), t_video_merge),
     tool!("video_speed", "Velocidade", "Speed up or slow down videos/audios (0.25x to 4x).",

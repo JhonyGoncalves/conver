@@ -9,7 +9,7 @@ use eframe::egui::{self, Align2, Color32, FontId, Rect, RichText, Sense, Stroke,
 
 use crate::cut_preset::{self, CutPreset};
 use crate::i18n::tr;
-use crate::media::{self, Cut};
+use crate::media::{self, Cut, CutMode};
 use crate::theme::{Palette, bold};
 use crate::video;
 use crate::widgets::{self, Durations, hint, secondary, segmented};
@@ -40,8 +40,11 @@ pub struct TrimPanel {
     asked: String,
     /// Resultado da última leitura de um arquivo de cortes: nome e erro, se houve.
     preset: Option<(String, Option<String>)>,
-    /// "Preciso" vindo do arquivo lido, para a tela aplicar.
-    pub wanted_precise: Option<bool>,
+    /// Modo vindo do arquivo lido, para a tela aplicar.
+    pub wanted_mode: Option<CutMode>,
+    /// Quadros-chave do arquivo aberto, lidos em segundo plano.
+    keys: Vec<f64>,
+    keys_in: Arc<Mutex<Option<(PathBuf, Vec<f64>)>>>,
 }
 
 impl TrimPanel {
@@ -68,7 +71,9 @@ impl TrimPanel {
             busy: Arc::default(),
             asked: String::new(),
             preset: None,
-            wanted_precise: None,
+            wanted_mode: None,
+            keys: Vec::new(),
+            keys_in: Arc::default(),
         }
     }
 
@@ -84,14 +89,14 @@ impl TrimPanel {
                     .collect();
                 self.current = 0;
                 self.together = p.together;
-                self.wanted_precise = p.precise;
+                self.wanted_mode = p.mode;
                 self.preset = Some((name, None));
             }
             Err(e) => self.preset = Some((name, Some(e))),
         }
     }
 
-    fn save(&mut self, precise: bool) {
+    fn save(&mut self, mode: CutMode) {
         let Ok(cuts) = self.cuts() else { return };
         let name = cut_preset::file_name_for(self.file.as_deref());
         let mut dialog = rfd::FileDialog::new().add_filter(tr("Arquivo de cortes"), &["json"]).set_file_name(name);
@@ -99,7 +104,7 @@ impl TrimPanel {
             dialog = dialog.set_directory(dir);
         }
         if let Some(dst) = dialog.save_file() {
-            let text = cut_preset::to_json(&CutPreset { cuts, together: self.together, precise: Some(precise) });
+            let text = cut_preset::to_json(&CutPreset { cuts, together: self.together, mode: Some(mode) });
             let shown = crate::tools::file_name(&dst);
             self.preset = Some((shown, std::fs::write(&dst, text).err().map(|e| e.to_string())));
         }
@@ -173,7 +178,7 @@ impl TrimPanel {
 
     /// Linha do tempo: faixa de cima com os trechos, faixa de baixo com o que vai sobrar. Sempre da esquerda para a
     /// direita, também em árabe: é assim que o tempo corre nos editores de vídeo.
-    fn timeline(&mut self, ui: &mut Ui, p: &Palette, dur: f64) {
+    fn timeline(&mut self, ui: &mut Ui, p: &Palette, dur: f64, mode: CutMode) {
         let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 58.0), Sense::click_and_drag());
         let painter = ui.painter_at(rect);
         let lanes = Rect::from_min_size(rect.min + vec2(0.0, 14.0), vec2(rect.width(), 44.0));
@@ -218,14 +223,25 @@ impl TrimPanel {
                 };
             }
         }
+        // quadros-chave: onde um corte sem recodificar pode cair
+        let tick = Color32::from_rgba_unmultiplied(p.text.r(), p.text.g(), p.text.b(), 110);
+        for k in &self.keys {
+            painter.line_segment([pos2(x(*k), lanes.top()), pos2(x(*k), lanes.top() + 5.0)], Stroke::new(1.0f32, tick));
+        }
         if let Some(q) = resp.interact_pointer_pos() {
             let t = at(q.x);
+            // no Rápido a borda arrastada gruda no quadro-chave: é onde o corte vai cair de verdade
+            let snapped = if mode == CutMode::Rapido {
+                self.keys.iter().copied().min_by(|a, b| (a - t).abs().total_cmp(&(b - t).abs())).filter(|k| (x(*k) - q.x).abs() <= 10.0).unwrap_or(t)
+            } else {
+                t
+            };
             match (self.edge, self.rows.get_mut(self.current)) {
-                (Some(true), Some(row)) => row.start = video::fmt_time_fine(t),
-                (Some(false), Some(row)) => row.end = video::fmt_time_fine(t),
+                (Some(true), Some(row)) => row.start = video::fmt_time_fine(snapped),
+                (Some(false), Some(row)) => row.end = video::fmt_time_fine(snapped),
                 _ => {}
             }
-            self.head = t;
+            self.head = if self.edge.is_some() { snapped } else { t };
         }
         if resp.clicked() {
             // clicar num trecho o escolhe (o mais curto, para alcançar o que está dentro de outro)
@@ -321,7 +337,15 @@ impl TrimPanel {
         }
     }
 
-    fn preset_ui(&mut self, ui: &mut Ui, p: &Palette, precise: bool) {
+    /// Quanto o início de algum corte recua no modo Rápido, conforme os quadros-chave.
+    fn fast_shift(&self, dur: f64) -> Option<f64> {
+        let cuts = self.cuts().ok()?;
+        let plan = media::plan_cuts(&cuts, dur, self.together).ok()?;
+        let shift = |a: f64| self.keys.iter().rev().find(|k| **k <= a - 0.13).map_or(0.0, |k| a - k);
+        plan.iter().flatten().filter(|(a, _)| *a > 0.2).map(|(a, _)| shift(*a)).reduce(f64::max).filter(|s| *s > 0.2)
+    }
+
+    fn preset_ui(&mut self, ui: &mut Ui, p: &Palette, mode: CutMode) {
         ui.horizontal_wrapped(|ui| {
             if secondary(ui, p, "Ler arquivo de cortes", true) {
                 if let Some(f) = rfd::FileDialog::new().add_filter(tr("Arquivo de cortes"), &["json"]).pick_file() {
@@ -329,7 +353,7 @@ impl TrimPanel {
                 }
             }
             if secondary(ui, p, "Salvar arquivo de cortes", self.cuts().is_ok()) {
-                self.save(precise);
+                self.save(mode);
             }
             match &self.preset {
                 Some((name, None)) => {
@@ -343,14 +367,28 @@ impl TrimPanel {
         });
     }
 
-    pub fn ui(&mut self, ui: &mut Ui, p: &Palette, src: Option<&PathBuf>, durs: &Durations, video_tool: bool, precise: bool, files: usize) {
+    pub fn ui(&mut self, ui: &mut Ui, p: &Palette, src: Option<&PathBuf>, durs: &Durations, video_tool: bool, mode: CutMode, files: usize) {
         if self.file.as_ref() != src {
             self.file = src.cloned();
             self.head = 0.0;
             self.frame = None;
+            self.keys.clear();
+            if let (true, Some(f)) = (video_tool, src.cloned()) {
+                let (out, ctx) = (self.keys_in.clone(), ui.ctx().clone());
+                std::thread::spawn(move || {
+                    let keys = crate::smartcut::keyframes_quick(&f);
+                    *out.lock().unwrap_or_else(|e| e.into_inner()) = Some((f, keys));
+                    ctx.request_repaint();
+                });
+            }
             // o arquivo de cortes com o nome do vídeo é lido sozinho
             if let Some(f) = src.and_then(|f| cut_preset::beside(f)) {
                 self.load(&f);
+            }
+        }
+        if let Some((f, keys)) = self.keys_in.lock().unwrap_or_else(|e| e.into_inner()).take() {
+            if Some(&f) == src {
+                self.keys = keys;
             }
         }
         let dur = src.and_then(|f| durs.get(f)).filter(|d| *d > 0.0);
@@ -359,11 +397,11 @@ impl TrimPanel {
             ui.add_space(4.0);
         }
         if let Some(d) = dur {
-            self.timeline(ui, p, d);
+            self.timeline(ui, p, d, mode);
             ui.add_space(6.0);
         }
         self.rows_ui(ui, p, dur);
-        self.preset_ui(ui, p, precise);
+        self.preset_ui(ui, p, mode);
         if self.rows.iter().filter(|r| r.keep).count() > 1 {
             ui.add_space(2.0);
             widgets::row(ui, p, "Salvar:", |ui| {
@@ -375,8 +413,14 @@ impl TrimPanel {
             hint(ui, p, "Com vários arquivos, quem tem um .cortes.json com o próprio nome ao lado usa o dele; os outros usam os trechos acima.");
         }
         hint(ui, p, "Um trecho para tirar dentro de um trecho para manter abre um buraco nele. Com um arquivo para cada trecho, um trecho pode ficar dentro de outro e os dois saem completos.");
-        if !precise && self.rows.len() > 1 {
-            ui.label(RichText::new(tr("No modo Rápido, cada emenda cai no quadro-chave mais próximo e pode sobrar um pouco do que você tirou. Para cortar no ponto exato, use Preciso.")).size(12.5).color(p.accent));
+        if mode == CutMode::Rapido {
+            if let Some(s) = dur.and_then(|d| self.fast_shift(d)) {
+                let seconds = format!("{s:.1}");
+                let text = format!("No modo Rápido, um corte vai começar {} s antes do marcado, no quadro-chave anterior. Para o ponto exato, use Inteligente.", seconds);
+                ui.label(RichText::new(tr(text)).size(12.5).color(p.accent));
+            } else if self.keys.is_empty() && self.rows.len() > 1 {
+                ui.label(RichText::new(tr("No modo Rápido, cada emenda cai no quadro-chave mais próximo e pode sobrar um pouco do que você tirou. Para cortar no ponto exato, use Preciso.")).size(12.5).color(p.accent));
+            }
         }
     }
 }

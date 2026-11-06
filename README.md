@@ -99,7 +99,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
   ```json
   {
     "output": "separate",
-    "precise": true,
+    "mode": "smart",
     "cuts": [
       { "start": "0:10", "end": "1:00" },
       { "start": "0:20", "end": "0:30", "action": "remove" },
@@ -108,7 +108,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
   }
   ```
 
-  `start` é obrigatório; sem `end`, vai até o fim do vídeo. `action` é `keep` (padrão) ou `remove`, `output` é `together` ou `separate`.
+  `start` é obrigatório; sem `end`, vai até o fim do vídeo. `action` é `keep` (padrão) ou `remove`, `output` é `together` ou `separate`, `mode` é `fast`, `smart` ou `precise`.
   Tempos em segundos ou como 1:30.
 - Tire um print e aperte Ctrl+V em uma ferramenta: ele entra direto, sem salvar antes
 - "Abrir com Conver" no menu do botão direito

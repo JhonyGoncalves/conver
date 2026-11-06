@@ -114,6 +114,10 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   para manter, mesmo sobrepostos), `media::cut` grava. `trim_page.rs`: linha do tempo; captura com `CONVER_CORTES=m:0:10-0:40;t:0:20-0:30`.
 - `cut_preset.rs`: arquivo JSON de cortes (`cuts`, `output`, `precise`; campo desconhecido é erro de propósito). `<vídeo>.cortes.json` ao
   lado é lido sozinho (só esse nome: um `.json` genérico pode ser o info.json do yt-dlp). Op: `cuts_file` (caminho ou `auto`).
+- `smartcut.rs`: corte Inteligente (`CutMode::Inteligente`): pontas recodificadas e miolo copiado, em MPEG-TS, emendados e conferidos nas
+  emendas (`verify`); se falhar, `media::cut` refaz no Preciso e diz no resultado. Só H.264 8 bits sem rotação em MP4/MOV/MKV. Armadilhas:
+  `-discard nokey` erra os tempos em até 2 quadros (serve só para a tela; para cortar use `-skip_frame nokey`); `-ss` em vídeo com quadros B
+  recua 3/23 s, daí `SEEK_SLACK`; `-to` com `-c copy` para pelo dts, daí `packets_between` + `-frames:v`.
 - `paste.rs`: Ctrl+V e botão Colar. O egui engole o Ctrl+V sem texto (nem `Event::Key` chega), por isso `main::handle_paste` olha a
   tecla com `GetKeyState`. Prints vão para Imagens\Conver\Prints e entram por `add_paths`, como arquivos soltos.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),

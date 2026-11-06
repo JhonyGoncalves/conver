@@ -908,7 +908,7 @@ fn cuts_plan() {
 fn cut_preset_file() {
     use crate::cut_preset::{CutPreset, parse, to_json};
     use crate::media::Cut;
-    let p = parse(r#"{ "output": "separate", "precise": false, "name": "aula", "cuts": [
+    let p = parse(r#"{ "output": "separate", "mode": "smart", "name": "aula", "cuts": [
         { "start": "0:10", "end": 60, "comment": "abertura" },
         { "start": 20.5, "end": "0:30", "action": "remove" },
         { "start": "2:00" } ] }"#).unwrap();
@@ -918,12 +918,13 @@ fn cut_preset_file() {
         Cut { keep: true, start: 120.0, end: None },
     ]);
     assert!(!p.together);
-    assert_eq!(p.precise, Some(false));
+    assert_eq!(p.mode, Some(crate::media::CutMode::Inteligente));
+    assert_eq!(parse(r#"{ "precise": false, "cuts": [{ "start": 1 }] }"#).unwrap().mode, Some(crate::media::CutMode::Rapido));
     // só a lista
     let list = parse(r#"[{ "start": 1, "end": 2 }]"#).unwrap();
-    assert!(list.together && list.precise.is_none());
+    assert!(list.together && list.mode.is_none());
     // o que se salva volta igual, sem arredondar os tempos
-    let exact = CutPreset { cuts: vec![Cut { keep: false, start: 1.125, end: Some(3725.5) }], together: false, precise: Some(true) };
+    let exact = CutPreset { cuts: vec![Cut { keep: false, start: 1.125, end: Some(3725.5) }], together: false, mode: Some(crate::media::CutMode::Preciso) };
     assert_eq!(parse(&to_json(&exact)).unwrap(), exact);
     // erros dizem onde está o problema; campo errado não vira corte errado
     let err = |t: &str| parse(t).unwrap_err();
@@ -995,6 +996,69 @@ fn multiple_cuts_on_video() {
     assert!(crate::tests_v12::ctx_call("media_trim", serde_json::json!({ "files": [file], "cuts_file": list.display().to_string() })).is_err());
     // quadro para a prévia
     assert_eq!(crate::media::frame_at(&src, 3.0, 120).unwrap().height(), 120);
+}
+
+/// Pequena impressão digital de cada quadro, em ordem de exibição.
+fn thumbs(f: &std::path::Path) -> Vec<Vec<u8>> {
+    let ff = crate::tools::find_tool("ffmpeg").unwrap();
+    let out = crate::tools::command(&ff)
+        .args(["-v", "error", "-i"])
+        .arg(f)
+        .args(["-map", "0:v:0", "-fps_mode", "passthrough", "-vf", "scale=64:36", "-pix_fmt", "gray", "-f", "rawvideo", "-"])
+        .output()
+        .unwrap();
+    out.stdout.chunks(64 * 36).map(<[u8]>::to_vec).collect()
+}
+
+/// Quadro do original mais parecido com `frame`, perto de `around`.
+fn closest(src: &[Vec<u8>], frame: &[u8], around: usize) -> usize {
+    let far = |j: usize| src[j].iter().zip(frame).map(|(a, b)| a.abs_diff(*b) as u64).sum::<u64>();
+    (around.saturating_sub(4)..(around + 5).min(src.len())).min_by_key(|j| far(*j)).unwrap()
+}
+
+#[test]
+fn smart_cut_is_exact() {
+    use crate::media::{Cut, CutMode, cut};
+    let d = crate::tests_v12::tmp("corte_inteligente");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let src = d.join("gop.mp4");
+    let ff = crate::tools::find_tool("ffmpeg").unwrap();
+    // quadros-chave a cada 3 s, com quadros B, como uma câmera
+    let made = crate::tools::command(&ff)
+        .args(["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=d=30:s=640x360:r=30", "-f", "lavfi", "-i", "sine=d=30", "-c:v", "libx264", "-profile:v", "main", "-g", "90", "-keyint_min", "90", "-sc_threshold", "0", "-bf", "3", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest"])
+        .arg(&src)
+        .status()
+        .unwrap();
+    assert!(made.success());
+    std::fs::create_dir_all(d.join("saida")).unwrap();
+    std::fs::create_dir_all(d.join("preciso")).unwrap();
+    assert_eq!(crate::smartcut::keyframes_quick(&src).len(), 10);
+    let keep = |start: f64, end: f64| Cut { keep: true, start, end: Some(end) };
+    let hole = Cut { keep: false, start: 10.0, end: Some(13.5) };
+    let (info, out) = cut(&src, Some(&d.join("saida")), &[keep(7.3, 20.4), hole], true, CutMode::Inteligente, &|_| {}, &|| false).unwrap();
+    println!("RESULT {info}");
+    assert!(!info.contains("Preciso"), "{info}");
+    let p = crate::video::probe(&out);
+    assert!((p.duration.unwrap() - 9.6).abs() < 0.15, "{p:?}");
+    assert!(p.has_audio);
+    // quadro a quadro: nada repetido nem perdido nas emendas
+    let (a, b) = (thumbs(&src), thumbs(&out));
+    assert_eq!(b.len(), 288, "13,1 s menos 3,5 s a 30 quadros");
+    for (i, f) in b.iter().enumerate() {
+        let want = if i < 81 { 219 + i } else { 405 + i - 81 };
+        assert_eq!(closest(&a, f, want), want, "quadro {i}");
+    }
+    // o miolo é copiado: nada no arquivo mudou a não ser as pontas
+    let precise = cut(&src, Some(&d.join("preciso")), &[keep(7.3, 20.4), hole], true, CutMode::Preciso, &|_| {}, &|| false).unwrap().1;
+    assert!((crate::video::probe(&precise).duration.unwrap() - 9.6).abs() < 0.15);
+    // um formato que não dá: faz no Preciso e avisa
+    let webm = d.join("v.webm");
+    let made = crate::tools::command(&ff).args(["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=d=4:s=160x120:r=15", "-c:v", "libvpx-vp9", "-cpu-used", "8"]).arg(&webm).status().unwrap();
+    assert!(made.success());
+    let (info, out) = cut(&webm, None, &[keep(1.0, 3.0)], true, CutMode::Inteligente, &|_| {}, &|| false).unwrap();
+    assert!(info.contains("Preciso"), "{info}");
+    assert!((crate::video::probe(&out).duration.unwrap() - 2.0).abs() < 0.2);
 }
 
 #[test]

@@ -102,6 +102,15 @@ pub fn trim(
     Ok((format!("{range} • {}", tools::human_size(tools::file_size(&dst))), dst))
 }
 
+/// Como cortar: copiando (rápido, cai no quadro-chave), recodificando tudo (exato) ou só as pontas de cada parte.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum CutMode {
+    #[default]
+    Rapido,
+    Preciso,
+    Inteligente,
+}
+
 /// Um trecho marcado: para manter ou para tirar. Sem `end`, vai até o fim do arquivo.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Cut {
@@ -187,7 +196,7 @@ pub fn parse_cuts(text: &str, keep: bool) -> Result<Vec<Cut>, String> {
 /// Grava uma lista de partes em `dst`. Uma parte só é um corte comum; várias são emendadas. Com `precise`, cada uma é
 /// aberta no ponto exato e tudo é recodificado; sem ele, as partes são copiadas sem perda e emendadas (cada emenda
 /// cai no quadro-chave mais próximo).
-fn write_parts(
+pub(crate) fn write_parts(
     src: &Path,
     info: &crate::video::Probe,
     parts: &[(f64, f64)],
@@ -265,18 +274,27 @@ pub fn cut(
     out_dir: Option<&Path>,
     cuts: &[Cut],
     together: bool,
-    precise: bool,
+    mode: CutMode,
     on_progress: &dyn Fn(f32),
     cancelled: &dyn Fn() -> bool,
 ) -> Result<(String, PathBuf), String> {
-    if let [c] = cuts {
+    if let ([c], true) = (cuts, mode != CutMode::Inteligente) {
         if c.keep {
-            return trim(src, out_dir, c.start, c.end, precise, on_progress, cancelled);
+            return trim(src, out_dir, c.start, c.end, mode == CutMode::Preciso, on_progress, cancelled);
         }
     }
     let info = probe(src);
     let dur = info.duration.ok_or("não foi possível ler a duração do arquivo.")?;
     let plan = plan_cuts(cuts, dur, together)?;
+    // o modo Inteligente só vale onde a emenda é segura; no resto, e se a conferência final reprovar, vai o Preciso
+    let (smart, mut fallback) = match mode {
+        CutMode::Inteligente => match crate::smartcut::check(src) {
+            Ok(p) => (Some(p), None),
+            Err(e) => (None, Some(e)),
+        },
+        _ => (None, None),
+    };
+    let precise = mode != CutMode::Rapido;
     let (ext, codec) = if precise {
         reencode_for(src, info.has_video)
     } else {
@@ -292,13 +310,32 @@ pub fn cut(
         let dst = tools::out_path(src, out_dir, &suffix, &ext);
         let span = length(list);
         let step = |f: f32| on_progress(((done + span * f as f64) / total) as f32);
-        write_parts(src, &info, list, &dst, precise, codec.clone(), &step, cancelled)?;
+        let done_smart = match &smart {
+            Some(p) => match crate::smartcut::write(src, &info, p, list, &dst, &step, cancelled) {
+                Ok(()) => true,
+                Err(_) if cancelled() => return Err("Cancelado.".into()),
+                Err(e) => {
+                    fallback = Some(e);
+                    false
+                }
+            },
+            None => false,
+        };
+        if !done_smart {
+            write_parts(src, &info, list, &dst, precise, codec.clone(), &step, cancelled)?;
+        }
         done += span;
         size += tools::file_size(&dst);
         last = Some(dst);
     }
     let dst = last.ok_or("não sobrou nenhum trecho.")?;
-    Ok((format!("{} arquivo(s) • {} • {}", plan.len(), fmt_time(total), tools::human_size(size)), dst))
+    let mut text = format!("{} arquivo(s) • {} • {}", plan.len(), fmt_time(total), tools::human_size(size));
+    if let Some(why) = fallback {
+        let note = format!("feito no modo Preciso: {}", why);
+        text.push_str(" • ");
+        text.push_str(&note);
+    }
+    Ok((text, dst))
 }
 
 /// Um quadro do vídeo, com `height` pixels de altura.

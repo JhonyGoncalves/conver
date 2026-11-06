@@ -1,5 +1,11 @@
 # Lista de mudanças
 
+## 1.10.1
+
+- **Corte Inteligente:** novo modo em **Cortar trecho**, no ponto exato e bem mais rápido que o Preciso. Só o começo e o fim de cada trecho são regravados, e o resto do vídeo é copiado sem perda. O áudio é regravado em AAC, e só a primeira faixa de áudio é mantida. Funciona com H.264 de 8 bits em MP4, MOV e MKV; vídeos girados, como muitos de celular, e outros formatos usam o Preciso, e o resultado avisa. As emendas são conferidas no fim e, se algo falhar, o corte é refeito no Preciso.
+- **Quadros-chave na linha do tempo:** aparecem como marcas, e no modo Rápido a borda arrastada gruda neles. A tela avisa quantos segundos o corte vai recuar.
+- **MCP e linha de comando:** `media_trim` aceita `cut_mode` (`fast`, `precise` ou `smart`). No arquivo de cortes, use `"mode"`; `"precise"` continua aceito.
+
 ## 1.10.0
 
 - **Vários cortes de uma vez:** em **Cortar trecho** e **Cortar áudio**, marque quantos trechos quiser para manter ou tirar, inclusive um dentro do outro. Um trecho para tirar dentro de um para manter abre um buraco nele; com um arquivo para cada trecho, um trecho pode ficar dentro de outro e os dois saem completos.

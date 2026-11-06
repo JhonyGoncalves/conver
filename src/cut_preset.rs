@@ -4,7 +4,7 @@
 //! ```json
 //! {
 //!   "output": "separate",
-//!   "precise": true,
+//!   "mode": "smart",
 //!   "cuts": [
 //!     { "start": "0:10", "end": "1:00" },
 //!     { "start": "0:20", "end": "0:30", "action": "remove" },
@@ -13,7 +13,8 @@
 //! }
 //! ```
 //!
-//! `output` (`together` ou `separate`), `precise` e `end` são opcionais; `action` é `keep` (padrão) ou `remove`. Tempos em
+//! `output` (`together` ou `separate`), `mode` (`fast`, `precise` ou `smart`) e `end` são opcionais; `precise` (true ou
+//! false) continua valendo no lugar de `mode`; `action` é `keep` (padrão) ou `remove`. Tempos em
 //! segundos ou como 1:30. Também vale só a lista, sem o objeto. `name` e `comment` são anotações livres. Um campo
 //! desconhecido é erro: um "inicio" no lugar de "start" não pode virar um corte errado sem aviso.
 
@@ -21,7 +22,7 @@ use std::path::{Path, PathBuf};
 
 use serde_json::{Map, Value, json};
 
-use crate::media::Cut;
+use crate::media::{Cut, CutMode};
 use crate::video::{self, parse_timecode};
 
 /// Extensão do arquivo achado sozinho ao lado do vídeo.
@@ -32,7 +33,7 @@ pub struct CutPreset {
     pub cuts: Vec<Cut>,
     pub together: bool,
     /// `None` = quem usa decide.
-    pub precise: Option<bool>,
+    pub mode: Option<CutMode>,
 }
 
 /// `<nome do vídeo>.cortes.json` ao lado do vídeo, se existir.
@@ -82,7 +83,7 @@ pub fn parse(text: &str) -> Result<CutPreset, String> {
     let (list, top) = match &v {
         Value::Array(list) => (list, None),
         Value::Object(o) => {
-            if let Some(k) = o.keys().find(|k| !matches!(k.as_str(), "cuts" | "output" | "precise" | "name" | "comment")) {
+            if let Some(k) = o.keys().find(|k| !matches!(k.as_str(), "cuts" | "output" | "mode" | "precise" | "name" | "comment")) {
                 return Err(format!("campo desconhecido \"{}\".", k));
             }
             (o.get("cuts").and_then(Value::as_array).ok_or("falta a lista \"cuts\".")?, Some(o))
@@ -99,12 +100,21 @@ pub fn parse(text: &str) -> Result<CutPreset, String> {
         Some(v) if v == "separate" => false,
         Some(_) => return Err("\"output\" deve ser \"together\" ou \"separate\".".into()),
     };
-    let precise = match top.and_then(|o| o.get("precise")) {
+    let mut mode = match top.and_then(|o| o.get("precise")) {
         None => None,
-        Some(Value::Bool(b)) => Some(*b),
+        Some(Value::Bool(true)) => Some(CutMode::Preciso),
+        Some(Value::Bool(false)) => Some(CutMode::Rapido),
         Some(_) => return Err("\"precise\" deve ser true ou false.".into()),
     };
-    Ok(CutPreset { cuts, together, precise })
+    if let Some(v) = top.and_then(|o| o.get("mode")) {
+        mode = Some(match v.as_str() {
+            Some("fast") => CutMode::Rapido,
+            Some("precise") => CutMode::Preciso,
+            Some("smart") => CutMode::Inteligente,
+            _ => return Err("\"mode\" deve ser \"fast\", \"precise\" ou \"smart\".".into()),
+        });
+    }
+    Ok(CutPreset { cuts, together, mode })
 }
 
 /// Lê um arquivo de cortes.
@@ -130,8 +140,12 @@ pub fn to_json(p: &CutPreset) -> String {
         })
         .collect();
     let mut o = json!({ "output": if p.together { "together" } else { "separate" } });
-    if let Some(b) = p.precise {
-        o["precise"] = json!(b);
+    if let Some(m) = p.mode {
+        o["mode"] = json!(match m {
+            CutMode::Rapido => "fast",
+            CutMode::Preciso => "precise",
+            CutMode::Inteligente => "smart",
+        });
     }
     o["cuts"] = json!(cuts);
     serde_json::to_string_pretty(&o).unwrap_or_default()

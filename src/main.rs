@@ -56,6 +56,7 @@ mod screenrec;
 mod search;
 mod paste;
 mod segment;
+mod smartcut;
 mod separate;
 mod theme;
 mod tools;

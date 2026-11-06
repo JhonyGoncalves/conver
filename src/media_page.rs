@@ -132,7 +132,7 @@ pub struct MediaPage {
     audio: u32,
     // cortar
     trim: crate::trim_page::TrimPanel,
-    precise: bool,
+    cut_mode: media::CutMode,
     // juntar
     merge_precise: bool,
     // velocidade
@@ -190,7 +190,7 @@ impl MediaPage {
             codec: Codec::H264,
             audio: 128,
             trim: crate::trim_page::TrimPanel::new(),
-            precise: false,
+            cut_mode: media::CutMode::Rapido,
             merge_precise: true,
             factor: 2.0,
             keep_audio: true,
@@ -277,21 +277,26 @@ impl MediaPage {
             }
             MTool::VTrim | MTool::ATrim => {
                 let selected = self.queue.selected_path().cloned();
-                self.trim.ui(ui, p, selected.as_ref(), durs, self.tool == MTool::VTrim, self.precise, self.queue.files.len());
-                if let Some(b) = self.trim.wanted_precise.take() {
-                    self.precise = b;
+                self.trim.ui(ui, p, selected.as_ref(), durs, self.tool == MTool::VTrim, self.cut_mode, self.queue.files.len());
+                if let Some(m) = self.trim.wanted_mode.take() {
+                    self.cut_mode = m;
                 }
                 ui.add_space(2.0);
+                use media::CutMode::{Inteligente, Preciso, Rapido};
                 row(ui, p, "Modo:", |ui| {
-                    segmented(ui, p, &mut self.precise, &[(false, "Rápido (sem perda)"), (true, "Preciso (recodifica)")]);
+                    if self.tool == MTool::VTrim {
+                        segmented(ui, p, &mut self.cut_mode, &[(Rapido, "Rápido (sem perda)"), (Inteligente, "Inteligente"), (Preciso, "Preciso (recodifica)")]);
+                    } else {
+                        segmented(ui, p, &mut self.cut_mode, &[(Rapido, "Rápido (sem perda)"), (Preciso, "Preciso (recodifica)")]);
+                    }
                 });
                 hint(
                     ui,
                     p,
-                    if self.precise {
-                        "Corta exatamente nos tempos informados; demora mais porque regrava o arquivo."
-                    } else {
-                        "Instantâneo e sem perda de qualidade; em vídeos, o corte pode cair até alguns segundos antes do início."
+                    match self.cut_mode {
+                        Preciso => "Corta exatamente nos tempos informados; demora mais porque regrava o arquivo.",
+                        Inteligente => "No ponto exato, regravando só o começo e o fim de cada trecho; o resto do vídeo é copiado sem perda. O áudio é regravado. Para H.264 em MP4, MOV e MKV; nos outros casos usa o Preciso.",
+                        Rapido => "Instantâneo e sem perda de qualidade; em vídeos, o corte pode cair até alguns segundos antes do início.",
                     },
                 );
             }
@@ -580,7 +585,7 @@ impl MediaPage {
         };
         let (cuts, together) = (self.trim.cuts().unwrap_or_default(), self.trim.together);
         let selected = self.queue.selected_path().cloned();
-        let (precise, factor, keep_audio) = (self.precise, self.factor, self.keep_audio);
+        let (cut_mode, factor, keep_audio) = (self.cut_mode, self.factor, self.keep_audio);
         let (frames, every, png) = (self.frames, self.every, self.png);
         let (afmt, aq, lufs, acodec, akbps, mono) = (self.afmt, self.aq, self.lufs, self.acodec, self.akbps, self.mono);
         let denoise = self.denoise;
@@ -601,9 +606,9 @@ impl MediaPage {
                         // o selecionado segue a tela, que pode ter sido editada; os outros, o próprio arquivo de cortes
                         Some(f) => {
                             let own = crate::cut_preset::read(&f)?;
-                            media::cut(src, out, &own.cuts, own.together, own.precise.unwrap_or(precise), progress, &cancelled)
+                            media::cut(src, out, &own.cuts, own.together, own.mode.unwrap_or(cut_mode), progress, &cancelled)
                         }
-                        None => media::cut(src, out, &cuts, together, precise, progress, &cancelled),
+                        None => media::cut(src, out, &cuts, together, cut_mode, progress, &cancelled),
                     },
                     MTool::Speed => media::speed(src, out, factor, keep_audio, progress, &cancelled),
                     MTool::AudioFrames if frames => media::extract_frames(src, out, every, png, progress, &cancelled),
