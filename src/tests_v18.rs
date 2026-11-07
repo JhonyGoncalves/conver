@@ -1062,6 +1062,30 @@ fn smart_cut_is_exact() {
 }
 
 #[test]
+fn queue_registry() {
+    // a fila da interface 2.0 junta as tarefas de todas as ferramentas, marcadas com a ferramenta de origem
+    let ctx = eframe::egui::Context::default();
+    let (a, b) = (crate::job::Job::default(), crate::job::Job::default());
+    crate::job::set_origin("img_resize");
+    a.start(&ctx, |_| std::thread::sleep(std::time::Duration::from_millis(300)));
+    crate::job::set_origin("v_trim");
+    b.start(&ctx, |_| {});
+    crate::job::set_origin("");
+    let all = crate::job::all();
+    let mine: Vec<&str> = all.iter().filter(|(o, _)| *o == "img_resize" || *o == "v_trim").map(|(o, _)| *o).collect();
+    assert_eq!(mine, ["img_resize", "v_trim"]);
+    // sem ferramenta na tela (linha de comando, MCP), nada entra na fila
+    let c = crate::job::Job::default();
+    c.start(&ctx, |_| {});
+    assert_eq!(crate::job::all().len(), all.len());
+    while a.state().running || b.state().running {
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+    crate::job::clear_finished();
+    assert!(crate::job::all().iter().all(|(_, j)| j.state().running));
+}
+
+#[test]
 fn explorer_select_argument() {
     use crate::tools::{explorer_path, select_arg};
     use std::path::Path;

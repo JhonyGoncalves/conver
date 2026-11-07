@@ -78,12 +78,41 @@ pub fn mirror(r: Rect, outer: Rect) -> Rect {
     if rtl() { Rect::from_x_y_ranges((outer.left() + outer.right() - r.right())..=(outer.left() + outer.right() - r.left()), r.y_range()) } else { r }
 }
 
+// ---------------------------------------------------------- interface 2.0 (Fluent)
+
+/// Interface 2.0 ligada (`CONVER_INTERFACE=2`): os componentes daqui seguem o Fluent do Windows 11.
+pub fn fluent() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(crate::ui2::enabled)
+}
+
+thread_local! {
+    /// Seção da ferramenta aberta, para o caminho no cabeçalho ("Início › Imagem").
+    static CRUMB: std::cell::Cell<&'static str> = const { std::cell::Cell::new("") };
+}
+/// Pedido de voltar ao Início, feito pelo caminho no cabeçalho.
+static GO_HOME: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub fn set_crumb(section: &'static str) {
+    CRUMB.with(|c| c.set(section));
+}
+
+/// Se alguém clicou em "Início" no cabeçalho (lê e zera).
+pub fn take_go_home() -> bool {
+    GO_HOME.swap(false, std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Raio dos cantos: o Fluent usa 8 nos cartões e 4 nos controles.
+fn radius(classic: u8, fluent_r: u8) -> u8 {
+    if fluent() { fluent_r } else { classic }
+}
+
 pub fn card<R>(ui: &mut Ui, p: &Palette, add: impl FnOnce(&mut Ui) -> R) -> R {
     Frame::default()
         .fill(p.card)
         .stroke(Stroke::new(1.0f32, p.border))
-        .corner_radius(12)
-        .inner_margin(Margin::same(14))
+        .corner_radius(radius(12, 8))
+        .inner_margin(Margin::same(if fluent() { 16 } else { 14 }))
         .show(ui, |ui| {
             ui.set_width(ui.available_width());
             add(ui)
@@ -92,6 +121,29 @@ pub fn card<R>(ui: &mut Ui, p: &Palette, add: impl FnOnce(&mut Ui) -> R) -> R {
 }
 
 pub fn header(ui: &mut Ui, p: &Palette, title: &str, subtitle: &str) {
+    if fluent() {
+        // caminho clicável: Início › Seção
+        let section = CRUMB.with(|c| c.get());
+        ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = 6.0;
+            let home = ui.add(egui::Label::new(RichText::new(crate::i18n::tr("Início")).size(13.0).color(p.accent)).sense(Sense::click()));
+            if home.on_hover_cursor(CursorIcon::PointingHand).clicked() {
+                GO_HOME.store(true, std::sync::atomic::Ordering::Relaxed);
+            }
+            if !section.is_empty() {
+                let mut name = crate::i18n::tr(section).to_lowercase();
+                if let Some(c) = name.get(..1).map(str::to_uppercase) {
+                    name.replace_range(..1, &c);
+                }
+                ui.label(RichText::new(if rtl() { "‹" } else { "›" }).size(13.0).color(p.muted));
+                ui.label(RichText::new(name).size(13.0).color(p.muted));
+            }
+        });
+        ui.label(RichText::new(crate::i18n::tr(title)).family(bold()).size(28.0).color(p.text));
+        ui.label(RichText::new(crate::i18n::tr(subtitle)).size(14.0).color(p.muted));
+        ui.add_space(14.0);
+        return;
+    }
     ui.label(RichText::new(crate::i18n::tr(title)).heading().color(p.text));
     ui.label(RichText::new(crate::i18n::tr(subtitle)).color(p.muted));
     ui.add_space(8.0);
@@ -99,11 +151,12 @@ pub fn header(ui: &mut Ui, p: &Palette, title: &str, subtitle: &str) {
 
 pub fn primary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
     let (fill, color) = if enabled { (p.action, p.on_accent) } else { (p.border, p.muted) };
-    let b = Button::new(RichText::new(crate::i18n::tr(text)).family(bold()).size(15.0).color(color))
+    let size = if fluent() { 14.0 } else { 15.0 };
+    let b = Button::new(RichText::new(crate::i18n::tr(text)).family(bold()).size(size).color(color))
         .fill(fill)
         .stroke(Stroke::NONE)
-        .corner_radius(8)
-        .min_size(vec2(150.0, 38.0))
+        .corner_radius(radius(8, 4))
+        .min_size(if fluent() { vec2(120.0, 32.0) } else { vec2(150.0, 38.0) })
         .sense(if enabled { Sense::click() } else { Sense::hover() });
     let r = ui.add(b);
     if enabled {
@@ -114,10 +167,11 @@ pub fn primary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
 }
 
 pub fn secondary(ui: &mut Ui, p: &Palette, text: &str, enabled: bool) -> bool {
+    // no Fluent o botão comum é preenchido (um tom acima do fundo), não só contornado
     let b = Button::new(RichText::new(crate::i18n::tr(text)).color(p.text))
-        .fill(Color32::TRANSPARENT)
+        .fill(if fluent() { p.input } else { Color32::TRANSPARENT })
         .stroke(Stroke::new(1.0f32, p.border))
-        .corner_radius(8)
+        .corner_radius(radius(8, 4))
         .min_size(vec2(0.0, 32.0));
     ui.add_enabled(enabled, b).clicked()
 }
@@ -146,10 +200,11 @@ pub fn segmented<T: PartialEq + Copy>(ui: &mut Ui, p: &Palette, value: &mut T, o
         });
         return changed;
     }
+    let fl = fluent();
     Frame::default()
-        .fill(p.input)
+        .fill(if fl { p.bg } else { p.input })
         .stroke(Stroke::new(1.0f32, p.border))
-        .corner_radius(9)
+        .corner_radius(radius(9, 6))
         .inner_margin(Margin::same(3))
         .show(ui, |ui| {
             // a primeira opção fica no começo da leitura (à direita em árabe, urdu e persa)
@@ -157,14 +212,25 @@ pub fn segmented<T: PartialEq + Copy>(ui: &mut Ui, p: &Palette, value: &mut T, o
                 ui.spacing_mut().item_spacing.x = 2.0;
                 for (v, label) in opts {
                     let sel = *value == *v;
-                    // a escolhida fica em cinábrio suave: o vermelho cheio é só da ação (botão, menu, progresso)
+                    // a escolhida fica em cinábrio suave: o vermelho cheio é só da ação (botão, menu, progresso).
+                    // No Fluent ela fica "levantada" (fundo de cartão) com uma barrinha na cor de destaque
                     let text = RichText::new(crate::i18n::tr(*label)).color(p.text);
+                    let fill = match (sel, fl) {
+                        (true, true) => p.card,
+                        (true, false) => p.accent_soft,
+                        _ => Color32::TRANSPARENT,
+                    };
                     let b = Button::new(if sel { text.family(bold()) } else { text })
-                        .fill(if sel { p.accent_soft } else { Color32::TRANSPARENT })
-                        .stroke(Stroke::NONE)
-                        .corner_radius(6)
+                        .fill(fill)
+                        .stroke(if sel && fl { Stroke::new(1.0f32, p.border) } else { Stroke::NONE })
+                        .corner_radius(radius(6, 4))
                         .min_size(vec2(0.0, 28.0));
-                    if ui.add(b).on_hover_cursor(CursorIcon::PointingHand).clicked() && !sel {
+                    let r = ui.add(b).on_hover_cursor(CursorIcon::PointingHand);
+                    if sel && fl {
+                        let bar = Rect::from_center_size(egui::pos2(r.rect.center().x, r.rect.bottom() - 2.5), vec2(16.0, 3.0));
+                        ui.painter().rect_filled(bar, 2, p.action);
+                    }
+                    if r.clicked() && !sel {
                         *value = *v;
                         changed = true;
                     }
@@ -425,12 +491,16 @@ pub fn file_list(
             let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), height), Sense::click());
             let hovered = resp.hovered();
             let painter = ui.painter();
-            painter.rect_filled(rect, 10, if hovered { p.accent_soft } else { p.input });
+            painter.rect_filled(rect, radius(10, 6), if hovered { p.accent_soft } else { p.input });
             dashed_border(painter, rect.shrink(1.0), if hovered { p.accent } else { p.border });
             // a dica do Ctrl+V tem linha própria, só onde cabe
             let print_tip = q.takes_images() && height >= 150.0;
             let up = if print_tip { 10.0 } else { 0.0 };
-            painter.text(rect.center() - vec2(0.0, 22.0 + up), Align2::CENTER_CENTER, crate::i18n::tr("⬇"), FontId::proportional(30.0), p.accent);
+            if fluent() {
+                painter.text(rect.center() - vec2(0.0, 22.0 + up), Align2::CENTER_CENTER, crate::ui2::icon::UPLOAD, FontId::new(26.0, crate::ui2::icons()), p.accent);
+            } else {
+                painter.text(rect.center() - vec2(0.0, 22.0 + up), Align2::CENTER_CENTER, crate::i18n::tr("⬇"), FontId::proportional(30.0), p.accent);
+            }
             painter.text(
                 rect.center() + vec2(0.0, 14.0 - up),
                 Align2::CENTER_CENTER,
@@ -472,7 +542,12 @@ pub fn file_list(
                     } else {
                         Color32::TRANSPARENT
                     };
-                    ui.painter().rect_filled(rect, 8, fill);
+                    ui.painter().rect_filled(rect, radius(8, 4), fill);
+                    if selected && fluent() {
+                        // item escolhido: barrinha de destaque no começo, como nas listas do Windows
+                        let bar = mirror(Rect::from_min_size(egui::pos2(rect.left(), rect.center().y - 9.0), vec2(3.0, 18.0)), rect);
+                        ui.painter().rect_filled(bar, 2, p.action);
+                    }
 
                     let mut x = rect.left() + 8.0;
                     let mut dims = None;
@@ -495,9 +570,10 @@ pub fn file_list(
                     } else {
                         // etiqueta com a extensão do arquivo
                         let slot = mirror(Rect::from_min_size(egui::pos2(x, rect.center().y - 14.0), vec2(42.0, 28.0)), rect);
-                        ui.painter().rect_filled(slot, 6, p.action);
+                        let (tag, tag_text) = if fluent() { (p.accent_soft, p.accent) } else { (p.action, p.on_accent) };
+                        ui.painter().rect_filled(slot, radius(6, 4), tag);
                         let ext: String = tools::ext_lower(path).to_uppercase().chars().take(4).collect();
-                        ui.painter().text(slot.center(), Align2::CENTER_CENTER, crate::i18n::tr(ext), FontId::new(11.0, bold()), p.on_accent);
+                        ui.painter().text(slot.center(), Align2::CENTER_CENTER, crate::i18n::tr(ext), FontId::new(11.0, bold()), tag_text);
                         x += 52.0;
                     }
 
@@ -706,7 +782,7 @@ impl OutDir {
             Frame::default()
                 .fill(p.input)
                 .stroke(Stroke::new(1.0f32, p.border))
-                .corner_radius(8)
+                .corner_radius(radius(8, 4))
                 .inner_margin(Margin::symmetric(10, 6))
                 .show(ui, |ui| {
                     ui.set_width((ui.available_width() - right).max(120.0));
@@ -734,6 +810,9 @@ pub enum Act {
 
 /// Status, barra de progresso, botões Iniciar/Cancelar, "Mostrar arquivo" (ou "Abrir pasta") e o log.
 pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: bool) -> Act {
+    if fluent() {
+        return action_bar_fluent(ui, p, job, label, can_start);
+    }
     let mut act = Act::None;
     let st = job.state();
     let running = st.running;
@@ -792,6 +871,74 @@ pub fn action_bar(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: b
                     });
             });
     }
+    drop(st);
+    if running {
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(150));
+    }
+    act
+}
+
+/// Barra de ação do Fluent: um cartão com o andamento à esquerda e os botões à direita; o registro vem embaixo, como
+/// uma lista de avisos.
+fn action_bar_fluent(ui: &mut Ui, p: &Palette, job: &Job, label: &str, can_start: bool) -> Act {
+    let mut act = Act::None;
+    let st = job.state();
+    let running = st.running;
+    ui.add_space(6.0);
+    card(ui, p, |ui| {
+        ui.horizontal(|ui| {
+            ui.with_layout(back(Align::Center), |ui| {
+                if primary(ui, p, label, can_start && !running) {
+                    act = Act::Start;
+                }
+                if running && secondary(ui, p, "Cancelar", true) {
+                    act = Act::Cancel;
+                }
+                if let (false, Some(done)) = (running, &st.done_folder) {
+                    if done.is_file() {
+                        if secondary(ui, p, "Mostrar arquivo", true) {
+                            tools::show_in_folder(done);
+                        }
+                    } else if secondary(ui, p, "Abrir pasta", true) {
+                        tools::open_folder(done);
+                    }
+                }
+                ui.with_layout(fwd(Align::Center), |ui| {
+                    let (glyph, color) = if running {
+                        (None, p.muted)
+                    } else if st.log.iter().any(|(k, _)| *k == LogKind::Err) {
+                        (Some(crate::ui2::icon::ERROR), p.accent)
+                    } else if st.done_folder.is_some() {
+                        (Some(crate::ui2::icon::CHECK), p.ok)
+                    } else {
+                        (None, p.muted)
+                    };
+                    if let Some(g) = glyph {
+                        ui.label(RichText::new(g).family(crate::ui2::icons()).size(14.0).color(color));
+                    }
+                    ui.add(egui::Label::new(RichText::new(crate::i18n::tr(&st.status)).color(if glyph.is_some() { p.text } else { p.muted })).truncate());
+                });
+            });
+        });
+        if running || st.progress > 0.0 {
+            ui.add_space(4.0);
+            ui.add(ProgressBar::new(st.progress).desired_width(ui.available_width()).desired_height(4.0).fill(p.action).corner_radius(2));
+        }
+        if !st.log.is_empty() {
+            ui.add_space(8.0);
+            ui.separator();
+            egui::ScrollArea::vertical().id_salt(label).max_height(120.0).stick_to_bottom(true).auto_shrink([false, true]).show(ui, |ui| {
+                for (kind, line) in &st.log {
+                    let color = match kind {
+                        LogKind::Ok => p.ok,
+                        LogKind::Err => p.accent,
+                        LogKind::Info => p.muted,
+                    };
+                    ui.label(RichText::new(crate::i18n::tr(line)).size(13.0).color(color));
+                }
+            });
+        }
+    });
     drop(st);
     if running {
         ui.ctx().request_repaint_after(std::time::Duration::from_millis(150));

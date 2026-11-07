@@ -105,6 +105,7 @@ pub fn install_fonts(ctx: &egui::Context) {
     }
     fonts.families.insert(FontFamily::Proportional, proportional);
     fonts.families.insert(FontFamily::Name("bold".into()), bold);
+    crate::ui2::add_icons(&mut fonts);
     ctx.set_fonts(fonts);
 }
 
@@ -126,7 +127,7 @@ pub fn apply(ctx: &egui::Context, p: &Palette) {
     v.selection.bg_fill = p.action;
     v.selection.stroke = Stroke::new(1.0f32, p.on_accent);
     v.slider_trailing_fill = true;
-    let r = CornerRadius::same(5);
+    let r = CornerRadius::same(if crate::widgets::fluent() { 4 } else { 5 });
     for (w, fill) in [
         (&mut v.widgets.noninteractive, p.card),
         (&mut v.widgets.inactive, p.input),

@@ -60,6 +60,7 @@ mod smartcut;
 mod separate;
 mod theme;
 mod tools;
+mod ui2;
 mod trim_page;
 mod transcribe;
 mod translate;
@@ -149,6 +150,8 @@ impl Config {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Page {
+    /// Tela inicial da interface 2.0.
+    Home,
     Img(ImgTool),
     Media(MTool),
     Download,
@@ -371,6 +374,8 @@ struct ConverApp {
     confirm_remove: Option<models::Pack>,
     /// Ferramenta que o menu já rolou para mostrar.
     nav_shown: Option<Page>,
+    /// Interface 2.0 (protótipo, `CONVER_INTERFACE=2`).
+    v2: Option<ui2::State>,
 }
 
 impl ConverApp {
@@ -380,7 +385,8 @@ impl ConverApp {
         i18n::set(&cfg.lang);
         theme::install_fonts(ctx);
         notify::configure(cfg.notify, cfg.sound);
-        let pal = Palette::new(cfg.dark);
+        let v2 = ui2::enabled().then(ui2::State::default);
+        let pal = if v2.is_some() { ui2::palette(ui2::system_dark()) } else { Palette::new(cfg.dark) };
         theme::apply(ctx, &pal);
 
         let logo_img = image::load_from_memory(LOGO_PNG).expect("logo").to_rgba8();
@@ -405,7 +411,7 @@ impl ConverApp {
             download: DownloadPage::new(cfg.download_dir()),
             cfg,
             pal,
-            page: Page::Img(ImgTool::Resize),
+            page: if v2.is_some() { Page::Home } else { Page::Img(ImgTool::Resize) },
             logo,
             thumbs: Thumbs::new(ctx),
             durs: Durations::new(ctx),
@@ -454,6 +460,7 @@ impl ConverApp {
             paste_held: false,
             confirm_remove: None,
             nav_shown: None,
+            v2,
         };
         if !app.cfg.welcome_done && app.captura.is_none() {
             app.welcome = Some(welcome::Welcome::new());
@@ -512,7 +519,7 @@ impl ConverApp {
         if cap.quadros == 0 {
             let cena = &cap.cenas[cap.atual];
             self.cfg.dark = cena.dark; // sem salvar
-            self.pal = Palette::new(cena.dark);
+            self.pal = if self.v2.is_some() { ui2::palette(cena.dark) } else { Palette::new(cena.dark) };
             theme::apply(ctx, &self.pal);
             i18n::set(&cena.lang);
             theme::install_fonts(ctx);
@@ -524,8 +531,13 @@ impl ConverApp {
             self.page = match cena.page.as_str() {
                 "settings" => Page::Settings,
                 "history" => Page::History,
+                "home" | "home_busca" | "home_fila" => Page::Home,
                 id => NAV.iter().flat_map(|(_, items)| items.iter()).map(|(p, _)| *p).find(|p| page_id(*p) == id).unwrap_or(self.page),
             };
+            if let Some(v) = self.v2.as_mut() {
+                v.palette = (cena.page == "home_busca").then(|| ("cor".to_string(), 0));
+                v.queue_open = cena.page == "home_fila";
+            }
             if self.page == Page::Recorder && std::env::var_os("CONVER_DEMO_AUDIO").is_some() {
                 self.recorder.demo(ctx);
             }
@@ -773,6 +785,17 @@ impl ConverApp {
             }
         }
         let page = self.page;
+        // interface 2.0: na tela inicial os arquivos esperam a escolha da ferramenta
+        if page == Page::Home {
+            if let Some(v) = self.v2.as_mut() {
+                for f in paths {
+                    if !v.files.contains(&f) {
+                        v.files.push(f);
+                    }
+                }
+                return;
+            }
+        }
         // um arquivo de cortes solto em "Cortar" é lido, junto ou não com o vídeo
         if let Page::Media(t @ (MTool::VTrim | MTool::ATrim)) = page {
             let (json, rest): (Vec<PathBuf>, Vec<PathBuf>) = paths.into_iter().partition(|p| tools::ext_lower(p) == "json");
@@ -1266,6 +1289,7 @@ impl ConverApp {
 /// Nome de cada tela para as palavras de busca (`search::keywords`).
 fn page_id(page: Page) -> &'static str {
     match page {
+        Page::Home => "home",
         Page::Img(t) => match t {
             ImgTool::Resize => "img_resize",
             ImgTool::Compress => "img_compress",
@@ -1455,14 +1479,37 @@ impl eframe::App for ConverApp {
 
         // árabe, urdu e persa: o menu fica à direita e as colunas se alinham pela direita (veja `widgets::rtl`)
         let side = if widgets::rtl() { egui::panel::Side::Right } else { egui::panel::Side::Left };
-        egui::SidePanel::new(side, "nav")
-            .exact_width(232.0)
-            .resizable(false)
-            .show_separator_line(false)
-            .frame(Frame::default().fill(p.sidebar).inner_margin(Margin::symmetric(14, 16)))
-            .show(ctx, |ui| {
-                ui.with_layout(widgets::down(), |ui| self.sidebar(ui));
-            });
+        job::set_origin(page_id(self.page));
+        widgets::set_crumb(ui2::crumb(self.page));
+        if self.v2.is_some() && widgets::take_go_home() {
+            self.open_tool(Page::Home);
+        }
+        if self.v2.is_some() {
+            egui::SidePanel::new(side, "nav2")
+                .exact_width(76.0)
+                .resizable(false)
+                .show_separator_line(false)
+                .frame(Frame::default().fill(p.sidebar).inner_margin(Margin::symmetric(4, 8)))
+                .show(ctx, |ui| self.rail(ui));
+            if self.v2.as_ref().is_some_and(|v| v.queue_open) {
+                let other = if widgets::rtl() { egui::panel::Side::Left } else { egui::panel::Side::Right };
+                egui::SidePanel::new(other, "fila")
+                    .exact_width(300.0)
+                    .resizable(false)
+                    .frame(Frame::default().fill(p.sidebar).inner_margin(Margin::symmetric(14, 16)))
+                    .show(ctx, |ui| ui.with_layout(widgets::down(), |ui| self.queue_ui(ui)));
+            }
+            self.palette_ui(ctx);
+        } else {
+            egui::SidePanel::new(side, "nav")
+                .exact_width(232.0)
+                .resizable(false)
+                .show_separator_line(false)
+                .frame(Frame::default().fill(p.sidebar).inner_margin(Margin::symmetric(14, 16)))
+                .show(ctx, |ui| {
+                    ui.with_layout(widgets::down(), |ui| self.sidebar(ui));
+                });
+        }
 
         egui::CentralPanel::default()
             .frame(Frame::default().fill(p.bg).inner_margin(Margin::symmetric(26, 20)))
@@ -1488,6 +1535,7 @@ impl eframe::App for ConverApp {
                     ui.set_width(content.width());
                     self.update_banner(ui);
                     match self.page {
+                        Page::Home => self.home_ui(ui),
                         Page::Img(t) => {
                             if let Some(page) = self.images.get_mut(&t) {
                                 page.ui(ui, &p, &self.thumbs);

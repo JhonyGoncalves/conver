@@ -53,6 +53,7 @@ impl Job {
             *s = JobState { running: true, status: "Iniciando…".into(), ..Default::default() };
         }
         self.cancel.store(false, Ordering::Relaxed);
+        register(self);
         let ctl = Ctl { job: self.clone(), ctx: ctx.clone() };
         std::thread::spawn(move || {
             let started = std::time::Instant::now();
@@ -74,6 +75,42 @@ impl Job {
             ctl.ctx.request_repaint();
         });
     }
+}
+
+// ------------------------------------------------------------------ registro (fila da interface 2.0)
+
+thread_local! {
+    /// Ferramenta aberta na tela agora: quem iniciar uma tarefa fica marcado com ela.
+    static ORIGIN: std::cell::RefCell<&'static str> = const { std::cell::RefCell::new("") };
+}
+
+/// Todas as tarefas iniciadas na janela, com a ferramenta de origem.
+static REGISTRY: Mutex<Vec<(&'static str, Job)>> = Mutex::new(Vec::new());
+
+/// Marca a ferramenta que está na tela (chamado a cada quadro, antes de desenhar a tela).
+pub fn set_origin(id: &'static str) {
+    ORIGIN.with(|o| *o.borrow_mut() = id);
+}
+
+fn register(job: &Job) {
+    let origin = ORIGIN.with(|o| *o.borrow());
+    if origin.is_empty() {
+        return;
+    }
+    let mut list = REGISTRY.lock().unwrap_or_else(|e| e.into_inner());
+    // a mesma tarefa iniciada de novo vai para o fim (a mais recente)
+    list.retain(|(_, j)| !Arc::ptr_eq(&j.state, &job.state));
+    list.push((origin, job.clone()));
+}
+
+/// As tarefas registradas, da mais antiga para a mais nova.
+pub fn all() -> Vec<(&'static str, Job)> {
+    REGISTRY.lock().unwrap_or_else(|e| e.into_inner()).clone()
+}
+
+/// Tira da lista as que já terminaram.
+pub fn clear_finished() {
+    REGISTRY.lock().unwrap_or_else(|e| e.into_inner()).retain(|(_, j)| j.state().running);
 }
 
 /// Controle entregue à thread de trabalho.
