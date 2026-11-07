@@ -1,9 +1,6 @@
-//! Protótipo da interface 2.0 (ligado com `CONVER_INTERFACE=2`): começa pelo arquivo, busca central (Ctrl+K), fila
-//! com todas as tarefas e visual do Windows 11 (cor de destaque e tema do sistema, ícones Segoe). As telas das
-//! ferramentas continuam as mesmas; só a casca muda.
-//!
-//! Os textos daqui ainda não estão traduzidos (protótipo): ficam fora da extração.
-// i18n: fora
+//! Interface 2.0 (o padrão; a clássica fica nas Configurações): começa pelo arquivo, busca central (Ctrl+K), fila
+//! com todas as tarefas e visual do Windows 11 (cor de destaque e tema do sistema, ícones Segoe). Os componentes de
+//! `widgets` mudam de estilo junto (`widgets::fluent`). `CONVER_INTERFACE=2` ou `=1` força uma das duas.
 
 use std::path::PathBuf;
 
@@ -13,9 +10,34 @@ use super::{ConverApp, NAV, Page, page_id};
 use crate::theme::{Palette, bold};
 use crate::{search, tools, widgets};
 
-/// Liga a interface 2.0.
+static ON: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// A interface 2.0 está ligada.
 pub fn enabled() -> bool {
-    std::env::var("CONVER_INTERFACE").is_ok_and(|v| v.trim() == "2")
+    ON.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Liga ou desliga a interface 2.0 (vale na hora).
+pub fn set_enabled(on: bool) {
+    ON.store(on, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Decide pela configuração (`interface`: 1 = clássica), a não ser que `CONVER_INTERFACE` force, e já aplica.
+pub fn decide(interface: u8) -> bool {
+    // i18n: fora
+    let on = match std::env::var("CONVER_INTERFACE").as_deref().map(str::trim) {
+        Ok("2") => true,
+        Ok("1") => false,
+        _ => interface != 1,
+    };
+    // i18n: dentro
+    set_enabled(on);
+    on
+}
+
+/// Ferramenta pelo id (`main::page_id`), para lembrar as recentes entre uma abertura e outra.
+pub fn page_by_id(id: &str) -> Option<Page> {
+    all_tools().map(|(p, _, _)| p).find(|p| page_id(*p) == id)
 }
 
 /// Estado da casca nova.
@@ -42,11 +64,8 @@ pub mod icon {
     pub const SETTINGS: char = '\u{E713}';
     pub const UPLOAD: char = '\u{E898}';
     pub const CLOSE: char = '\u{E711}';
-    pub const FOLDER: char = '\u{E838}';
     pub const CHECK: char = '\u{E73E}';
     pub const ERROR: char = '\u{E783}';
-    pub const FORWARD: char = '\u{E76C}';
-    pub const PASTE: char = '\u{E77F}';
     /// Um por seção do menu, na ordem de `NAV`.
     pub const SECTIONS: [char; 7] = ['\u{E895}', '\u{EB9F}', '\u{E714}', '\u{E8D6}', '\u{E8A5}', '\u{E896}', '\u{E90F}'];
 }
@@ -170,10 +189,10 @@ fn summary(files: &[PathBuf]) -> String {
     let parts: Vec<String> = [(img, "imagem", "imagens"), (vid, "vídeo", "vídeos"), (aud, "áudio", "áudios"), (pdf, "PDF", "PDFs"), (other, "outro", "outros")]
         .iter()
         .filter(|(n, _, _)| *n > 0)
-        .map(|(n, one, many)| format!("{n} {}", if *n == 1 { one } else { many }))
+        .map(|(n, one, many)| format!("{n} {}", crate::i18n::tr(if *n == 1 { one } else { many })))
         .collect();
     let n = files.len();
-    format!("{n} {}: {}", if n == 1 { "arquivo" } else { "arquivos" }, parts.join(", "))
+    format!("{n} {}: {}", crate::i18n::tr(if n == 1 { "arquivo" } else { "arquivos" }), parts.join(", "))
 }
 
 // ------------------------------------------------------------------ peças
@@ -192,7 +211,7 @@ fn rail_item(ui: &mut Ui, p: &Palette, glyph: char, label: &str, selected: bool,
     }
     let color = if selected { p.accent } else { p.text };
     painter.text(rect.center() - vec2(0.0, 9.0), Align2::CENTER_CENTER, glyph, FontId::new(19.0, icons()), color);
-    painter.text(rect.center() + vec2(0.0, 14.0), Align2::CENTER_CENTER, label, FontId::proportional(11.0), if selected { p.text } else { p.muted });
+    painter.text(rect.center() + vec2(0.0, 14.0), Align2::CENTER_CENTER, crate::i18n::tr(label), FontId::proportional(11.0), if selected { p.text } else { p.muted });
     if badge > 0 {
         let c = rect.center() + vec2(12.0, -18.0);
         painter.circle_filled(c, 8.0, p.action);
@@ -269,6 +288,8 @@ impl ConverApp {
             recent.retain(|p| *p != page);
             recent.insert(0, page);
             recent.truncate(8);
+            self.cfg.recent = self.v2().recent.iter().map(|p| page_id(*p).to_string()).collect();
+            self.cfg.save();
         }
     }
 
@@ -335,7 +356,7 @@ impl ConverApp {
             (bar.left_center(), bar.right_center(), Align2::LEFT_CENTER, Align2::RIGHT_CENTER, 1.0)
         };
         painter.text(start + vec2(16.0 * dir, 0.0), a_start, icon::SEARCH, FontId::new(14.0, icons()), p.muted);
-        painter.text(start + vec2(40.0 * dir, 0.0), a_start, "Buscar ferramenta", FontId::proportional(14.0), p.muted);
+        painter.text(start + vec2(40.0 * dir, 0.0), a_start, crate::i18n::tr("Buscar ferramenta"), FontId::proportional(14.0), p.muted);
         painter.text(end - vec2(12.0 * dir, 0.0), a_end, "Ctrl+K", FontId::proportional(12.0), p.muted);
         if resp.on_hover_cursor(CursorIcon::Text).clicked() {
             self.v2().palette = Some((String::new(), 0));
@@ -350,8 +371,8 @@ impl ConverApp {
             painter.rect_filled(rect, 8, if hover { mix(p.card, p.accent_soft, 0.5) } else { p.card });
             painter.rect_stroke(rect, 8, Stroke::new(1.0f32, if hover { p.accent } else { p.border }), StrokeKind::Inside);
             painter.text(rect.center() - vec2(0.0, 34.0), Align2::CENTER_CENTER, icon::UPLOAD, FontId::new(30.0, icons()), p.accent);
-            painter.text(rect.center() + vec2(0.0, 8.0), Align2::CENTER_CENTER, "Solte arquivos aqui para começar", FontId::new(18.0, bold()), p.text);
-            painter.text(rect.center() + vec2(0.0, 36.0), Align2::CENTER_CENTER, "ou clique para escolher  •  Ctrl+V cola um print", FontId::proportional(13.0), p.muted);
+            painter.text(rect.center() + vec2(0.0, 8.0), Align2::CENTER_CENTER, crate::i18n::tr("Solte arquivos aqui para começar"), FontId::new(18.0, bold()), p.text);
+            painter.text(rect.center() + vec2(0.0, 36.0), Align2::CENTER_CENTER, format!("{}   •   {}", crate::i18n::tr("ou clique para escolher"), crate::i18n::tr("Ctrl+V cola um print")), FontId::proportional(13.0), p.muted);
             if resp.on_hover_cursor(CursorIcon::PointingHand).clicked() {
                 if let Some(list) = rfd::FileDialog::new().pick_files() {
                     self.add_paths(list);
@@ -403,12 +424,12 @@ impl ConverApp {
                 ui.spacing_mut().item_spacing = vec2(6.0, 6.0);
                 for (i, f) in files.iter().enumerate().take(24) {
                     let r = ui.add(egui::Button::new(RichText::new(format!("{}   ×", tools::file_name(f))).size(12.5).color(p.text)).fill(p.input).stroke(Stroke::new(1.0f32, p.border)).corner_radius(12));
-                    if r.on_hover_text("Tirar da lista").clicked() {
+                    if r.on_hover_text(crate::i18n::tr("Tirar da lista")).clicked() {
                         remove = Some(i);
                     }
                 }
                 if files.len() > 24 {
-                    ui.label(RichText::new(format!("e mais {}", files.len() - 24)).size(12.5).color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr(format!("e mais {}", files.len() - 24))).size(12.5).color(p.muted));
                 }
             });
             if let Some(i) = remove {
@@ -418,7 +439,7 @@ impl ConverApp {
         let fits = self.tools_for(&files);
         if fits.is_empty() {
             ui.add_space(12.0);
-            ui.label(RichText::new("Nenhuma ferramenta abre esse tipo de arquivo.").color(p.muted));
+            ui.label(RichText::new(crate::i18n::tr("Nenhuma ferramenta abre esse tipo de arquivo.")).color(p.muted));
             return;
         }
         section_title(ui, &p, "O que fazer com eles");
@@ -480,7 +501,7 @@ impl ConverApp {
             .show(ctx, |ui| {
                 ui.set_width(560.0);
                 let id = egui::Id::new("busca_central_texto");
-                let r = ui.add(egui::TextEdit::singleline(&mut query).id(id).margin(widgets::FIELD_MARGIN).hint_text("Buscar ferramenta").desired_width(f32::INFINITY).font(FontId::proportional(16.0)));
+                let r = ui.add(egui::TextEdit::singleline(&mut query).id(id).margin(widgets::FIELD_MARGIN).hint_text(crate::i18n::tr("Buscar ferramenta")).desired_width(f32::INFINITY).font(FontId::proportional(16.0)));
                 r.request_focus();
                 if r.changed() {
                     sel = 0;
@@ -500,11 +521,11 @@ impl ConverApp {
                     }
                 }
                 if hits.is_empty() {
-                    ui.label(RichText::new("Nenhuma ferramenta encontrada.").color(p.muted));
+                    ui.label(RichText::new(crate::i18n::tr("Nenhuma ferramenta encontrada.")).color(p.muted));
                 }
                 ui.add_space(4.0);
-                let tip = if files > 0 { format!("↑ ↓ para escolher, Enter para abrir com os {files} arquivo(s) da tela inicial, Esc para fechar") } else { "↑ ↓ para escolher, Enter para abrir, Esc para fechar".to_string() };
-                ui.label(RichText::new(tip).size(11.5).color(p.muted));
+                let tip = if files > 0 { format!("↑ ↓ para escolher, Enter para abrir com os {} arquivo(s) da tela inicial, Esc para fechar", files) } else { "↑ ↓ para escolher, Enter para abrir, Esc para fechar".to_string() };
+                ui.label(RichText::new(crate::i18n::tr(tip)).size(11.5).color(p.muted));
             });
         if modal.backdrop_response.clicked() {
             close = true;
@@ -526,19 +547,19 @@ impl ConverApp {
     pub(super) fn queue_ui(&mut self, ui: &mut Ui) {
         let p = self.pal;
         ui.horizontal(|ui| {
-            ui.label(RichText::new("Fila").family(bold()).size(18.0).color(p.text));
+            ui.label(RichText::new(crate::i18n::tr("Fila")).family(bold()).size(18.0).color(p.text));
             ui.with_layout(widgets::back(Align::Center), |ui| {
                 if ui.add(egui::Button::new(RichText::new(icon::CLOSE).family(icons()).size(12.0)).frame(false)).clicked() {
                     self.v2().queue_open = false;
                 }
             });
         });
-        ui.label(RichText::new("As tarefas continuam enquanto você usa outras ferramentas.").size(12.0).color(p.muted));
+        ui.label(RichText::new(crate::i18n::tr("As tarefas continuam enquanto você usa outras ferramentas.")).size(12.0).color(p.muted));
         ui.add_space(8.0);
         let jobs = crate::job::all();
         if jobs.is_empty() {
             ui.add_space(20.0);
-            ui.vertical_centered(|ui| ui.label(RichText::new("Nenhuma tarefa ainda.").color(p.muted)));
+            ui.vertical_centered(|ui| ui.label(RichText::new(crate::i18n::tr("Nenhuma tarefa ainda.")).color(p.muted)));
             return;
         }
         let mut go = None;
@@ -568,15 +589,15 @@ impl ConverApp {
                     }
                     ui.horizontal(|ui| {
                         if let Some(pg) = page {
-                            if ui.add(egui::Button::new(RichText::new("Abrir").size(12.5)).small()).clicked() {
+                            if ui.add(egui::Button::new(RichText::new(crate::i18n::tr("Abrir")).size(12.5)).small()).clicked() {
                                 go = Some(pg);
                             }
                         }
-                        if running && ui.add(egui::Button::new(RichText::new("Cancelar").size(12.5)).small()).clicked() {
+                        if running && ui.add(egui::Button::new(RichText::new(crate::i18n::tr("Cancelar")).size(12.5)).small()).clicked() {
                             job.cancel();
                         }
                         if let (false, Some(d)) = (running, &done) {
-                            if ui.add(egui::Button::new(RichText::new(if d.is_file() { "Mostrar arquivo" } else { "Abrir pasta" }).size(12.5)).small()).clicked() {
+                            if ui.add(egui::Button::new(RichText::new(crate::i18n::tr(if d.is_file() { "Mostrar arquivo" } else { "Abrir pasta" })).size(12.5)).small()).clicked() {
                                 if d.is_file() { tools::show_in_folder(d) } else { tools::open_folder(d) }
                             }
                         }
@@ -593,10 +614,4 @@ impl ConverApp {
         }
     }
 
-    /// Ícone de seta para as próximas versões do protótipo (mantido para o compilador não reclamar).
-    #[allow(dead_code)]
-    fn _unused(&self) -> (char, char, char) {
-        (icon::FOLDER, icon::FORWARD, icon::PASTE)
-    }
 }
-// i18n: dentro

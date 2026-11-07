@@ -1,5 +1,13 @@
 # Lista de mudanças
 
+## 2.0.0
+
+- **Interface nova, no estilo do Windows 11:** o Conver agora começa pelo arquivo. Solte, cole (Ctrl+V) ou escolha arquivos na tela inicial e aparecem só as ferramentas que abrem aqueles tipos, com as usadas por último no topo; ao escolher uma, os arquivos vão junto.
+- **Busca central (Ctrl+K):** acha qualquer ferramenta pelo nome ou por sinônimos ("tirar fundo", "aparar"), com as setas e o Enter.
+- **Fila:** um painel com todas as tarefas em andamento, de qualquer ferramenta, com andamento, Cancelar, Abrir e Mostrar arquivo. Dá para começar uma tarefa, ir para outra ferramenta e começar outra.
+- **Visual do Windows 11:** cor de destaque e tema do sistema, ícones do Windows, barra lateral compacta e cabeçalho com caminho (Início › Imagem). Botões, seletores, listas e a barra de ação de todas as ferramentas seguem o mesmo estilo.
+- **Aparência:** o tema pode acompanhar o do Windows, ficar sempre claro ou sempre escuro. Em **Configurações → Interface**, a interface clássica continua disponível.
+
 ## 1.10.3
 
 - **Fluxos, voz:** o node **Texto para voz** agora roda só com o texto. Antes ele falhava se nenhum arquivo chegasse.

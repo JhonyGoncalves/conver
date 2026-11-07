@@ -82,18 +82,18 @@ pub fn mirror(r: Rect, outer: Rect) -> Rect {
 
 /// Interface 2.0 ligada (`CONVER_INTERFACE=2`): os componentes daqui seguem o Fluent do Windows 11.
 pub fn fluent() -> bool {
-    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(crate::ui2::enabled)
+    crate::ui2::enabled()
 }
 
 thread_local! {
     /// Seção da ferramenta aberta, para o caminho no cabeçalho ("Início › Imagem").
-    static CRUMB: std::cell::Cell<&'static str> = const { std::cell::Cell::new("") };
+    static CRUMB: std::cell::Cell<Option<&'static str>> = const { std::cell::Cell::new(None) };
 }
 /// Pedido de voltar ao Início, feito pelo caminho no cabeçalho.
 static GO_HOME: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-pub fn set_crumb(section: &'static str) {
+/// `None` = sem caminho (boas-vindas).
+pub fn set_crumb(section: Option<&'static str>) {
     CRUMB.with(|c| c.set(section));
 }
 
@@ -123,7 +123,7 @@ pub fn card<R>(ui: &mut Ui, p: &Palette, add: impl FnOnce(&mut Ui) -> R) -> R {
 pub fn header(ui: &mut Ui, p: &Palette, title: &str, subtitle: &str) {
     if fluent() {
         // caminho clicável: Início › Seção
-        let section = CRUMB.with(|c| c.get());
+        if let Some(section) = CRUMB.with(|c| c.get()) {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 6.0;
             let home = ui.add(egui::Label::new(RichText::new(crate::i18n::tr("Início")).size(13.0).color(p.accent)).sense(Sense::click()));
@@ -139,6 +139,7 @@ pub fn header(ui: &mut Ui, p: &Palette, title: &str, subtitle: &str) {
                 ui.label(RichText::new(name).size(13.0).color(p.muted));
             }
         });
+        }
         ui.label(RichText::new(crate::i18n::tr(title)).family(bold()).size(28.0).color(p.text));
         ui.label(RichText::new(crate::i18n::tr(subtitle)).size(14.0).color(p.muted));
         ui.add_space(14.0);

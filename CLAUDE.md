@@ -119,6 +119,12 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   emendas (`verify`); se falhar, `media::cut` refaz no Preciso e diz no resultado. Só H.264 8 bits sem rotação em MP4/MOV/MKV. Armadilhas:
   `-discard nokey` erra os tempos em até 2 quadros (serve só para a tela; para cortar use `-skip_frame nokey`); `-ss` em vídeo com quadros B
   recua 3/23 s, daí `SEEK_SLACK`; `-to` com `-c copy` para pelo dts, daí `packets_between` + `-frames:v`.
+- Interface 2.0 (`ui2.rs`, o padrão): `Config.interface` (2 = nova, 1 = clássica; `CONVER_INTERFACE=1/2` força), `follow_system`
+  e `recent`. Casca nova: barra lateral (`rail`), `Page::Home` (arquivos esperam em `State.files` até a escolha da ferramenta;
+  `add_paths` na Home não roteia), busca central (`palette_ui`, `egui::Modal`) e Fila (`queue_ui`, com `job::all`: cada `Job::start`
+  se registra com a ferramenta da tela, `job::set_origin`). `widgets::fluent()` muda o estilo de cabeçalho, botões, `segmented`,
+  lista de arquivos e `action_bar` (`action_bar_fluent`); cores em `ui2::palette` (destaque e tema lidos do registro); ícones da
+  fonte Segoe Fluent Icons / MDL2 (`ui2::icon`, família `icons`). Capturas: `home`, `home_busca`, `home_fila`.
 - `paste.rs`: Ctrl+V e botão Colar. O egui engole o Ctrl+V sem texto (nem `Event::Key` chega), por isso `main::handle_paste` olha a
   tecla com `GetKeyState`. Prints vão para Imagens\Conver\Prints e entram por `add_paths`, como arquivos soltos.
 - `media_extra::adjust_video` (`VideoAdjust`): cor e desfoque do vídeo inteiro por filtros do ffmpeg, com os mesmos intervalos e `Filter` de `image_adjust`; tela em `extras6.rs`, op `video_adjust`.

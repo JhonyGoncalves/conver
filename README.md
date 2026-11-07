@@ -14,7 +14,7 @@
   <a href="#apoie-o-projeto">💚 Apoiar com Pix</a>
 </p>
 
-![Tela do Conver lendo o texto de uma imagem](docs/ocr.png)
+![Tela inicial do Conver com dois arquivos soltos e as ferramentas que servem para eles](docs/inicio.png)
 
 ## Download
 
@@ -30,6 +30,11 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 > **Aviso do Windows SmartScreen:** como o Conver é novo e não tem assinatura digital paga, o Windows pode mostrar "O Windows protegeu o computador". Clique em **Mais informações → Executar assim mesmo**. Os arquivos de cada versão têm a soma SHA-256 publicada na release, para você conferir.
 
 ## O que o Conver faz
+
+**Começa pelo arquivo.** Solte, cole (Ctrl+V) ou escolha arquivos na tela inicial e o Conver mostra só as ferramentas
+que servem para eles, com as usadas por último no topo. **Ctrl+K** busca qualquer ferramenta, e a **Fila** mostra todas
+as tarefas em andamento, de qualquer ferramenta, para começar várias sem esperar uma acabar. A interface segue o
+Windows 11: cor de destaque e tema claro ou escuro do sistema. A interface clássica continua nas Configurações.
 
 **Imagem**
 - **Ampliar com IA** (2× ou 4×, Real-ESRGAN): fotos pequenas, prints e imagens antigas sem borrar
@@ -114,7 +119,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedo
 - Tire um print e aperte Ctrl+V em uma ferramenta: ele entra direto, sem salvar antes
 - "Abrir com Conver" no menu do botão direito
 - **20 idiomas** (Configurações → Idioma): português, inglês, chinês, espanhol, árabe, francês, russo, indonésio, urdu, alemão, japonês, vietnamita, turco, hauçá, coreano, italiano, persa, suaíli, polonês e ucraniano
-- Tema claro e escuro, aviso com som e notificação ao terminar tarefas longas
+- Tema claro, escuro ou igual ao do Windows, aviso com som e notificação ao terminar tarefas longas
 - Avisa quando sai uma versão nova e **se atualiza sozinho** com um clique (baixa, confere a assinatura, instala e reabre)
 
 ![Configurações do Conver](docs/configuracoes.png)
