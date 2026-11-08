@@ -1062,6 +1062,301 @@ fn smart_cut_is_exact() {
 }
 
 #[test]
+fn icons_and_favicon() {
+    let d = crate::tests_v12::tmp("icones");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    // imagem larga: no .ico ela cabe inteira, com bordas transparentes
+    let src = d.join("logo.png");
+    image::RgbaImage::from_fn(600, 300, |x, _| image::Rgba([if x < 300 { 220 } else { 30 }, 60, 90, 255])).save(&src).unwrap();
+    let (info, ico) = crate::icons::make(&src, None, crate::icons::Opts { web: false, crop: false }).unwrap();
+    println!("RESULT {info}");
+    assert_eq!(ico.extension().unwrap(), "ico");
+    let bytes = std::fs::read(&ico).unwrap();
+    assert_eq!(&bytes[..4], &[0, 0, 1, 0], "cabeçalho de .ico");
+    assert_eq!(u16::from_le_bytes([bytes[4], bytes[5]]), 7, "7 tamanhos");
+    let big = image::load_from_memory_with_format(&bytes, image::ImageFormat::Ico).unwrap().to_rgba8();
+    assert_eq!(big.dimensions(), (256, 256));
+    assert_eq!(big.get_pixel(128, 10)[3], 0, "borda transparente em cima");
+    assert_eq!(big.get_pixel(128, 128)[3], 255);
+    // pacote para sites, cortando o centro
+    let (_, dir) = crate::icons::make(&src, None, crate::icons::Opts { web: true, crop: true }).unwrap();
+    for f in ["favicon.ico", "logo.ico", "favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png", "android-chrome-512x512.png", "site.webmanifest", "cole-no-head.html"] {
+        assert!(dir.join(f).is_file(), "{f}");
+    }
+    assert_eq!(image::image_dimensions(dir.join("android-chrome-512x512.png")).unwrap(), (512, 512));
+    let apple = image::open(dir.join("apple-touch-icon.png")).unwrap().to_rgba8();
+    assert!(apple.pixels().all(|p| p[3] == 255), "o da Apple não tem transparência");
+    let manifest: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(dir.join("site.webmanifest")).unwrap()).unwrap();
+    assert_eq!(manifest["icons"].as_array().unwrap().len(), 2);
+}
+
+#[test]
+fn cut_silence_removes_pauses() {
+    let d = crate::tests_v12::tmp("silencios");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let src = d.join("fala.mp4");
+    let ff = crate::tools::find_tool("ffmpeg").unwrap();
+    // 2 s de som, 2 s de silêncio, 2 s de som, 1,5 s de silêncio no fim
+    let audio = "aevalsrc='if(lt(t,2)+between(t,4,6),0.5*sin(2*PI*330*t),0)':s=44100:d=7.5";
+    let made = crate::tools::command(&ff)
+        .args(["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=d=7.5:s=320x240:r=25", "-f", "lavfi", "-i", audio, "-c:v", "libx264", "-c:a", "aac", "-shortest"])
+        .arg(&src)
+        .status()
+        .unwrap();
+    assert!(made.success());
+    let gaps = crate::media::find_silences(&src, -35.0, 0.6).unwrap();
+    println!("RESULT pausas {gaps:?}");
+    assert_eq!(gaps.len(), 2);
+    let r = crate::tests_v12::ctx_call("media_cut_silence", serde_json::json!({ "files": [src.display().to_string()], "padding": 0.1 })).unwrap();
+    assert_eq!(r["failed"], 0, "{r}");
+    let out = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
+    let p = crate::video::probe(&out);
+    println!("RESULT {:?} {}", p.duration, r["results"][0]["info"]);
+    // 7,5 s menos ~1,8 s da pausa do meio e ~1,4 s do fim
+    assert!((p.duration.unwrap() - 4.3).abs() < 0.35, "{p:?}");
+    assert!(p.has_video && p.has_audio);
+    // sem pausas: avisa em vez de gravar igual
+    let r = crate::tests_v12::ctx_call("media_cut_silence", serde_json::json!({ "files": [src.display().to_string()], "min_pause": 5.0 }));
+    assert!(r.as_ref().map_or(true, |v| v["failed"] == 1), "{r:?}");
+}
+
+#[test]
+fn drop_sound_is_valid_wav() {
+    let wav = crate::sfx::drop_wav_for_test();
+    assert_eq!(&wav[..4], b"RIFF");
+    assert_eq!(&wav[8..12], b"WAVE");
+    assert_eq!(u32::from_le_bytes([wav[4], wav[5], wav[6], wav[7]]) as usize, wav.len() - 8);
+    let dir = crate::tests_v12::tmp("som");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("soltar.wav"), wav).unwrap();
+    let p = crate::video::probe(&dir.join("soltar.wav"));
+    assert!(p.has_audio && (p.duration.unwrap() - 0.22).abs() < 0.05, "{p:?}");
+}
+
+#[test]
+#[ignore] // baixa da internet
+fn download_only_subtitles_or_thumbnail() {
+    let d = crate::tests_v12::tmp("so_legenda");
+    let _ = std::fs::remove_dir_all(&d);
+    let r = crate::tests_v12::ctx_call("download", serde_json::json!({ "urls": ["https://www.youtube.com/watch?v=jNQXAC9IVRw"], "kind": "thumbnail", "out_dir": d.display().to_string() })).unwrap();
+    println!("RESULT {r}");
+    let files: Vec<_> = std::fs::read_dir(&d).unwrap().flatten().map(|e| e.path()).collect();
+    assert!(files.iter().any(|f| crate::tools::ext_lower(f) == "jpg"), "{files:?}");
+    assert!(files.iter().all(|f| crate::tools::ext_lower(f) != "mp4"), "sem o vídeo");
+    let r = crate::tests_v12::ctx_call("download", serde_json::json!({ "urls": ["https://www.youtube.com/watch?v=jNQXAC9IVRw"], "kind": "subtitles", "out_dir": d.display().to_string() }));
+    println!("RESULT {r:?}");
+    let files: Vec<_> = std::fs::read_dir(&d).unwrap().flatten().map(|e| e.path()).collect();
+    assert!(files.iter().any(|f| crate::tools::ext_lower(f) == "srt"), "{files:?}");
+    assert!(files.iter().all(|f| crate::tools::ext_lower(f) != "mp4"));
+}
+
+#[test]
+fn reframe_camera_path() {
+    use crate::reframe::camera_path;
+    let (w, crop) = (1920.0, 608.0);
+    // rosto parado perto do meio: a câmera não se mexe
+    let still = camera_path(&[Some(960.0), Some(990.0), Some(940.0), Some(975.0)], w, crop, 0.25);
+    assert!(still.iter().all(|x| (x - 960.0).abs() < 1.0), "{still:?}");
+    // rosto andando para a direita: acompanha aos poucos, sem passar do rosto
+    let walk: Vec<Option<f64>> = (0..30).map(|i| Some(960.0 + i as f64 * 15.0)).collect();
+    let path = camera_path(&walk, w, crop, 0.25);
+    assert!(path.windows(2).all(|p| p[1] >= p[0] - 0.01), "só anda para a direita");
+    assert!(*path.last().unwrap() > 1100.0 && *path.last().unwrap() < 960.0 + 29.0 * 15.0);
+    // troca de cena: pula depois de duas amostras longe, sem atravessar a tela devagar
+    let cut = camera_path(&[Some(400.0), Some(400.0), Some(1600.0), Some(1600.0), Some(1600.0)], w, crop, 0.25);
+    assert!((cut[3] - 1600.0).abs() < 1.0, "{cut:?}");
+    // sem rosto: fica onde estava; nunca sai da imagem
+    let none = camera_path(&[None, None, Some(10.0), None], w, crop, 0.25);
+    assert!(none.iter().all(|x| *x >= crop / 2.0 && *x <= w - crop / 2.0), "{none:?}");
+}
+
+#[test]
+fn highlights_parse_and_pick() {
+    use crate::captions::Cue;
+    use crate::highlights::{Moment, cuts_json, parse_moments, pick};
+    let cues: Vec<Cue> = (0..40).map(|i| Cue { start: i as f64 * 5.0, end: i as f64 * 5.0 + 4.5, text: format!("frase {i}"), words: Vec::new() }).collect();
+    // resposta com texto em volta, um momento curto demais e um fora da lista
+    let answer = r#"Aqui está: {"moments": [{"start": 2, "end": 3, "title": "Curto", "score": 9}, {"start": 10, "end": 30, "title": "Longo", "score": 7}, {"start": 99, "end": 100, "title": "Fora", "score": 10}]} fim"#;
+    let m = parse_moments(answer, &cues, 20.0, 60.0);
+    assert_eq!(m.len(), 2);
+    assert!(m.iter().all(|x| x.end - x.start >= 20.0 && x.end - x.start <= 60.0), "{m:?}");
+    // os de maior nota, sem sobreposição, em ordem de tempo
+    let all = vec![
+        Moment { start: 100.0, end: 130.0, title: "c".into(), score: 6.0 },
+        Moment { start: 0.0, end: 30.0, title: "a".into(), score: 9.0 },
+        Moment { start: 10.0, end: 40.0, title: "b".into(), score: 8.0 },
+    ];
+    let chosen = pick(all, 2);
+    assert_eq!(chosen.iter().map(|m| m.title.as_str()).collect::<Vec<_>>(), ["a", "c"]);
+    let preset = crate::cut_preset::parse(&cuts_json(&chosen)).unwrap();
+    assert_eq!(preset.cuts.len(), 2);
+    assert!(!preset.together);
+    assert_eq!(preset.mode, Some(crate::media::CutMode::Inteligente));
+}
+
+#[test]
+#[ignore] // usa um vídeo com um rosto (CONVER_ROSTO=caminho de um vídeo com uma pessoa falando)
+fn reframe_follows_face() {
+    let face = std::path::PathBuf::from(std::env::var("CONVER_ROSTO").unwrap());
+    let d = crate::tests_v12::tmp("vertical");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    // a pessoa num quadro largo, andando da esquerda para a direita
+    let src = d.join("largo.mp4");
+    crate::tests_v12::ffmpeg(&["-y", "-f", "lavfi", "-i", "color=c=0x202020:s=1280x720:d=8:r=25", "-i", &face.display().to_string(), "-filter_complex",
+        "[1:v]scale=-2:720,trim=0:8,setpts=PTS-STARTPTS[p];[0:v][p]overlay=x='t/8*(1280-w)':y=0:shortest=1[v]", "-map", "[v]", "-map", "1:a?", "-t", "8", "-c:v", "libx264", "-c:a", "aac", &src.display().to_string()], None);
+    let t = std::time::Instant::now();
+    let r = crate::tests_v12::ctx_call("video_auto_vertical", serde_json::json!({ "files": [src.display().to_string()] })).unwrap();
+    assert_eq!(r["failed"], 0, "{r}");
+    let out = std::path::PathBuf::from(r["results"][0]["output"].as_str().unwrap());
+    let p = crate::video::probe(&out);
+    println!("RESULT {:.0} s {:?} {}", t.elapsed().as_secs_f32(), p, r["results"][0]["info"]);
+    assert_eq!(p.size, Some((1080, 1920)));
+    assert!((p.duration.unwrap() - 8.0).abs() < 0.3);
+    // o rosto continua perto do meio, no começo e no fim (quando ele já andou para a direita)
+    for at in [1.5, 6.5] {
+        let img = crate::media::frame_at(&out, at, 960).unwrap();
+        let rgb = image::DynamicImage::ImageRgba8(img).to_rgb8();
+        let faces = crate::faces::detect(&rgb, 0.6).unwrap();
+        let f = faces.first().unwrap_or_else(|| panic!("sem rosto em {at} s"));
+        let cx = (f.x + f.w / 2.0) / rgb.width() as f32;
+        println!("RESULT {at} s: rosto em {cx:.2} da largura");
+        assert!((cx - 0.5).abs() < 0.25, "rosto longe do meio em {at} s: {cx}");
+    }
+}
+
+#[test]
+#[ignore] // usa o Whisper e a IA local (CONVER_FALA=caminho de um vídeo com fala de pelo menos 1 minuto)
+fn highlights_on_real_speech() {
+    let src = std::path::PathBuf::from(std::env::var("CONVER_FALA").unwrap());
+    let d = crate::tests_v12::tmp("momentos");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let copy = d.join(format!("fala.{}", crate::tools::ext_lower(&src)));
+    std::fs::copy(&src, &copy).unwrap();
+    let t = std::time::Instant::now();
+    let r = crate::tests_v12::ctx_call("video_highlights", serde_json::json!({ "files": [copy.display().to_string()], "count": 2, "min_seconds": 10, "max_seconds": 30, "model": "fast", "cut": true })).unwrap();
+    println!("RESULT {:.0} s {}", t.elapsed().as_secs_f32(), r);
+    assert_eq!(r["failed"], 0, "{r}");
+    let json = d.join("fala.cortes.json");
+    let preset = crate::cut_preset::read(&json).unwrap();
+    assert!(!preset.cuts.is_empty() && preset.cuts.len() <= 2);
+    for c in &preset.cuts {
+        let len = c.end.unwrap() - c.start;
+        assert!((6.0..=30.5).contains(&len), "{c:?}");
+    }
+    assert!(d.join("fala_trecho_1.mp4").is_file() || d.join("fala_cortado.mp4").is_file());
+}
+
+#[test]
+fn restore_math() {
+    use crate::restore::{lab_to_rgb, rgb_to_lab, similarity};
+    // Lab vai e volta sem perder a cor
+    for rgb in [[1.0, 0.0, 0.0], [0.2, 0.6, 0.9], [0.5, 0.5, 0.5], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]] {
+        let back = lab_to_rgb(rgb_to_lab(rgb));
+        assert!(rgb.iter().zip(back).all(|(a, b)| (a - b).abs() < 0.01), "{rgb:?} -> {back:?}");
+    }
+    assert!((rgb_to_lab([1.0, 1.0, 1.0])[0] - 100.0).abs() < 0.5);
+    // semelhança: girar 90°, dobrar e deslocar é recuperado exatamente
+    let from = [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (2.0, 3.0), (-1.0, 4.0)];
+    let to: Vec<(f32, f32)> = from.iter().map(|(x, y)| (-2.0 * y + 10.0, 2.0 * x + 5.0)).collect();
+    let (a, b, tx, ty) = similarity(&from, &to);
+    assert!((a - 0.0).abs() < 1e-4 && (b - 2.0).abs() < 1e-4 && (tx - 10.0).abs() < 1e-3 && (ty - 5.0).abs() < 1e-3, "{a} {b} {tx} {ty}");
+}
+
+#[test]
+#[ignore] // baixa o GFPGAN (340 MB) e o DDColor (206 MB); usa uma foto com rosto (CONVER_ROSTO=vídeo com uma pessoa)
+fn restore_and_colorize() {
+    let face = std::path::PathBuf::from(std::env::var("CONVER_ROSTO").unwrap());
+    let d = crate::tests_v12::tmp("restaurar");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    // foto antiga: pequena, em preto e branco e borrada
+    let frame = crate::media::frame_at(&face, 2.0, 480).unwrap();
+    let old = image::DynamicImage::ImageRgba8(frame).grayscale().blur(1.2).resize(270, 480, image::imageops::FilterType::Triangle).to_rgb8();
+    let src = d.join("antiga.png");
+    old.save(&src).unwrap();
+    let t = std::time::Instant::now();
+    let r = crate::tests_v12::ctx_call("image_restore", serde_json::json!({ "files": [src.display().to_string()] })).unwrap();
+    println!("RESULT {:.0} s {}", t.elapsed().as_secs_f32(), r["results"][0]["info"]);
+    assert_eq!(r["failed"], 0, "{r}");
+    let restored = image::open(r["results"][0]["output"].as_str().unwrap()).unwrap();
+    assert_eq!((restored.width(), restored.height()), (old.width() * 2, old.height() * 2));
+    assert!(r["results"][0]["info"].as_str().unwrap().contains("1 rosto"), "{r}");
+    let t = std::time::Instant::now();
+    let r = crate::tests_v12::ctx_call("image_colorize", serde_json::json!({ "files": [src.display().to_string()] })).unwrap();
+    println!("RESULT {:.0} s {}", t.elapsed().as_secs_f32(), r["results"][0]["info"]);
+    assert_eq!(r["failed"], 0, "{r}");
+    let colored = image::open(r["results"][0]["output"].as_str().unwrap()).unwrap().to_rgb8();
+    assert_eq!(colored.dimensions(), old.dimensions());
+    // tinha só cinza; agora tem cor (diferença média entre os canais)
+    let sat: f64 = colored.pixels().map(|p| (p[0] as f64 - p[2] as f64).abs() + (p[1] as f64 - p[2] as f64).abs()).sum::<f64>() / colored.len() as f64;
+    println!("RESULT saturação média {sat:.1}");
+    assert!(sat > 6.0);
+    // o brilho continua o da foto original
+    let lum = |p: &image::Rgb<u8>| 0.299 * p[0] as f64 + 0.587 * p[1] as f64 + 0.114 * p[2] as f64;
+    let diff: f64 = colored.pixels().zip(old.pixels()).map(|(a, b)| (lum(a) - lum(b)).abs()).sum::<f64>() / colored.len() as f64;
+    assert!(diff < 12.0, "brilho mudou demais: {diff}");
+}
+
+#[test]
+fn cloud_and_webhook() {
+    use std::io::{Read, Write};
+    // o que existe neste PC (só lê, não copia nada para a nuvem de verdade)
+    println!("RESULT nuvens neste PC: {:?}", crate::cloud::available());
+    let d = crate::tests_v12::tmp("nuvem");
+    let _ = std::fs::remove_dir_all(&d);
+    std::fs::create_dir_all(&d).unwrap();
+    let f = d.join("relatorio final.txt");
+    std::fs::write(&f, "olá").unwrap();
+    let root = d.join("MinhaNuvem");
+    std::fs::create_dir_all(&root).unwrap();
+    let copies = crate::cloud::copy_into(&root, "Conver/../Reels\\2026", &[f.clone()], false).unwrap();
+    assert_eq!(copies[0], root.join("Conver").join("Reels").join("2026").join("relatorio final.txt"));
+    assert!(f.is_file(), "copiar não apaga o original");
+    // webhook: um servidor local recebe o JSON e o arquivo
+    let server = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = format!("http://{}/gancho", server.local_addr().unwrap());
+    let handle = std::thread::spawn(move || {
+        let mut bodies = Vec::new();
+        for _ in 0..2 {
+            let (mut s, _) = server.accept().unwrap();
+            s.set_read_timeout(Some(std::time::Duration::from_secs(5))).unwrap();
+            let mut buf = Vec::new();
+            let mut chunk = [0u8; 4096];
+            // lê até o fim do corpo (Content-Length)
+            loop {
+                let n = s.read(&mut chunk).unwrap_or(0);
+                buf.extend_from_slice(&chunk[..n]);
+                let text = String::from_utf8_lossy(&buf).to_string();
+                if let Some(h) = text.find("\r\n\r\n") {
+                    let len = text[..h].lines().find_map(|l| l.to_lowercase().strip_prefix("content-length:").map(|v| v.trim().parse::<usize>().unwrap_or(0))).unwrap_or(0);
+                    if buf.len() >= h + 4 + len {
+                        break;
+                    }
+                }
+                if n == 0 {
+                    break;
+                }
+            }
+            s.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok").unwrap();
+            bodies.push(String::from_utf8_lossy(&buf).to_string());
+        }
+        bodies
+    });
+    let items = [crate::cloud::Payload { path: Some(&f), text: Some("resumo"), tag: Some("documento") }];
+    let a = crate::cloud::webhook(&url, "Meu fluxo", &items, false, "pronto").unwrap();
+    let b = crate::cloud::webhook(&url, "Meu fluxo", &items, true, "pronto").unwrap();
+    println!("RESULT {a} / {b}");
+    let bodies = handle.join().unwrap();
+    assert!(bodies[0].contains("\"flow\":\"Meu fluxo\"") && bodies[0].contains("relatorio final.txt") && bodies[0].contains("\"option\":\"documento\""), "{}", bodies[0]);
+    assert!(bodies[1].contains("multipart/form-data") && bodies[1].contains("filename=\"relatorio final.txt\"") && bodies[1].contains("olá") && bodies[1].contains("pronto"), "{}", bodies[1]);
+    assert!(crate::cloud::webhook("ftp://x", "f", &items, false, "").is_err());
+}
+
+#[test]
 fn queue_registry() {
     // a fila da interface 2.0 junta as tarefas de todas as ferramentas, marcadas com a ferramenta de origem
     let ctx = eframe::egui::Context::default();

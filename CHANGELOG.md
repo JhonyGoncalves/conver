@@ -1,5 +1,20 @@
 # Lista de mudanças
 
+## 2.1.0
+
+- **Cortar silêncios:** tira as pausas de vídeos e áudios sozinho, deixando a fala corrida (jump cut). Dá para ajustar a pausa mínima, o limite de volume e uma folga antes e depois da fala.
+- **Vertical automático:** transforma vídeos deitados em 9:16, 4:5 ou 1:1 seguindo o rosto de quem fala, em vez de cortar sempre o centro. A câmera fica parada enquanto o rosto está no meio e pula direto quando a cena muda.
+- **Melhores momentos:** a IA ouve vídeos longos (podcasts, lives, aulas) e escolhe os trechos mais fortes para virar cortes, com um título para cada. Os momentos vão para o `<vídeo>.cortes.json`, que abre direto em **Cortar trecho**; dá para usar a IA local ou a das Configurações e cortar na hora.
+- **Restaurar foto:** recupera rostos borrados ou gastos em fotos antigas (GFPGAN), com ampliação 2× opcional do resto da foto.
+- **Colorir foto:** dá cor a fotos em preto e branco com IA (DDColor), na resolução original.
+- **Ícones e favicon:** de uma imagem, um `.ico` com todos os tamanhos do Windows ou o pacote completo para um site (favicon, PNGs, ícone da Apple, `site.webmanifest` e as linhas para o `<head>`).
+- **Fluxos:** nodes novos **Chamar webhook** (avisa n8n, Zapier, Make ou Discord, com os dados ou com os próprios arquivos) e **Enviar para a nuvem** (copia para a pasta do OneDrive, Google Drive ou Dropbox do PC).
+- **Download:** novas opções **Só a legenda** e **Só a capa**, sem baixar o vídeo.
+- **Ícones por ferramenta:** cada ferramenta tem o seu ícone do Windows na tela inicial, na busca e na Fila.
+- **Som ao soltar arquivos:** um som curto confirma que os arquivos chegaram. Dá para desligar em Configurações → Avisos.
+- **IA nas Configurações:** atalhos prontos para DeepSeek, OpenRouter, Groq, Gemini, Ollama e LM Studio; **Testar conexão** lista os modelos da conta para escolher com um clique; e um aviso quando o endereço parece ser a página do site, e não o da API (era o erro 405 com a DeepSeek).
+- **MCP e linha de comando:** ferramentas novas `media_cut_silence`, `video_auto_vertical`, `video_highlights`, `image_restore`, `image_colorize` e `image_icons`; `download` aceita `kind` `subtitles` e `thumbnail`.
+
 ## 2.0.1
 
 - **Temas novos:** além de igual ao Windows, clara e escura, agora há Conver (as cores originais), Meia-noite, Floresta, Ametista, Areia e Alto contraste, em Configurações → Aparência.

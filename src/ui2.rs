@@ -219,6 +219,79 @@ pub fn crumb(page: Page) -> &'static str {
     section_of(page).map_or("", |s| NAV[s].0)
 }
 
+/// Ícone de cada ferramenta (fonte de ícones do Windows); as que não têm um próprio usam o da seção.
+pub fn tool_icon(page: Page) -> char {
+    match page_id(page) {
+        "img_resize" => '\u{E740}',
+        "img_compress" => '\u{E8A0}',
+        "img_quality" => '\u{E9A6}',
+        "img_convert" => '\u{E8AB}',
+        "img_transform" => '\u{E7A8}',
+        "img_strip" => '\u{E72E}',
+        "img_pdf" => '\u{EA90}',
+        "img_adjust" => '\u{E790}',
+        "img_removebg" => '\u{E8B3}',
+        "img_removebg_lote" => '\u{E8B3}',
+        "img_upscale" => '\u{E8A3}',
+        "img_erase" => '\u{E75C}',
+        "img_faces" => '\u{E77B}',
+        "img_generate" => '\u{E945}',
+        "img_edit" => '\u{E70F}',
+        "ocr" => '\u{E8E9}',
+        "img_scan" => '\u{E8FE}',
+        "v_convert" => '\u{E895}',
+        "v_compress" => '\u{E8A0}',
+        "v_trim" => '\u{E8C6}',
+        "v_merge" => '\u{EA86}',
+        "v_speed" => '\u{E916}',
+        "v_transform" => '\u{E7AD}',
+        "v_adjust" => '\u{E706}',
+        "v_gif" => '\u{E8B2}',
+        "v_subs" => '\u{E8BC}',
+        "v_captions" => '\u{E7F0}',
+        "v_translate" => '\u{E8C1}',
+        "v_music" => '\u{EC4F}',
+        "v_audioframes" => '\u{E74F}',
+        "screen" => '\u{E7F4}',
+        "recorder" => '\u{E7C8}',
+        "transcribe" => '\u{E8E4}',
+        "dictation" => '\u{E720}',
+        "tts" => '\u{E767}',
+        "separate" => '\u{E9E9}',
+        "a_convert" => '\u{E895}',
+        "a_trim" => '\u{E8C6}',
+        "a_merge" => '\u{EA86}',
+        "a_normalize" => '\u{E9D9}',
+        "a_denoise" => '\u{E7EF}',
+        "a_voice" => '\u{E95E}',
+        "a_compress" => '\u{E8A0}',
+        "pdf_merge" => '\u{EA86}',
+        "pdf_split" => '\u{E8C6}',
+        "pdf_organize" => '\u{E8F1}',
+        "pdf_compress" => '\u{E8A0}',
+        "pdf_images" => '\u{E91B}',
+        "pdf_protect" => '\u{E72E}',
+        "pdf_unlock" => '\u{E8D7}',
+        "pdf_ocr" => '\u{E8E9}',
+        "pdf_tables" => '\u{E8A1}',
+        "download" => '\u{E896}',
+        "presets" => '\u{E81E}',
+        "info" => '\u{E946}',
+        "watch" => '\u{E7B3}',
+        "rename" => '\u{E8AC}',
+        "watermark" => '\u{E8EC}',
+        "qr" => '\u{ED14}',
+        "flows" => '\u{E9F5}',
+        "v_silence" => '\u{E74F}',
+        "img_restore" => '\u{E95E}',
+        "img_colorize" => '\u{E790}',
+        "v_reframe" => '\u{E77B}',
+        "v_highlights" => '\u{E945}',
+        "img_icons" => '\u{E8B9}',
+        _ => section_of(page).map_or(icon::APPS, |s| icon::SECTIONS[s]),
+    }
+}
+
 fn section_of(page: Page) -> Option<usize> {
     all_tools().find(|(p, _, _)| *p == page).map(|(_, _, s)| s)
 }
@@ -281,7 +354,7 @@ fn tool_card(ui: &mut Ui, p: &Palette, page: Page, label: &str, width: f32) -> b
     let hover = resp.hovered();
     painter.rect_filled(rect, 6, if hover { mix(p.card, p.accent_soft, 0.5) } else { p.card });
     painter.rect_stroke(rect, 6, Stroke::new(1.0f32, if hover { p.accent } else { p.border }), StrokeKind::Inside);
-    let glyph = section_of(page).map_or(icon::APPS, |s| icon::SECTIONS[s]);
+    let glyph = tool_icon(page);
     let (icon_x, text_x, align) = if widgets::rtl() { (rect.right() - 26.0, rect.right() - 48.0, Align2::RIGHT_CENTER) } else { (rect.left() + 26.0, rect.left() + 48.0, Align2::LEFT_CENTER) };
     painter.text(egui::pos2(icon_x, rect.center().y), Align2::CENTER_CENTER, glyph, FontId::new(18.0, icons()), p.accent);
     let text = crate::i18n::tr(label);
@@ -564,7 +637,7 @@ impl ConverApp {
                     if i == sel || resp.hovered() {
                         ui.painter().rect_filled(rect, 4, if i == sel { p.accent_soft } else { p.input });
                     }
-                    ui.painter().text(rect.left_center() + vec2(16.0, 0.0), Align2::CENTER_CENTER, icon::SECTIONS[*s], FontId::new(15.0, icons()), p.accent);
+                    ui.painter().text(rect.left_center() + vec2(16.0, 0.0), Align2::CENTER_CENTER, tool_icon(*pg), FontId::new(15.0, icons()), p.accent);
                     ui.painter().text(rect.left_center() + vec2(36.0, 0.0), Align2::LEFT_CENTER, crate::i18n::tr(*label), FontId::proportional(14.0), p.text);
                     ui.painter().text(rect.right_center() - vec2(10.0, 0.0), Align2::RIGHT_CENTER, crate::i18n::tr(NAV[*s].0), FontId::proportional(11.5), p.muted);
                     if resp.on_hover_cursor(CursorIcon::PointingHand).clicked() {
@@ -625,7 +698,7 @@ impl ConverApp {
                     ui.set_width(ui.available_width());
                     ui.horizontal(|ui| {
                         let (glyph, color) = if running {
-                            (page.and_then(section_of).map_or(icon::APPS, |s| icon::SECTIONS[s]), p.accent)
+                            (page.map_or(icon::APPS, tool_icon), p.accent)
                         } else if failed {
                             (icon::ERROR, p.accent)
                         } else {

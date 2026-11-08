@@ -31,6 +31,7 @@ pub enum MTool {
     AMerge,
     Denoise,
     Voice,
+    Silence,
 }
 
 impl MTool {
@@ -96,6 +97,11 @@ impl MTool {
                 "Tire chiado, ventilador, barulho de rua e de fundo de gravações de voz, em áudios e vídeos.",
                 "Limpar",
             ),
+            MTool::Silence => (
+                "Cortar silêncios",
+                "Tire as pausas de vídeos e áudios automaticamente, deixando a fala corrida (jump cut).",
+                "Cortar silêncios",
+            ),
             MTool::Voice => (
                 "Melhorar voz",
                 "Deixe a voz com som de podcast num clique: menos ruído, mais clara e presente, sem picos e no volume certo.",
@@ -106,7 +112,7 @@ impl MTool {
 
     fn exts(self) -> &'static [&'static str] {
         match self {
-            MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise | MTool::Voice => media::MEDIA_EXTS,
+            MTool::AConvert | MTool::ATrim | MTool::Normalize | MTool::ACompress | MTool::AMerge | MTool::Denoise | MTool::Voice | MTool::Silence => media::MEDIA_EXTS,
             _ => video::VIDEO_EXTS,
         }
     }
@@ -149,6 +155,10 @@ pub struct MediaPage {
     denoise: media::Denoise,
     voice_clean: bool,
     voice_lufs: i32,
+    // cortar silêncios
+    sil_db: f64,
+    sil_min: f64,
+    sil_pad: f64,
     acodec: ACodec,
     akbps: u32,
     mono: bool,
@@ -203,6 +213,9 @@ impl MediaPage {
             denoise: media::Denoise::Media,
             voice_clean: true,
             voice_lufs: -16,
+            sil_db: -35.0,
+            sil_min: 0.6,
+            sil_pad: 0.15,
             acodec: ACodec::Mp3,
             akbps: 96,
             mono: false,
@@ -383,6 +396,20 @@ impl MediaPage {
                 });
                 hint(ui, p, "A opção com IA (RNNoise) foi treinada para voz: limpa bem falas, podcasts e aulas, mas pode abafar música.");
                 hint(ui, p, "Em vídeos, a imagem é copiada sem perda; só o áudio é regravado.");
+            }
+            MTool::Silence => {
+                row(ui, p, "Pausa mínima:", |ui| {
+                    ui.add(egui::Slider::new(&mut self.sil_min, 0.2..=3.0).step_by(0.1).max_decimals(1).suffix(" s"));
+                });
+                row(ui, p, "Limite de volume:", |ui| {
+                    // i18n: fora
+                    ui.add(egui::Slider::new(&mut self.sil_db, -60.0..=-20.0).step_by(1.0).max_decimals(0).suffix(" dB"));
+                    // i18n: dentro
+                });
+                row(ui, p, "Folga:", |ui| {
+                    ui.add(egui::Slider::new(&mut self.sil_pad, 0.0..=0.5).step_by(0.05).max_decimals(2).suffix(" s"));
+                });
+                hint(ui, p, "Pausas mais longas que a mínima e mais baixas que o limite saem. A folga deixa um respiro antes e depois da fala. Com ruído de fundo, suba o limite (ex.: −30 dB).");
             }
             MTool::Voice => {
                 row(ui, p, "Volume final:", |ui| {
@@ -590,6 +617,7 @@ impl MediaPage {
         let (afmt, aq, lufs, acodec, akbps, mono) = (self.afmt, self.aq, self.lufs, self.acodec, self.akbps, self.mono);
         let denoise = self.denoise;
         let (voice_clean, voice_lufs) = (self.voice_clean, self.voice_lufs);
+        let (sil_db, sil_min, sil_pad) = (self.sil_db, self.sil_min, self.sil_pad);
         let gif_start = video::parse_timecode(&self.gif_start).unwrap_or(0.0);
         let (gif_len, gif_width, gif_fps) = (self.gif_len, self.gif_width, self.gif_fps);
         let (vrotate, vflip, vaspect) = (self.vrotate, self.vflip, self.vaspect);
@@ -618,6 +646,7 @@ impl MediaPage {
                     MTool::ACompress => media::audio_compress(src, out, acodec, akbps, mono, progress, &cancelled),
                     MTool::Denoise => media::denoise(src, out, denoise, progress, &cancelled),
                     MTool::Voice => media::enhance_voice(src, out, voice_clean, voice_lufs, progress, &cancelled),
+                    MTool::Silence => media::cut_silence(src, out, sil_db, sil_min, sil_pad, progress, &cancelled),
                     MTool::Gif => media_extra::video_gif(src, out, gif_start, gif_len, gif_width, gif_fps, progress, &cancelled),
                     MTool::VTransform => media_extra::video_transform(src, out, vrotate, vflip, vaspect, progress, &cancelled),
                     MTool::Subtitles => {

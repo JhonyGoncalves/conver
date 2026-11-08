@@ -38,6 +38,8 @@ pub struct FaceBox {
     pub w: f32,
     pub h: f32,
     pub score: f32,
+    /// Olho direito, olho esquerdo, nariz e cantos da boca, em pixels da imagem (para alinhar o rosto).
+    pub landmarks: Option<[(f32, f32); 5]>,
 }
 
 impl FaceBox {
@@ -85,6 +87,7 @@ pub fn detect(img: &RgbImage, min_score: f32) -> Result<Vec<FaceBox>, String> {
             Ok(v.try_extract_tensor::<f32>().map_err(|e| e.to_string())?.1.to_vec())
         };
         let (cls, obj, bbox) = (get(format!("cls_{stride}"))?, get(format!("obj_{stride}"))?, get(format!("bbox_{stride}"))?);
+        let kps = get(format!("kps_{stride}")).ok();
         let cols = SIDE / stride;
         for i in 0..cls.len() {
             let score = (cls[i].clamp(0.0, 1.0) * obj[i].clamp(0.0, 1.0)).sqrt();
@@ -96,7 +99,14 @@ pub fn detect(img: &RgbImage, min_score: f32) -> Result<Vec<FaceBox>, String> {
             let b = &bbox[i * 4..i * 4 + 4];
             let (cx, cy) = ((c + b[0]) * st, (r + b[1]) * st);
             let (bw, bh) = (b[2].exp() * st, b[3].exp() * st);
-            faces.push(FaceBox { x: (cx - bw / 2.0) / scale, y: (cy - bh / 2.0) / scale, w: bw / scale, h: bh / scale, score });
+            let landmarks = kps.as_ref().and_then(|k| k.get(i * 10..i * 10 + 10)).map(|k| {
+                let mut pts = [(0.0, 0.0); 5];
+                for (j, p) in pts.iter_mut().enumerate() {
+                    *p = ((c + k[2 * j]) * st / scale, (r + k[2 * j + 1]) * st / scale);
+                }
+                pts
+            });
+            faces.push(FaceBox { x: (cx - bw / 2.0) / scale, y: (cy - bh / 2.0) / scale, w: bw / scale, h: bh / scale, score, landmarks });
         }
     }
     // NMS: entre caixas muito sobrepostas, fica a de maior nota

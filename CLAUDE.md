@@ -130,6 +130,14 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
 - `paste.rs`: Ctrl+V e botão Colar. O egui engole o Ctrl+V sem texto (nem `Event::Key` chega), por isso `main::handle_paste` olha a
   tecla com `GetKeyState`. Prints vão para Imagens\Conver\Prints e entram por `add_paths`, como arquivos soltos.
 - `media_extra::adjust_video` (`VideoAdjust`): cor e desfoque do vídeo inteiro por filtros do ffmpeg, com os mesmos intervalos e `Filter` de `image_adjust`; tela em `extras6.rs`, op `video_adjust`.
+- Leva 2.1 (telas em `extras7.rs`, `run_simple` para as de um botão só): `media::cut_silence` (silencedetect + select/aselect),
+  `reframe.rs` (vertical: rostos do YuNet a 5 qps, `camera_path` com zona morta, recentraliza e pula na troca de cena; crop por
+  `sendcmd`), `highlights.rs` (Whisper com tempo por palavra → janelas de 90 frases → IA local ou da API com JSON Schema →
+  `<vídeo>.cortes.json`), `restore.rs` (GFPGAN 1.4 alinhado pelos 5 pontos do YuNet, `FaceBox.landmarks`; DDColor em Lab, vem
+  num zip extraído pelo `tar.exe`; `image::resize` corta f32 em 0..1, por isso o ab é deslocado), `icons.rs` (.ico e pacote
+  favicon), `cloud.rs` (pastas do OneDrive/Google Drive/Dropbox e webhook; nodes `cloud` e `webhook` em `flow.rs`), `sfx.rs`
+  (som ao soltar, WAV gerado e `PlaySoundW`, `Config.drop_sound`). `download::Kind::{Subtitles, Thumbnail}` usam
+  `--skip-download`. `ai_api::PRESETS`, `url_problem` e `list_models` (Testar conexão). `ui2::tool_icon`: ícone MDL2 por tela.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;

@@ -12,11 +12,13 @@ informe o modelo da IA em Configurações → Inteligência artificial.
 configure a chave da API em Configurações → Inteligência artificial.
 a IA recusou a chave (erro {code}): {msg}
 modelo ou endereço não encontrado (erro 404): {msg}
+este endereço não aceita pedidos de IA (erro 405): confira se é o endereço da API, não o da página do site. {}
 limite de uso da IA atingido (erro 429): {msg}
 erro {code} da IA: {msg}
 não foi possível falar com a IA em {url}: {e}
 resposta inválida da IA.
 a IA não devolveu texto.
+erro {} ao pedir a lista de modelos
 sim
 CLAP — sons (118 MB)
 CLAP — textos (127 MB)
@@ -157,6 +159,16 @@ a IA não devolveu o vetor esperado.
 não foi possível ler um quadro do vídeo.
 não foi possível abrir a imagem: {e}
 o item não tem texto.
+Dropbox
+Google Drive
+nenhum OneDrive, Google Drive ou Dropbox encontrado neste PC (instale e entre no aplicativo do serviço).
+serviço desconhecido.
+a pasta do {} não foi encontrada neste PC: instale o aplicativo dele e entre na sua conta.
+não foi possível criar {}: {e}
+o webhook respondeu erro {}: {}
+não foi possível chamar o webhook: {}
+{} item(ns) enviados (resposta {})
+{} arquivo(s) enviados
 corte {}: "{}" inválido (use segundos ou 1:30).
 corte {}: era esperado um objeto com "start" e "end".
 corte {}: campo desconhecido "{}".
@@ -192,6 +204,8 @@ Melhor
 não foi possível iniciar o yt-dlp: {e}
 Processando com o ffmpeg…
 {prefix}Baixando: {title}   {speed}
+este vídeo não tem legenda em português, inglês ou no idioma original.
+este vídeo não tem imagem de capa.
 este site pediu login. Em "Login do navegador", escolha o navegador em que você está logado no site e tente de novo.
 o download falhou.
 Editar imagem
@@ -632,6 +646,51 @@ Funciona melhor com a folha inteira na foto, sobre uma mesa mais escura que o pa
 Adicione fotos de documentos para ver a prévia.
 Escanear
 {n} página(s)
+Vertical automático
+Transforme vídeos horizontais em verticais para Reels, Shorts e TikTok, seguindo o rosto de quem fala em vez de cortar sempre o meio.
+9:16 (Reels, Shorts, TikTok)
+4:5 (feed)
+Acompanhar:
+Suave
+A câmera fica parada enquanto o rosto está no meio e acompanha quando ele sai; numa troca de cena, pula direto. Sem rosto, fica o centro. Sai em 1080 px de largura, com o áudio original.
+Fazer vertical
+Vídeos e áudios
+Melhores momentos
+A IA ouve vídeos longos (podcasts, lives, aulas) e escolhe os trechos mais fortes para virar cortes, com um título para cada um.
+Quantos momentos:
+Duração de cada um:
+IA que escolhe:
+Local (sem internet)
+A das Configurações
+Depois:
+Só sugerir (revisar em Cortar trecho)
+Já cortar
+A fala é transcrita com o Whisper e lida em partes de ~10 minutos. Os momentos vão para um <vídeo>.cortes.json ao lado do vídeo: abra o vídeo em Cortar trecho para ver e ajustar cada um na linha do tempo. A IA local (1,3 GB) e o Whisper são baixados no primeiro uso.
+Achar os momentos
+Restaurar foto
+Recupere rostos borrados, desgastados ou com pouca resolução em fotos antigas e escaneadas, com IA no próprio PC.
+Intensidade:
+Resto da foto:
+Ampliar 2× (mais nítida)
+Manter o tamanho
+Os rostos passam pelo GFPGAN (340 MB) e o resto da foto pode ser ampliado pelo Real-ESRGAN. Funciona melhor com rostos de frente. Sai em PNG, com o sufixo _restaurada.
+Restaurar
+Colorir foto
+Dê cor a fotos em preto e branco com IA, no seu PC e sem internet.
+A IA (DDColor, 206 MB) escolhe as cores; o brilho e os detalhes continuam os da foto original, na resolução cheia. Funciona com fotos coloridas também (as cores são refeitas).
+Colorir
+Ícones e favicon
+De uma imagem, um ícone .ico com todos os tamanhos do Windows, ou o pacote completo de ícones para um site.
+Gerar:
+Ícone .ico (Windows)
+Pacote para sites
+Imagem não quadrada:
+Caber inteira (bordas transparentes)
+Cortar o centro
+Como fica:
+Uma pasta com favicon.ico, PNGs de 16 a 512 px, o ícone da Apple, o site.webmanifest e as linhas para colar no <head> do site.
+Um .ico com 16, 24, 32, 48, 64, 128 e 256 px, para atalhos, pastas e programas. Use uma imagem de pelo menos 256 px.
+Gerar ícones
 {} rosto(s)
 não foi possível iniciar o ffmpeg: {e}
 quadro inválido
@@ -659,6 +718,8 @@ Filtrar arquivos
 IA local: classificar
 Renomear com padrão
 Condição
+Chamar webhook
+Enviar para a nuvem
 não foi possível salvar o fluxo: {e}
 fluxo não encontrado: {name}
 não foi possível criar a pasta de trabalho: {e}
@@ -674,8 +735,10 @@ o texto está vazio.
 {} sim, {} não
 informe o valor para comparar.
 escreva pelo menos duas opções.
-não foi possível criar {}: {e}
 {n} salvo(s) em {}
+nada para enviar
+{} arquivo(s) no {}
+informe o endereço do webhook.
 escreva a instrução para a IA.
    IA: {label}
 {label}: {e}
@@ -713,6 +776,7 @@ escreva as opções
 {n} opções
 confiança mínima {min:.0}%
 Documentos\Conver
+cole o endereço
 {what}: {}
 {what} {op} {v}
 tudo passa
@@ -877,6 +941,19 @@ Tamanho
 Girar (graus)
 Corte preciso
 Arquivo de cortes (JSON ou auto)
+Serviço
+Pasta na nuvem
+Endereço do webhook
+Enviar
+Mensagem
+Limite de volume (dB)
+Pausa mínima (s)
+Folga (s)
+Acompanhar
+Duração mínima (s)
+Duração máxima (s)
+IA que escolhe
+Ampliar a foto 2×
 Modo do corte
 Trechos para manter
 Trechos para tirar
@@ -953,8 +1030,13 @@ Pequeno
 Grande
 Inteligente
 Juntar em um arquivo
+Dados (JSON)
+Os arquivos
+Ícone .ico
+Caber inteira
+Só a legenda
+Só a capa
 Um arquivo para cada trecho
-Suave
 Áudios
 PDFs
 Textos
@@ -982,6 +1064,8 @@ Menor que
 Começo do fluxo: os arquivos que vão passar pelos nodes.
 Um texto escrito por você, que segue para os próximos nodes.
 Salva numa pasta tudo o que chega (arquivos e textos).
+Copia os arquivos para a pasta do OneDrive, Google Drive ou Dropbox no PC; o aplicativo do serviço sobe para a nuvem.
+Avisa outro serviço (n8n, Zapier, Make, Discord) pela URL do webhook, com os dados ou os próprios arquivos.
 Pede à IA configurada em Configurações para fazer algo com o que chega: descrever, resumir, traduzir, escrever legendas… A resposta segue como texto.
 A IA configurada confere cada item pelo critério que você escrever e manda para a saída "sim" ou "não".
 Deixa passar só os arquivos do tipo, extensão ou tamanho escolhidos.
@@ -1000,6 +1084,12 @@ Aumente imagens 2× ou 4× sem borrar: a inteligência artificial recria os deta
 Junte várias imagens num único PDF, uma por página, na ordem da lista.
 Converta entre MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF ou extraia o áudio em MP3.
 Deixe vídeos menores escolhendo um nível de compressão ou o tamanho final em MB.
+Tira as pausas de vídeos e áudios, deixando a fala corrida.
+Deixa o vídeo vertical (9:16) seguindo o rosto de quem fala.
+A IA escolhe os melhores trechos de vídeos longos e salva os cortes sugeridos.
+Recupera rostos borrados de fotos antigas com IA.
+Dá cor a fotos em preto e branco com IA.
+Gera um ícone .ico ou o pacote de ícones para sites a partir de uma imagem.
 Escolha o início e o fim, ou vários trechos para manter e para tirar (0:10-1:00; 2:00-3:30).
 Una vários vídeos num só, na ordem da lista.
 Acelere ou deixe em câmera lenta (0,25× a 4×). O áudio acompanha sem ficar com voz fina ou grossa.
@@ -1016,8 +1106,16 @@ Deixe a voz com som de podcast num clique: menos ruído, mais clara e presente, 
 Reduza o tamanho de arquivos de áudio escolhendo a taxa de bits.
 Baixe vídeos e músicas de centenas de sites pelo link.
 Usa uma predefinição salva: a ferramenta com os ajustes que você guardou.
-descreva a imagem.
+quase não há fala neste arquivo: os melhores momentos são escolhidos pelo que é dito.
+a IA não devolveu nenhum momento válido; tente de novo ou use outra IA.
+{} momento(s): {}
+{} momento(s) cortados: {}
+7 tamanhos (16 a 256 px)
+a imagem tem menos de 256 px: os tamanhos grandes ficam borrados
 não foi possível criar a pasta: {e}
+10 arquivos para sites
+a imagem tem menos de 512 px: os PNGs grandes ficam borrados
+descreva a imagem.
 escreva o que mudar na imagem.
 não foi possível iniciar o gerador: {e}
 o gerador parou sem salvar a imagem.
@@ -1120,6 +1218,7 @@ Ajustes de cor
 Remover metadados
 Imagens → PDF
 Cortar trecho
+Cortar silêncios
 Juntar vídeos
 Mudar velocidade
 Vídeo → GIF
@@ -1141,6 +1240,7 @@ Serviço:
 Anthropic (Claude)
 Compatível com OpenAI
 ex.: gpt-4o-mini, llama3.1 (Ollama)
+Atalhos:
 Endereço da API:
 Chave da API:
 salva (protegida pelo Windows)
@@ -1149,6 +1249,7 @@ Salvar chave
 Testar conexão
 Testando…
 ✔ A IA respondeu.
+Modelos desta conta ({}): clique para usar
 Modelos de IA
 Cada ferramenta baixa o modelo que falta na primeira vez que você usa. Aqui dá para baixar antes ou apagar para liberar espaço.
 Apagar {}?
@@ -1184,6 +1285,7 @@ A nova começa pelo arquivo: solte ou cole e veja só as ferramentas que servem.
 Avisos
 Notificação do Windows quando uma tarefa demorada terminar (com o Conver em segundo plano)
 Tocar um som ao terminar
+Tocar um som ao soltar arquivos na janela
 Testar aviso
 Assim vai aparecer o aviso quando uma tarefa terminar.
 a notificação aparece com o nome "Windows PowerShell"; é o jeito do Windows para apps sem instalador.
@@ -1235,6 +1337,9 @@ não sobrou nenhum trecho.
 não foi possível ler a duração do arquivo.
 {} arquivo(s) • {} • {}
 feito no modo Preciso: {}
+nenhuma pausa encontrada com esses ajustes (tente um limite de volume mais alto ou uma pausa mínima menor).
+sobraria só silêncio: o arquivo parece mudo com esses ajustes.
+{} pausa(s) tiradas • {} → {} • {}
 adicione pelo menos 2 vídeos.
 {} não tem vídeo.
 {} vídeos • {}{extra} • {}
@@ -1278,6 +1383,7 @@ Comprimir áudio
 Vídeo para GIF
 Criar GIF
 Girar e recortar vídeo
+Tire as pausas de vídeos e áudios automaticamente, deixando a fala corrida (jump cut).
 Melhorar
 Formato de saída:
 Comprimir por:
@@ -1319,6 +1425,10 @@ Força:
 Leve (só chiado)
 Média (IA)
 A opção com IA (RNNoise) foi treinada para voz: limpa bem falas, podcasts e aulas, mas pode abafar música.
+Pausa mínima:
+Limite de volume:
+Folga:
+Pausas mais longas que a mínima e mais baixas que o limite saem. A folga deixa um respiro antes e depois da fala. Com ruído de fundo, suba o limite (ex.: −30 dB).
 Volume final:
 Ruído:
 Tirar o ruído de fundo também (IA)
@@ -1381,6 +1491,8 @@ Classificar sons (CLAP)
 IA de linguagem (Qwen 3.5 2B)
 Voz (Piper)
 Voz natural (Kokoro)
+Restaurar foto (GFPGAN)
+Colorir foto (DDColor)
 Legendas, Transcrever, Ditado ao vivo e Traduzir e dublar
 Remover fundo: clique em uma parte da imagem e ela sai, deixando transparente
 Gerar imagem, em 512 px: o mais leve, para placas de vídeo fracas
@@ -1392,6 +1504,8 @@ Node "IA local: classificar" dos fluxos, com áudios
 Traduzir legendas e classificar textos nos fluxos
 Texto para voz e dublagem, na voz do idioma do Conver
 As vozes mais naturais para dublar e narrar: português, inglês, espanhol, francês, italiano e hindi
+Restaurar foto: recupera rostos borrados de fotos antigas
+Colorir foto: dá cor a fotos em preto e branco
 não foi possível apagar {} (está em uso?).
 Converter e comprimir
 Vídeos para redes sociais
@@ -1482,6 +1596,8 @@ Baixar vídeos e músicas
 Cole aqui o link do vídeo, música ou playlist (um ou vários, um por linha)
 MP4 (vídeo)
 MP3 (áudio)
+Baixa só a legenda (.srt) em português, inglês e no idioma original, sem o vídeo.
+Baixa só a imagem de capa (.jpg), sem o vídeo.
 Login do navegador:
 para sites que pedem conta (Instagram, Facebook). Feche o navegador antes de baixar.
 Baixar junto:
@@ -1532,8 +1648,14 @@ texto grande demais para um QR Code.
 a gravação parou.
 nenhum som chegou deste microfone. Escolha outra entrada na lista (ex.: "Microfone (…)").
 o microfone parou de responder.
+este vídeo já é vertical (ou mais estreito que o formato pedido).
+nenhum rosto encontrado: ficou o centro
+seguindo o rosto
 nome repetido
 já existe um arquivo com esse nome
+não foi possível extrair o modelo DDColor.
+nenhum rosto encontrado
+{} rosto(s) restaurado(s)
 nada foi gravado.
 não foi possível criar a pasta temporária: {e}
 não foi possível juntar os trechos da gravação: {e}

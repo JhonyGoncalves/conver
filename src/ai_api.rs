@@ -32,6 +32,33 @@ impl Provider {
     }
 }
 
+/// Serviços conhecidos compatíveis com a OpenAI: nome, endereço da API e um modelo para começar (vazio = escolher
+/// na lista do "Testar conexão").
+// i18n: fora
+pub const PRESETS: &[(&str, &str, &str)] = &[
+    ("OpenAI", "https://api.openai.com/v1", ""),
+    ("DeepSeek", "https://api.deepseek.com", "deepseek-flash"),
+    ("OpenRouter", "https://openrouter.ai/api/v1", ""),
+    ("Groq", "https://api.groq.com/openai/v1", ""),
+    ("Gemini", "https://generativelanguage.googleapis.com/v1beta/openai", ""),
+    ("Ollama", "http://localhost:11434/v1", ""),
+    ("LM Studio", "http://localhost:1234/v1", ""),
+];
+// i18n: dentro
+
+/// Um endereço que parece de página do site (onde se cria a chave), e não da API.
+pub fn url_problem(url: &str) -> Option<&'static str> {
+    let u = url.trim().to_lowercase();
+    if u.is_empty() {
+        return None;
+    }
+    if !(u.starts_with("http://") || u.starts_with("https://")) {
+        return Some("O endereço precisa começar com https:// (ou http:// para uma IA no próprio PC).");
+    }
+    let site = ["platform.", "console.", "dashboard", "/api_keys", "/api-keys", "/keys", "/settings", "aistudio.", "/login"];
+    site.iter().any(|s| u.contains(s)).then_some("Isso parece o endereço da página do site, não o da API. Use um dos botões acima ou o endereço da documentação do serviço (para a DeepSeek: https://api.deepseek.com).")
+}
+
 /// Configuração salva (a chave vai protegida).
 #[derive(Clone, Debug, Serialize, Deserialize, Default, PartialEq)]
 #[serde(default)]
@@ -158,6 +185,7 @@ pub fn ask(cfg: &Config, system: &str, parts: &[Part], max_tokens: u32) -> Resul
             return Err(match code {
                 401 | 403 => format!("a IA recusou a chave (erro {code}): {msg}"),
                 404 => format!("modelo ou endereço não encontrado (erro 404): {msg}"),
+                405 => format!("este endereço não aceita pedidos de IA (erro 405): confira se é o endereço da API, não o da página do site. {}", msg),
                 429 => format!("limite de uso da IA atingido (erro 429): {msg}"),
                 _ => format!("erro {code} da IA: {msg}"),
             });
@@ -170,6 +198,28 @@ pub fn ask(cfg: &Config, system: &str, parts: &[Part], max_tokens: u32) -> Resul
         Provider::OpenAi => v["choices"][0]["message"]["content"].as_str().map(String::from),
     };
     answer.map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).ok_or_else(|| "a IA não devolveu texto.".to_string())
+}
+
+/// Modelos que a conta pode usar (`GET /models`), em ordem alfabética.
+pub fn list_models(cfg: &Config) -> Result<Vec<String>, String> {
+    let agent = ureq::AgentBuilder::new().timeout(std::time::Duration::from_secs(30)).build();
+    let url = format!("{}/models", cfg.base_url);
+    let mut req = agent.get(&url);
+    match cfg.provider {
+        Provider::Anthropic => req = req.set("x-api-key", &cfg.key).set("anthropic-version", "2023-06-01"),
+        Provider::OpenAi if !cfg.key.is_empty() => req = req.set("Authorization", &format!("Bearer {}", cfg.key)),
+        Provider::OpenAi => {}
+    }
+    let text = match req.call() {
+        Ok(r) => r.into_string().map_err(|e| e.to_string())?,
+        Err(ureq::Error::Status(code, _)) => return Err(format!("erro {} ao pedir a lista de modelos", code)),
+        Err(e) => return Err(format!("não foi possível falar com a IA em {url}: {e}")),
+    };
+    let v: Value = serde_json::from_str(&text).map_err(|_| "resposta inválida da IA.".to_string())?;
+    let mut ids: Vec<String> = v["data"].as_array().or(v["models"].as_array()).into_iter().flatten().filter_map(|m| m["id"].as_str().or(m["name"].as_str()).map(String::from)).collect();
+    ids.sort();
+    ids.dedup();
+    Ok(ids)
 }
 
 /// Resposta de sim ou não da IA, com o motivo. Aceita JSON ({"approve": true, "reason": "…"}) ou texto.

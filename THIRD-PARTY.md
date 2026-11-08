@@ -125,6 +125,14 @@ O Conver não é derivado do FFmpeg: ele apenas executa o `ffmpeg.exe` como um p
 - Arquivo: `modelos\face_detection_yunet_2023mar.onnx` (SHA-256 `8f2383e4…`), do [OpenCV Zoo](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) (<https://huggingface.co/opencv/face_detection_yunet>, revisão `3cc26e7`).
 - Licença: MIT — `licencas\yunet-LICENSE.txt`.
 
+## Modelo GFPGAN 1.4 (restaurar foto)
+
+- Não vem no download: `GFPGANv1.4.onnx` de <https://huggingface.co/Neus/GFPGANv1.4> (revisão `944e127`), conversão ONNX do [GFPGAN](https://github.com/TencentARC/GFPGAN) da Tencent ARC (licença Apache 2.0), é baixado no primeiro uso, conferindo o SHA-256 (`cd7311b8…`).
+
+## Modelo DDColor (colorir foto)
+
+- Não vem no download: `ddcolor-onnx-float.zip` da exportação ONNX do [Qualcomm AI Hub](https://github.com/quic/ai-hub-models) (versão 0.66.0) do [DDColor](https://github.com/piddnad/DDColor) (licença Apache 2.0), é baixado no primeiro uso, conferindo o SHA-256 (`512e788c…`), e extraído em `modelos\ddcolor\`.
+
 ## Modelo CLAP (classificar sons)
 
 - Não vem no download: o CLAP HTSAT "unfused" do LAION ([laion/clap-htsat-unfused](https://huggingface.co/laion/clap-htsat-unfused), licença Apache 2.0), na conversão ONNX de <https://huggingface.co/Xenova/clap-htsat-unfused> (revisão `c28f288`), é baixado no primeiro uso, conferindo o SHA-256: `audio_model.onnx` (`a1c2b43c…`), `text_model_quantized.onnx` (`1a3df8b1…`) e `tokenizer.json` (`dc239041…`).

@@ -678,15 +678,19 @@ impl DownloadPage {
             });
             ui.add_space(6.0);
             row(ui, p, "Formato:", |ui| {
-                if segmented(ui, p, &mut self.kind, &[(Kind::Mp4, "MP4 (vídeo)"), (Kind::Mp3, "MP3 (áudio)")]) {
+                if segmented(ui, p, &mut self.kind, &[(Kind::Mp4, "MP4 (vídeo)"), (Kind::Mp3, "MP3 (áudio)"), (Kind::Subtitles, "Só a legenda"), (Kind::Thumbnail, "Só a capa")]) {
                     self.quality = 0;
                 }
             });
-            row(ui, p, "Qualidade:", |ui| {
-                let list = if self.kind == Kind::Mp3 { download::MP3_QUALITIES } else { download::MP4_QUALITIES };
-                let opts: Vec<(usize, &str)> = list.iter().enumerate().map(|(i, s)| (i, *s)).collect();
-                segmented(ui, p, &mut self.quality, &opts);
-            });
+            if !self.kind.only_extra() {
+                row(ui, p, "Qualidade:", |ui| {
+                    let list = if self.kind == Kind::Mp3 { download::MP3_QUALITIES } else { download::MP4_QUALITIES };
+                    let opts: Vec<(usize, &str)> = list.iter().enumerate().map(|(i, s)| (i, *s)).collect();
+                    segmented(ui, p, &mut self.quality, &opts);
+                });
+            } else {
+                hint(ui, p, if self.kind == Kind::Subtitles { "Baixa só a legenda (.srt) em português, inglês e no idioma original, sem o vídeo." } else { "Baixa só a imagem de capa (.jpg), sem o vídeo." });
+            }
             row(ui, p, "Login do navegador:", |ui| {
                 egui::ComboBox::from_id_salt("cookies").selected_text(crate::i18n::tr(BROWSERS[self.browser].0)).width(140.0).show_ui(
                     ui,
@@ -698,11 +702,13 @@ impl DownloadPage {
                 );
                 hint(ui, p, "para sites que pedem conta (Instagram, Facebook). Feche o navegador antes de baixar.");
             });
-            row(ui, p, "Baixar junto:", |ui| {
-                crate::widgets::check(ui, &mut self.subtitles, crate::i18n::tr("Legendas (.srt, português e inglês)"));
-                ui.add_space(8.0);
-                crate::widgets::check(ui, &mut self.cover, crate::i18n::tr("Imagem de capa (.jpg)"));
-            });
+            if !self.kind.only_extra() {
+                row(ui, p, "Baixar junto:", |ui| {
+                    crate::widgets::check(ui, &mut self.subtitles, crate::i18n::tr("Legendas (.srt, português e inglês)"));
+                    ui.add_space(8.0);
+                    crate::widgets::check(ui, &mut self.cover, crate::i18n::tr("Imagem de capa (.jpg)"));
+                });
+            }
             crate::widgets::check(ui, &mut self.playlist, crate::i18n::tr("Baixar a playlist inteira (se o link for de uma playlist)"));
         });
         ui.add_space(4.0);

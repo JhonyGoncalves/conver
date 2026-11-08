@@ -338,6 +338,71 @@ pub fn cut(
     Ok((text, dst))
 }
 
+/// Pausas de um áudio ou vídeo: trechos abaixo de `noise_db` por pelo menos `min_len` segundos.
+pub fn find_silences(src: &Path, noise_db: f64, min_len: f64) -> Result<Vec<(f64, f64)>, String> {
+    let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;
+    let filter = format!("silencedetect=noise={noise_db:.1}dB:d={min_len:.2}");
+    let out = tools::command(&ff).args(["-hide_banner", "-nostdin", "-i"]).arg(src).args(["-vn", "-af", &filter, "-f", "null", "-"]).output().map_err(|e| e.to_string())?;
+    let text = String::from_utf8_lossy(&out.stderr);
+    let num = |l: &str, key: &str| l.split(key).nth(1).and_then(|r| r.split_whitespace().next()).and_then(|v| v.parse::<f64>().ok());
+    // i18n: fora
+    let (start_key, end_key) = ("silence_start: ", "silence_end: ");
+    // i18n: dentro
+    let (mut list, mut open) = (Vec::new(), None);
+    for line in text.lines() {
+        if let Some(a) = num(line, start_key) {
+            open = Some(a.max(0.0));
+        } else if let (Some(b), Some(a)) = (num(line, end_key), open) {
+            list.push((a, b));
+            open = None;
+        }
+    }
+    // silêncio até o fim do arquivo
+    if let (Some(a), Some(d)) = (open, probe(src).duration) {
+        list.push((a, d));
+    }
+    Ok(list)
+}
+
+/// Tira as pausas (jump cut): os trechos de silêncio saem, menos uma folga `pad` de cada lado, para a fala não ficar
+/// cortada no meio. Recodifica (o corte fica no ponto exato).
+pub fn cut_silence(
+    src: &Path,
+    out_dir: Option<&Path>,
+    noise_db: f64,
+    min_len: f64,
+    pad: f64,
+    on_progress: &dyn Fn(f32),
+    cancelled: &dyn Fn() -> bool,
+) -> Result<(String, PathBuf), String> {
+    let info = require_audio(src)?;
+    let dur = info.duration.ok_or("não foi possível ler a duração do arquivo.")?;
+    let gaps: Vec<(f64, f64)> = find_silences(src, noise_db, min_len)?
+        .into_iter()
+        .map(|(a, b)| (if a <= 0.01 { 0.0 } else { a + pad }, if b >= dur - 0.01 { dur } else { b - pad }))
+        .filter(|(a, b)| b - a >= 0.1)
+        .collect();
+    if gaps.is_empty() {
+        return Err("nenhuma pausa encontrada com esses ajustes (tente um limite de volume mais alto ou uma pausa mínima menor).".into());
+    }
+    let removed: f64 = gaps.iter().map(|(a, b)| b - a).sum();
+    if dur - removed < 0.5 {
+        return Err("sobraria só silêncio: o arquivo parece mudo com esses ajustes.".into());
+    }
+    let cut: String = gaps.iter().map(|(a, b)| format!("between(t,{a:.3},{b:.3})")).collect::<Vec<_>>().join("+");
+    let (ext, codec) = reencode_for(src, info.has_video);
+    let mut output = Vec::new();
+    if info.has_video {
+        output.extend(s(&["-map", "0:v:0", "-vf", &format!("select='not({cut})',setpts=N/FRAME_RATE/TB")]));
+    }
+    output.extend(s(&["-map", "0:a:0", "-af", &format!("aselect='not({cut})',asetpts=N/SR/TB")]));
+    output.extend(codec);
+    let dst = tools::out_path(src, out_dir, "_sem_pausas", &ext);
+    encode_to(s(&["-i", &path_s(src)]), output, &dst, Some(dur - removed), on_progress, cancelled)?;
+    let left = probe(&dst).duration.unwrap_or(dur - removed);
+    Ok((format!("{} pausa(s) tiradas • {} → {} • {}", gaps.len(), fmt_time(dur), fmt_time(left), tools::human_size(tools::file_size(&dst))), dst))
+}
+
 /// Um quadro do vídeo, com `height` pixels de altura.
 pub fn frame_at(src: &Path, at: f64, height: u32) -> Result<image::RgbaImage, String> {
     let ff = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado.")?;

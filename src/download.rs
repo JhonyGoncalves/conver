@@ -11,6 +11,17 @@ use crate::tools;
 pub enum Kind {
     Mp4,
     Mp3,
+    /// Só as legendas (.srt), sem baixar o vídeo.
+    Subtitles,
+    /// Só a imagem de capa (.jpg), sem baixar o vídeo.
+    Thumbnail,
+}
+
+impl Kind {
+    /// Baixa só um arquivo pequeno (legenda ou capa), sem o vídeo.
+    pub fn only_extra(self) -> bool {
+        matches!(self, Kind::Subtitles | Kind::Thumbnail)
+    }
 }
 
 /// Arquivos extras baixados junto com o vídeo.
@@ -57,6 +68,7 @@ pub fn download(
     ctl: &Ctl,
 ) -> Result<Vec<PathBuf>, String> {
     let ytdlp = tools::find_tool("yt-dlp").ok_or("yt-dlp não encontrado (deveria estar na pasta bin).")?;
+    let started = std::time::SystemTime::now();
     let ffmpeg = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado (deveria estar na pasta bin).")?;
 
     let mut cmd = tools::command(&ytdlp);
@@ -89,14 +101,23 @@ pub fn download(
     }
     // um item com problema (ou uma legenda que falhou) não interrompe o resto
     cmd.arg("--ignore-errors");
-    if extras.subtitles {
-        cmd.args(["--write-subs", "--write-auto-subs", "--sub-langs", "pt.*,en.*,-live_chat", "--convert-subs", "srt"]);
+    // legendas: português, inglês e a do idioma original (as automáticas também, que são as únicas de muitos vídeos)
+    let subs = ["--write-subs", "--write-auto-subs", "--sub-langs", "pt.*,en.*,.*-orig,-live_chat", "--convert-subs", "srt"];
+    let thumb = ["--write-thumbnail", "--convert-thumbnails", "jpg"];
+    if extras.subtitles && !kind.only_extra() {
+        cmd.args(subs);
     }
-    if extras.cover {
-        cmd.args(["--write-thumbnail", "--convert-thumbnails", "jpg"]);
+    if extras.cover && !kind.only_extra() {
+        cmd.args(thumb);
     }
 
     match kind {
+        Kind::Subtitles => {
+            cmd.arg("--skip-download").args(subs);
+        }
+        Kind::Thumbnail => {
+            cmd.arg("--skip-download").args(thumb);
+        }
         Kind::Mp3 => {
             let kbps = MP3_QUALITIES[quality].split(' ').next().unwrap_or("192");
             cmd.args(["-f", "bestaudio/best", "-x", "--audio-format", "mp3", "--audio-quality"])
@@ -160,6 +181,23 @@ pub fn download(
     }
     let status = child.wait().map_err(|e| e.to_string())?;
     let errors = err_thread.join().unwrap_or_default();
+    // sem baixar o vídeo o yt-dlp não avisa os arquivos gravados: são os novos na pasta
+    if kind.only_extra() {
+        let exts: &[&str] = if kind == Kind::Subtitles { &["srt", "vtt"] } else { &["jpg", "jpeg", "png", "webp"] };
+        if let Ok(rd) = std::fs::read_dir(out_dir) {
+            for e in rd.flatten() {
+                let p = e.path();
+                let new = e.metadata().and_then(|m| m.modified()).is_ok_and(|t| t >= started);
+                if new && exts.contains(&tools::ext_lower(&p).as_str()) && !files.contains(&p) {
+                    ctl.log(LogKind::Ok, format!("✔ {}", tools::file_name(&p)));
+                    files.push(p);
+                }
+            }
+        }
+        if files.is_empty() && errors.iter().all(|l| !l.starts_with("ERROR")) {
+            return Err(if kind == Kind::Subtitles { "este vídeo não tem legenda em português, inglês ou no idioma original.".into() } else { "este vídeo não tem imagem de capa.".into() });
+        }
+    }
     for e in errors.iter().filter(|l| l.starts_with("ERROR")) {
         ctl.log(LogKind::Err, e.trim_start_matches("ERROR: ").to_string());
     }

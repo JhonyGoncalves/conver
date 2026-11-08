@@ -225,6 +225,8 @@ const T_FILTER: &str = "Filtrar arquivos";
 const T_CLASSIFY: &str = "IA local: classificar";
 const T_RENAME: &str = "Renomear com padrão";
 const T_CONDITION: &str = "Condição";
+const T_WEBHOOK: &str = "Chamar webhook";
+const T_CLOUD: &str = "Enviar para a nuvem";
 
 /// Saída do classificador para o que ficou abaixo da confiança mínima (ou não é imagem nem vídeo).
 pub const UNCERTAIN: &str = "uncertain";
@@ -286,6 +288,18 @@ pub fn kinds() -> Vec<KindInfo> {
             "A fixed text passed on to the next nodes (e.g. links for download, one per line, or a text for the QR code).",
             &["out"], false,
             s(json!({ "text": { "type": "string", "description": "The text." } }), &["text"])),
+        special("cloud", T_CLOUD, "ENTRADA E SAÍDA",
+            "Copy (or move) the files that arrive to the synced folder of OneDrive, Google Drive or Dropbox on this PC; the service's own app uploads them. The copies go on to the next nodes.",
+            &["out"], true,
+            s(json!({ "service": { "type": "string", "enum": ["auto", "onedrive", "google_drive", "dropbox"], "default": "auto", "description": "Which cloud (auto: the first one found)." },
+                "subfolder": { "type": "string", "default": "Conver", "description": "Folder inside the cloud, e.g. \"Conver/Reels\"." },
+                "move": { "type": "boolean", "default": false, "description": "Move instead of copy." } }), &[])),
+        special("webhook", T_WEBHOOK, "ENTRADA E SAÍDA",
+            "Call a webhook URL (n8n, Zapier, Make, Discord…) with what arrives: as JSON (name, path, size, text of each item) or sending each file (multipart form with \"file\" and the message in \"content\", the Discord format). Items pass on unchanged.",
+            &["out"], true,
+            s(json!({ "url": { "type": "string", "description": "Webhook URL (https://…)." },
+                "send": { "type": "string", "enum": ["json", "file"], "default": "json", "description": "json: one call with the details of all items; file: one call per file, with the file attached." },
+                "message": { "type": "string", "description": "Optional message (\"content\" field; for Discord, the text of the post)." } }), &["url"])),
         special("output", T_OUTPUT, "ENTRADA E SAÍDA",
             "End of the flow: copies (or moves) the files that arrive to a folder; texts are saved as .txt.",
             &["out"], true,
@@ -1040,6 +1054,30 @@ fn run_node(
             let n = out.len();
             (ctx.log)(&format!("   → {}", folder.display()));
             Ok((one(out), format!("{n} salvo(s) em {}", tools::file_name(&folder))))
+        }
+        "cloud" => {
+            let service = args.get("service").and_then(Value::as_str).unwrap_or("auto");
+            let sub = args.get("subfolder").and_then(Value::as_str).map(str::trim).filter(|s| !s.is_empty()).unwrap_or("Conver").to_string();
+            let mv = args.get("move").and_then(Value::as_bool).unwrap_or(false);
+            let files: Vec<PathBuf> = incoming.iter().filter_map(|it| it.path.clone()).collect();
+            if files.is_empty() {
+                return Ok((one(Vec::new()), "nada para enviar".into()));
+            }
+            let (copies, name) = crate::cloud::send(&files, service, &sub, mv)?;
+            let out: Vec<Item> = copies.into_iter().zip(incoming.iter().filter(|it| it.path.is_some())).map(|(p, it)| Item { path: Some(p), text: it.text.clone(), tag: it.tag.clone(), origin: it.origin.clone() }).collect();
+            let n = out.len();
+            Ok((one(out), format!("{} arquivo(s) no {}", n, name)))
+        }
+        "webhook" => {
+            let url = args.get("url").and_then(Value::as_str).map(str::trim).unwrap_or_default().to_string();
+            if url.is_empty() {
+                return Err("informe o endereço do webhook.".into());
+            }
+            let as_file = args.get("send").and_then(Value::as_str) == Some("file");
+            let message = args.get("message").and_then(Value::as_str).unwrap_or_default().to_string();
+            let payload: Vec<crate::cloud::Payload> = incoming.iter().map(|it| crate::cloud::Payload { path: it.path.as_deref(), text: it.text.as_deref(), tag: it.tag.as_deref() }).collect();
+            let note = crate::cloud::webhook(&url, &flow.name, &payload, as_file, &message)?;
+            Ok((one(incoming.to_vec()), note))
         }
         "ai_prompt" => {
             let cfg = ai.as_ref().map_err(|e| e.clone())?;

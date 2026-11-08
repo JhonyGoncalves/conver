@@ -34,9 +34,12 @@ de todas as ferramentas, e dá para começar várias ao mesmo tempo.
 | Gerar imagem | Imagem a partir de uma descrição, na placa de vídeo, sem limite (DreamShaper, SDXL Lightning ou Z-Image Turbo) |
 | Editar imagem | Escreva o que mudar ("deixe de noite"), pinte uma área e diga o que pôr ali, ou crie variações |
 | Ampliar com IA | 2× ou 4× sem borrar (Real-ESRGAN) |
+| Restaurar foto | Recupera rostos borrados ou gastos em fotos antigas (GFPGAN) |
+| Colorir foto | Dá cor a fotos em preto e branco (DDColor) |
 | Desfocar rostos | Desfoque, pixelado ou tarja, em fotos e vídeos |
 | Texto de imagem (OCR) | Lê o texto de prints e fotos, sem internet |
 | Escanear documento | Foto de papel vira documento reto e limpo, em imagem ou PDF |
+| Ícones e favicon | `.ico` com todos os tamanhos do Windows ou o pacote completo de ícones para um site |
 | Básicas | Redimensionar, comprimir, converter (PNG, JPG, WEBP, BMP, GIF, TIFF, ICO), girar e recortar, ajustes de cor, remover metadados, imagens → PDF |
 
 **Vídeo**
@@ -44,6 +47,9 @@ de todas as ferramentas, e dá para começar várias ao mesmo tempo.
 | Ferramenta | O que faz |
 |---|---|
 | Cortar trecho | Vários trechos para manter ou tirar, um dentro do outro, numa linha do tempo. Modo Inteligente: corte exato sem regravar o vídeo inteiro. Os cortes podem vir de um arquivo JSON |
+| Cortar silêncios | Tira as pausas da fala sozinho (jump cut) |
+| Melhores momentos | A IA ouve vídeos longos e escolhe os trechos para virar cortes, com título |
+| Vertical automático | Vídeo deitado vira 9:16 seguindo o rosto de quem fala |
 | Legendas | Transcreve a fala (Whisper) e grava legendas paradas ou animadas palavra por palavra, com estilos prontos |
 | Traduzir e dublar | Traduz as legendas com IA local e gera a dublagem com vozes naturais, no tempo da legenda |
 | Gravar a tela | Tela inteira, monitor, janela ou área, com microfone e pausa |
@@ -64,7 +70,7 @@ de todas as ferramentas, e dá para começar várias ao mesmo tempo.
 pesquisável (OCR) e tabelas para Excel, inclusive de PDFs escaneados.
 
 **Downloads:** YouTube, TikTok, Instagram, X, SoundCloud e centenas de outros sites ([yt-dlp](https://github.com/yt-dlp/yt-dlp)),
-em MP4 ou MP3, com playlists, legendas e capa.
+em MP4 ou MP3, com playlists, legendas e capa, ou só a legenda ou só a capa.
 
 **Automação:** fluxos por nodes (abaixo), pasta vigiada, predefinições, renomear em lote, marca d'água em lote,
 linha de comando e servidor MCP para agentes de IA.
@@ -108,8 +114,10 @@ Ligue nodes num quadro: o resultado de um vai para o próximo. Toda ferramenta d
 - **IA local: classificar** — sem internet: separa imagens, sons e textos por opções que você escreve
 - **Condição** — por orientação, duração, tamanho, páginas ou se tem som
 - **Renomear com padrão** — `{opção}_{data}_{n}`
+- **Chamar webhook** — avisa n8n, Zapier, Make ou Discord, com os dados ou com os arquivos
+- **Enviar para a nuvem** — copia para a pasta do OneDrive, Google Drive ou Dropbox
 
-Os nodes de IA usam a API que você configurar (Claude ou qualquer API compatível com a da OpenAI, inclusive Ollama).
+Os nodes de IA usam a API que você configurar (Claude ou qualquer API compatível com a da OpenAI: DeepSeek, OpenRouter, Groq, Gemini, Ollama, LM Studio).
 Um fluxo pode rodar sozinho quando chega arquivo numa pasta ou num horário, guarda o histórico e repete só o que falhou.
 
 ## Cortes por arquivo JSON

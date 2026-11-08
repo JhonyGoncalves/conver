@@ -29,10 +29,12 @@ pub enum Pack {
     Language,
     Voice,
     Kokoro,
+    Restore,
+    Colorize,
 }
 
 impl Pack {
-    pub const ALL: [Pack; 13] = [
+    pub const ALL: [Pack; 15] = [
         Pack::Transcribe,
         Pack::Separate,
         Pack::Kokoro,
@@ -43,6 +45,8 @@ impl Pack {
         Pack::GenerateXl,
         Pack::Generate,
         Pack::EditImage,
+        Pack::Restore,
+        Pack::Colorize,
         Pack::ClassifyImage,
         Pack::ClassifySound,
         Pack::Language,
@@ -64,6 +68,8 @@ impl Pack {
             Pack::Language => "IA de linguagem (Qwen 3.5 2B)",
             Pack::Voice => "Voz (Piper)",
             Pack::Kokoro => "Voz natural (Kokoro)",
+            Pack::Restore => "Restaurar foto (GFPGAN)",
+            Pack::Colorize => "Colorir foto (DDColor)",
         }
     }
 
@@ -83,6 +89,8 @@ impl Pack {
             Pack::Language => "Traduzir legendas e classificar textos nos fluxos",
             Pack::Voice => "Texto para voz e dublagem, na voz do idioma do Conver",
             Pack::Kokoro => "As vozes mais naturais para dublar e narrar: português, inglês, espanhol, francês, italiano e hindi",
+            Pack::Restore => "Restaurar foto: recupera rostos borrados de fotos antigas",
+            Pack::Colorize => "Colorir foto: dá cor a fotos em preto e branco",
         }
     }
 
@@ -104,6 +112,8 @@ impl Pack {
                 let v = self.voice();
                 vec![v.onnx, v.json]
             }
+            Pack::Restore => vec![crate::restore::GFPGAN],
+            Pack::Colorize => vec![crate::restore::DDCOLOR],
             Pack::Kokoro => {
                 let lang = crate::i18n::current().code;
                 let v = crate::kokoro::voice_for(lang).unwrap_or(&crate::kokoro::VOICES[0]);

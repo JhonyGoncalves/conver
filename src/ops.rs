@@ -604,6 +604,71 @@ fn t_video_compress(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     batch("Comprimir vídeo", &files, ctx, |f, p| video::compress(f, out.as_deref(), opts, p, ctx.cancelled))
 }
 
+fn t_cut_silence(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = media_files(a)?;
+    let db = a.num_or("threshold_db", -35.0)?.clamp(-70.0, -10.0);
+    let min = a.num_or("min_pause", 0.6)?.clamp(0.1, 10.0);
+    let pad = a.num_or("padding", 0.15)?.clamp(0.0, 1.0);
+    let out = a.out_dir()?;
+    batch("Cortar silêncios", &files, ctx, |f, p| media::cut_silence(f, out.as_deref(), db, min, pad, p, ctx.cancelled))
+}
+
+fn t_image_icons(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = images(a)?;
+    let o = crate::icons::Opts { web: a.choice("kind", &[("ico", false), ("web", true)], false)?, crop: a.choice("shape", &[("fit", false), ("crop", true)], false)? };
+    let out = a.out_dir()?;
+    batch("Ícones e favicon", &files, ctx, |f, p| {
+        p(0.3);
+        crate::icons::make(f, out.as_deref(), o)
+    })
+}
+
+fn t_auto_vertical(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::reframe::{Aspect, Opts};
+    let files = media_files(a)?;
+    let o = Opts {
+        aspect: a.choice("aspect", &[("9:16", Aspect::Vertical), ("4:5", Aspect::Portrait), ("1:1", Aspect::Square)], Aspect::Vertical)?,
+        follow: a.choice("follow", &[("smooth", 0.12), ("normal", 0.25), ("fast", 0.45)], 0.25)?,
+    };
+    let out = a.out_dir()?;
+    batch("Vertical automático", &files, ctx, |f, p| crate::reframe::reframe(f, out.as_deref(), o, p, ctx.cancelled))
+}
+
+fn t_highlights(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    use crate::highlights::{Brain, Opts};
+    use crate::transcribe::WModel;
+    let files = media_files(a)?;
+    let o = Opts {
+        count: a.num_or("count", 5.0)?.clamp(1.0, 30.0) as usize,
+        min_len: a.num_or("min_seconds", 20.0)?.clamp(5.0, 600.0),
+        max_len: a.num_or("max_seconds", 60.0)?.clamp(5.0, 900.0),
+        brain: a.choice("ai", &[("local", Brain::Local), ("api", Brain::Api)], Brain::Local)?,
+        cut: a.bool_or("cut", false)?,
+        model: a.choice("model", &[("fast", WModel::Rapido), ("balanced", WModel::Equilibrado), ("precise", WModel::Preciso)], WModel::Equilibrado)?,
+    };
+    if o.min_len > o.max_len {
+        return Err("\"min_seconds\" precisa ser menor que \"max_seconds\".".into());
+    }
+    let out = a.out_dir()?;
+    batch("Melhores momentos", &files, ctx, |f, p| crate::highlights::find(f, out.as_deref(), o, p, ctx.cancelled))
+}
+
+fn t_restore(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = images(a)?;
+    let o = crate::restore::RestoreOpts {
+        strength: a.choice("strength", &[("light", 0.6), ("normal", 0.85), ("strong", 1.0)], 0.85)?,
+        upscale: a.bool_or("upscale", true)?,
+    };
+    let out = a.out_dir()?;
+    batch("Restaurar foto", &files, ctx, |f, p| crate::restore::restore_file(f, out.as_deref(), o, p, ctx.cancelled))
+}
+
+fn t_colorize(a: &Args, ctx: &Ctx) -> Result<Value, String> {
+    let files = images(a)?;
+    let out = a.out_dir()?;
+    batch("Colorir foto", &files, ctx, |f, p| crate::restore::colorize_file(f, out.as_deref(), p, ctx.cancelled))
+}
+
 fn t_trim(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let files = media_files(a)?;
     let start = time_arg(a, "start")?.unwrap_or(0.0);
@@ -1260,9 +1325,13 @@ fn t_download(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     if urls.is_empty() {
         return Err("informe os links em \"urls\" (começando com http).".into());
     }
-    let kind = a.choice("kind", &[("mp4", download::Kind::Mp4), ("mp3", download::Kind::Mp3)], download::Kind::Mp4)?;
-    let qualities = if kind == download::Kind::Mp4 { download::MP4_QUALITIES } else { download::MP3_QUALITIES };
-    let qname = a.str_or("quality", qualities[0]).to_lowercase();
+    let kind = a.choice(
+        "kind",
+        &[("mp4", download::Kind::Mp4), ("mp3", download::Kind::Mp3), ("subtitles", download::Kind::Subtitles), ("thumbnail", download::Kind::Thumbnail)],
+        download::Kind::Mp4,
+    )?;
+    let qualities = if kind == download::Kind::Mp3 { download::MP3_QUALITIES } else { download::MP4_QUALITIES };
+    let qname = if kind.only_extra() { "best".to_string() } else { a.str_or("quality", qualities[0]).to_lowercase() };
     let quality = qualities
         .iter()
         .position(|q| q.to_lowercase() == qname || q.to_lowercase().starts_with(&qname) || (qname == "best" && *q == "Melhor"))
@@ -1604,6 +1673,22 @@ pub static TOOLS: &[Tool] = &[
         schema(json!({ "files": files_prop("videos"), "brightness": int_prop("Brightness.", -100, 100, 0), "contrast": int_prop("Contrast.", -100, 100, 0),
             "saturation": int_prop("Saturation.", -100, 100, 0), "filter": enum_prop("Filter.", &["none", "grayscale", "sepia", "invert"], "none"),
             "blur": int_prop("Blur strength; 50 hides most details.", 0, 100, 0) }), &["files"]), t_video_adjust),
+    tool!("video_auto_vertical", "Vertical automático", "Turn horizontal videos into vertical ones (9:16, 4:5 or 1:1) following the main face (YuNet, offline) instead of cropping the center: the virtual camera stays still while the face is near the middle, follows smoothly and jumps on scene cuts. Output 1080 px wide MP4 with the original audio, saved as <name>_vertical.mp4.",
+        schema(json!({ "files": files_prop("videos"), "aspect": enum_prop("Output shape.", &["9:16", "4:5", "1:1"], "9:16"), "follow": enum_prop("How fast the camera follows the face.", &["smooth", "normal", "fast"], "normal") }), &["files"]), t_auto_vertical),
+    tool!("video_highlights", "Melhores momentos", "Find the best moments of long videos or audios (podcasts, lives, classes): transcribes with Whisper and asks an AI (local Qwen, offline, or the API configured in Settings with ai = api) to pick self-contained, strong clips with a title each. Saves <video>.cortes.json next to the video (open the video in Cortar trecho to review, or use it with media_trim cuts_file) and, with cut = true, also cuts one file per moment (smart cut).",
+        schema(json!({ "files": files_prop("videos or audios"), "count": int_prop("How many moments.", 1, 30, 5), "min_seconds": num_prop("Shortest moment in seconds (default 20)."), "max_seconds": num_prop("Longest moment in seconds (default 60)."),
+            "ai": enum_prop("Which AI chooses: local (offline) or api (the one configured in Settings).", &["local", "api"], "local"), "cut": bool_prop("Also cut the moments now.", false),
+            "model": enum_prop("Whisper model for the transcription.", &["fast", "balanced", "precise"], "balanced") }), &["files"]), t_highlights),
+    tool!("media_cut_silence", "Cortar silêncios", "Remove the pauses from videos and audios (jump cut): stretches quieter than threshold_db for at least min_pause seconds are cut, keeping padding seconds around the speech. Re-encodes; saves <name>_sem_pausas.",
+        schema(json!({ "files": files_prop("videos or audios"), "threshold_db": num_prop("Volume limit in dB below which it counts as silence (default -35; use -30 with background noise)."),
+            "min_pause": num_prop("Shortest pause to cut, in seconds (default 0.6)."), "padding": num_prop("Seconds kept before and after the speech (default 0.15).") }), &["files"]), t_cut_silence),
+    tool!("image_restore", "Restaurar foto", "Restore old or blurry photos with a local AI: each face is aligned and restored by GFPGAN 1.4 (340 MB, downloaded on first use) and pasted back; with upscale = true the whole photo is first enlarged 2x by Real-ESRGAN. Saves <name>_restaurada.png.",
+        schema(json!({ "files": files_prop("images"), "strength": enum_prop("How much of the restored face is used.", &["light", "normal", "strong"], "normal"), "upscale": bool_prop("Enlarge the whole photo 2x first.", true) }), &["files"]), t_restore),
+    tool!("image_colorize", "Colorir foto", "Colorize black and white photos with a local AI (DDColor, 206 MB, downloaded on first use): the colors come from the model and the brightness and details stay the original ones at full resolution. Saves <name>_colorida.",
+        schema(json!({ "files": files_prop("images") }), &["files"]), t_colorize),
+    tool!("image_icons", "Ícones e favicon", "Make icons from an image: an .ico with 16-256 px (kind = ico, saved next to the image) or the full website pack in a folder (kind = web: favicon.ico, PNGs 16-512, apple-touch-icon, site.webmanifest and the <head> lines).",
+        schema(json!({ "files": files_prop("images"), "kind": enum_prop("ico or web.", &["ico", "web"], "ico"),
+            "shape": enum_prop("Non-square images: fit (transparent borders) or crop (center).", &["fit", "crop"], "fit") }), &["files"]), t_image_icons),
     tool!("video_merge", "Juntar vídeos", "Join videos one after another (in the given order) into one MP4.",
         schema(json!({ "files": files_prop("videos, in order"), "precise": bool_prop("Re-encode so different videos match.", true) }), &["files"]), t_video_merge),
     tool!("video_speed", "Velocidade", "Speed up or slow down videos/audios (0.25x to 4x).",
@@ -1747,7 +1832,7 @@ pub static TOOLS: &[Tool] = &[
             "skip_pages_with_text": bool_prop("Skip pages that already have text.", true) }), &["files"]), t_pdf_ocr),
     tool!("download", "Download", "Download videos (MP4) or music (MP3) from YouTube, YouTube Music, TikTok, Instagram, X and hundreds of sites (yt-dlp). Only for content you have the right to download.",
         json!({ "type": "object", "properties": { "urls": json!({ "type": "array", "items": { "type": "string" }, "description": "Links." }),
-            "kind": enum_prop("mp4 (video) or mp3 (audio).", &["mp4", "mp3"], "mp4"),
+            "kind": enum_prop("mp4 (video), mp3 (audio), subtitles (only the .srt subtitles in Portuguese, English and the original language) or thumbnail (only the cover image), the last two without downloading the video.", &["mp4", "mp3", "subtitles", "thumbnail"], "mp4"),
             "quality": str_prop("mp4: best, 1080p, 720p, 480p, 360p. mp3: 320, 192, 128."), "playlist": bool_prop("Download the whole playlist.", false),
             "subtitles": bool_prop("Also save subtitles.", false), "cover": bool_prop("Also save the thumbnail.", false),
             "browser_cookies": str_prop("Browser to take the login from (chrome, edge, firefox) for sites that need an account."),

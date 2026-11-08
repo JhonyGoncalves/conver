@@ -25,6 +25,12 @@ mod extras3;
 mod extras4;
 mod extras5;
 mod extras6;
+mod extras7;
+mod icons;
+mod highlights;
+mod reframe;
+mod restore;
+mod cloud;
 mod faces;
 mod flow;
 mod flows_page;
@@ -56,6 +62,7 @@ mod screenrec;
 mod search;
 mod paste;
 mod segment;
+mod sfx;
 mod smartcut;
 mod separate;
 mod theme;
@@ -116,6 +123,8 @@ pub(crate) struct Config {
     recent: Vec<String>,
     /// Tema da interface 2.0 (id de `ui2::THEMES`); vazio = deduzir de `follow_system` e `dark` (configurações da 2.0.0).
     theme: String,
+    /// Som curto ao soltar arquivos na janela.
+    drop_sound: bool,
 }
 
 fn sim() -> bool {
@@ -136,6 +145,7 @@ impl Default for Config {
             follow_system: true,
             recent: Vec::new(),
             theme: "system".into(),
+            drop_sound: true,
         }
     }
 }
@@ -205,6 +215,11 @@ enum Page {
     Tts,
     ImageGen,
     Dictation,
+    Icons,
+    Reframe,
+    Highlights,
+    Restore,
+    Colorize,
 }
 
 const IMG_TOOLS: [ImgTool; 10] = [
@@ -220,7 +235,7 @@ const IMG_TOOLS: [ImgTool; 10] = [
     ImgTool::Upscale,
 ];
 
-const MEDIA_TOOLS: [MTool; 17] = [
+const MEDIA_TOOLS: [MTool; 18] = [
     MTool::VConvert,
     MTool::VCompress,
     MTool::VTrim,
@@ -238,6 +253,7 @@ const MEDIA_TOOLS: [MTool; 17] = [
     MTool::AMerge,
     MTool::Denoise,
     MTool::Voice,
+    MTool::Silence,
 ];
 
 const NAV: &[(&str, &[(Page, &str)])] = &[
@@ -255,10 +271,13 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::ImageGen, "Gerar imagem"),
             (Page::ImageEdit, "Editar imagem"),
             (Page::Img(ImgTool::Upscale), "Ampliar com IA"),
+            (Page::Restore, "Restaurar foto"),
+            (Page::Colorize, "Colorir foto"),
             (Page::Img(ImgTool::Transform), "Girar / recortar"),
             (Page::Img(ImgTool::Adjust), "Ajustes de cor"),
             (Page::Img(ImgTool::Strip), "Remover metadados"),
             (Page::Img(ImgTool::Pdf), "Imagens → PDF"),
+            (Page::Icons, "Ícones e favicon"),
             (Page::Ocr, "Texto de imagem (OCR)"),
             (Page::Scan, "Escanear documento"),
         ],
@@ -269,6 +288,9 @@ const NAV: &[(&str, &[(Page, &str)])] = &[
             (Page::Media(MTool::VConvert), "Converter formato"),
             (Page::Media(MTool::VCompress), "Comprimir"),
             (Page::Media(MTool::VTrim), "Cortar trecho"),
+            (Page::Media(MTool::Silence), "Cortar silêncios"),
+            (Page::Highlights, "Melhores momentos"),
+            (Page::Reframe, "Vertical automático"),
             (Page::Media(MTool::Merge), "Juntar vídeos"),
             (Page::Media(MTool::Speed), "Mudar velocidade"),
             (Page::Media(MTool::VTransform), "Girar / recortar"),
@@ -375,9 +397,16 @@ struct ConverApp {
     tts: extras5::TtsPage,
     imagegen: extras5::ImageGenPage,
     dictation: extras5::DictationPage,
+    icons: extras7::IconsPage,
+    reframe: extras7::ReframePage,
+    highlights: extras7::HighlightsPage,
+    restore: extras7::RestorePage,
+    colorize: extras7::ColorizePage,
     ai: ai_api::Settings,
     ai_key: String,
     ai_test: Arc<Mutex<Option<Result<String, String>>>>,
+    /// Modelos que a conta da IA aceita (do "Testar conexão").
+    ai_models: Arc<Mutex<Vec<String>>>,
     about: Arc<Mutex<Option<About>>>,
     inbox: Arc<Mutex<Vec<PathBuf>>>,
     update: Arc<Mutex<UpdateState>>,
@@ -466,9 +495,15 @@ impl ConverApp {
             tts: extras5::TtsPage::new(),
             imagegen: extras5::ImageGenPage::new(),
             dictation: extras5::DictationPage::new(),
+            icons: extras7::IconsPage::new(),
+            reframe: extras7::ReframePage::new(),
+            highlights: extras7::HighlightsPage::new(),
+            restore: extras7::RestorePage::new(),
+            colorize: extras7::ColorizePage::new(),
             ai: ai_api::Settings::load(),
             ai_key: String::new(),
             ai_test: Arc::default(),
+            ai_models: Arc::default(),
             about,
             inbox,
             update: Arc::new(Mutex::new(UpdateState::Idle)),
@@ -615,9 +650,29 @@ impl ConverApp {
                 };
                 ui.add(egui::TextEdit::singleline(&mut s.model).margin(widgets::FIELD_MARGIN).hint_text(hint).desired_width(320.0));
             });
+            if s.provider == ai_api::Provider::OpenAi {
+                // serviços conhecidos: preenchem o endereço (e um modelo, se houver um bom para começar)
+                row(ui, &p, "Atalhos:", |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        for (name, url, model) in ai_api::PRESETS {
+                            let on = s.base_url.trim().trim_end_matches('/') == *url;
+                            if ui.add(egui::Button::new(RichText::new(*name).size(12.5)).selected(on).small()).clicked() {
+                                s.base_url = url.to_string();
+                                if !model.is_empty() {
+                                    s.model = model.to_string();
+                                }
+                                self.ai_models.lock().unwrap().clear();
+                            }
+                        }
+                    });
+                });
+            }
             row(ui, &p, "Endereço da API:", |ui| {
                 ui.add(egui::TextEdit::singleline(&mut s.base_url).margin(widgets::FIELD_MARGIN).hint_text(s.provider.default_url()).desired_width(320.0));
             });
+            if let Some(problem) = ai_api::url_problem(&s.base_url) {
+                ui.label(RichText::new(crate::i18n::tr(problem)).size(12.5).color(p.accent));
+            }
             row(ui, &p, "Chave da API:", |ui| {
                 let hint = crate::i18n::tr(if s.has_key() { "salva (protegida pelo Windows)" } else { "cole a chave aqui" });
                 ui.add(egui::TextEdit::singleline(&mut self.ai_key).password(true).margin(widgets::FIELD_MARGIN).hint_text(hint).desired_width(320.0));
@@ -640,9 +695,13 @@ impl ConverApp {
             ui.horizontal(|ui| {
                 let testing = self.ai_test.lock().unwrap().as_ref().is_some_and(|r| r.as_ref().is_ok_and(|t| t.is_empty()));
                 if widgets::secondary(ui, &p, "Testar conexão", !testing) {
-                    let (slot, cfg, ctx) = (self.ai_test.clone(), self.ai.config(), ui.ctx().clone());
+                    let (slot, cfg, ctx, models) = (self.ai_test.clone(), self.ai.config(), ui.ctx().clone(), self.ai_models.clone());
                     *slot.lock().unwrap() = Some(Ok(String::new()));
                     std::thread::spawn(move || {
+                        // a lista de modelos ajuda a escolher (e mostra se a chave e o endereço estão certos)
+                        if let Ok(c) = &cfg {
+                            *models.lock().unwrap() = ai_api::list_models(c).unwrap_or_default();
+                        }
 // i18n: fora
                         let r = cfg.and_then(|c| ai_api::ask(&c, "Responda só com a palavra: ok", &[ai_api::Part::Text("teste".into())], 20));
 // i18n: dentro
@@ -664,6 +723,23 @@ impl ConverApp {
                     None => {}
                 }
             });
+            let models = self.ai_models.lock().unwrap().clone();
+            if !models.is_empty() {
+                ui.add_space(4.0);
+                ui.label(RichText::new(crate::i18n::tr(format!("Modelos desta conta ({}): clique para usar", models.len()))).size(12.5).color(p.muted));
+                egui::ScrollArea::vertical().id_salt("ia_modelos").max_height(90.0).show(ui, |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        for m in &models {
+                            if ui.add(egui::Button::new(RichText::new(m).size(12.0)).selected(self.ai.model == *m).small()).clicked() {
+                                let mut s = self.ai.clone();
+                                s.model = m.clone();
+                                let _ = s.save();
+                                self.ai = s;
+                            }
+                        }
+                    });
+                });
+            }
             widgets::hint(ui, &p, "Para uma IA no próprio PC, use \"Compatível com OpenAI\" com o endereço do Ollama (http://localhost:11434/v1) ou do LM Studio: não precisa de chave.");
         });
     }
@@ -786,6 +862,9 @@ impl ConverApp {
 
     fn handle_drop(&mut self, ctx: &egui::Context) {
         let dropped: Vec<PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().filter_map(|f| f.path.clone()).collect());
+        if !dropped.is_empty() && self.cfg.drop_sound {
+            sfx::play_drop();
+        }
         self.add_paths(dropped);
     }
 
@@ -809,6 +888,11 @@ impl ConverApp {
             Page::Scan => Some(&mut self.scan.queue),
             Page::BgRemove => Some(&mut self.bgremove.queue),
             Page::ImageEdit => Some(&mut self.imageedit.queue),
+            Page::Icons => Some(&mut self.icons.queue),
+            Page::Reframe => Some(&mut self.reframe.queue),
+            Page::Highlights => Some(&mut self.highlights.queue),
+            Page::Restore => Some(&mut self.restore.queue),
+            Page::Colorize => Some(&mut self.colorize.queue),
             _ => None,
         }
     }
@@ -1091,6 +1175,12 @@ impl ConverApp {
             let (mut n, mut snd) = (self.cfg.notify, self.cfg.sound);
             crate::widgets::check(ui, &mut n, crate::i18n::tr("Notificação do Windows quando uma tarefa demorada terminar (com o Conver em segundo plano)"));
             crate::widgets::check(ui, &mut snd, crate::i18n::tr("Tocar um som ao terminar"));
+            if crate::widgets::check(ui, &mut self.cfg.drop_sound, crate::i18n::tr("Tocar um som ao soltar arquivos na janela")).changed() {
+                self.cfg.save();
+                if self.cfg.drop_sound {
+                    sfx::play_drop();
+                }
+            }
             if (n, snd) != (self.cfg.notify, self.cfg.sound) {
                 self.cfg.notify = n;
                 self.cfg.sound = snd;
@@ -1391,6 +1481,7 @@ fn page_id(page: Page) -> &'static str {
             MTool::ACompress => "a_compress",
             MTool::Denoise => "a_denoise",
             MTool::Voice => "a_voice",
+            MTool::Silence => "v_silence",
         },
         Page::Pdf(t) => match t {
             PdfTool::Merge => "pdf_merge",
@@ -1427,6 +1518,11 @@ fn page_id(page: Page) -> &'static str {
         Page::Tts => "tts",
         Page::ImageGen => "img_generate",
         Page::Dictation => "dictation",
+        Page::Icons => "img_icons",
+        Page::Reframe => "v_reframe",
+        Page::Highlights => "v_highlights",
+        Page::Restore => "img_restore",
+        Page::Colorize => "img_colorize",
         Page::History | Page::Settings => "",
     }
 }
@@ -1654,6 +1750,11 @@ impl eframe::App for ConverApp {
                             }
                         }
                         Page::Dictation => self.dictation.ui(ui, &p),
+                        Page::Icons => self.icons.ui(ui, &p),
+                        Page::Reframe => self.reframe.ui(ui, &p, &self.durs),
+                        Page::Highlights => self.highlights.ui(ui, &p, &self.durs),
+                        Page::Restore => self.restore.ui(ui, &p, &self.thumbs),
+                        Page::Colorize => self.colorize.ui(ui, &p, &self.thumbs),
                         Page::Settings => self.settings_ui(ui),
                     }
                     });
