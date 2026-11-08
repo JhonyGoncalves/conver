@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 2.0.1
+
+- **Temas novos:** além de igual ao Windows, clara e escura, agora há Conver (as cores originais), Meia-noite, Floresta, Ametista, Areia e Alto contraste, em Configurações → Aparência.
+- **Correções:** a seção Áudio aparecia em minúscula na tela inicial e no caminho do cabeçalho; na linha do tempo de Cortar trecho, o trecho para tirar ficava azul em alguns temas e agora é sempre vermelho.
+
 ## 2.0.0
 
 - **Interface nova, no estilo do Windows 11:** o Conver agora começa pelo arquivo. Solte, cole (Ctrl+V) ou escolha arquivos na tela inicial e aparecem só as ferramentas que abrem aqueles tipos, com as usadas por último no topo; ao escolher uma, os arquivos vão junto.
