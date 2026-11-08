@@ -459,6 +459,43 @@ pub fn examples() -> Vec<Flow> {
     ]
 }
 
+/// Fluxo grande de demonstração, só para capturas (`CONVER_FLUXO=vitrine`): nunca é gravado no disco.
+pub fn showcase() -> Flow {
+    let n = |id: u32, kind: &str, title: &str, args: Value, x: f32, y: f32| Node {
+        id,
+        kind: kind.into(),
+        title: title.into(),
+        args: args.as_object().cloned().unwrap_or_default(),
+        pos: [x, y],
+    };
+    let l = |from: u32, port: &str, to: u32| Link { from, port: port.into(), to };
+    Flow {
+        name: "Podcast para redes sociais".into(),
+        description: "Corta os episódios, limpa a voz, deixa na vertical com legendas animadas e logo, gera a versão dublada em inglês e escreve título e descrição.".into(),
+        nodes: vec![
+            n(1, "input", "Episódios", json!({}), 0.0, 180.0),
+            n(2, "tool:media_trim", "Cortes do episódio", json!({ "cuts_file": "auto", "cut_mode": "smart" }), 250.0, 180.0),
+            n(3, "tool:audio_enhance_voice", "Melhorar voz", json!({}), 500.0, 180.0),
+            n(4, "condition", "Já é vertical?", json!({ "check": "orientation", "orientation": "vertical" }), 750.0, 180.0),
+            n(5, "tool:video_transform", "Deixar em 9:16", json!({ "aspect": "9:16" }), 1000.0, 300.0),
+            n(6, "tool:video_captions", "Legendas animadas", json!({ "preset": "reels" }), 1250.0, 180.0),
+            n(7, "tool:watermark", "Logo do canal", json!({ "text": "@martelinho", "position": "bottom_right" }), 1500.0, 180.0),
+            n(8, "tool:video_compress", "Até 50 MB", json!({ "target_mb": 50 }), 1750.0, 180.0),
+            n(9, "output", "Reels e Shorts", json!({}), 2000.0, 180.0),
+            n(10, "tool:transcribe", "Transcrever", json!({ "formats": ["srt"] }), 750.0, 470.0),
+            n(11, "tool:subtitle_translate", "Dublar em inglês", json!({ "to": "en", "dub": true }), 1000.0, 560.0),
+            n(12, "output", "Versão em inglês", json!({}), 1250.0, 560.0),
+            n(13, "ai_prompt", "Título e descrição", json!({ "prompt": "Escreva um título curto e uma descrição com 3 hashtags para este corte.", "save_as": "md" }), 1000.0, 420.0),
+            n(14, "output", "Textos para postar", json!({}), 1250.0, 420.0),
+        ],
+        links: vec![
+            l(1, "out", 2), l(2, "out", 3), l(3, "out", 4), l(4, "yes", 6), l(4, "no", 5), l(5, "out", 6), l(6, "out", 7),
+            l(7, "out", 8), l(8, "out", 9), l(3, "out", 10), l(10, "out", 13), l(13, "out", 14), l(10, "out", 11), l(11, "out", 12),
+        ],
+        ..Default::default()
+    }
+}
+
 // i18n: dentro
 /// Cria os exemplos se ainda não há nenhum fluxo.
 pub fn ensure_examples() {

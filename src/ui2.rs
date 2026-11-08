@@ -144,6 +144,60 @@ pub fn palette(dark: bool) -> Palette {
     }
 }
 
+/// Temas da interface 2.0: id (guardado em `Config.theme`) e nome (chave de tradução).
+pub const THEMES: [(&str, &str); 9] = [
+    ("system", "Igual ao Windows"),
+    ("light", "Clara"),
+    ("dark", "Escura"),
+    ("conver", "Conver"),
+    ("midnight", "Meia-noite"),
+    ("forest", "Floresta"),
+    ("amethyst", "Ametista"),
+    ("sand", "Areia"),
+    ("contrast", "Alto contraste"),
+];
+
+fn hex(v: u32) -> Color32 {
+    Color32::from_rgb((v >> 16) as u8, (v >> 8) as u8, v as u8)
+}
+
+/// Tema de cores fixas: fundo, barra lateral, cartão, campo, borda, texto, texto apagado, destaque, botão principal,
+/// texto sobre o botão e verde de sucesso.
+#[allow(clippy::too_many_arguments)]
+fn fixed(dark: bool, bg: u32, sidebar: u32, card: u32, input: u32, border: u32, text: u32, muted: u32, accent: u32, action: u32, on_accent: u32, ok: u32) -> Palette {
+    let (bg, action) = (hex(bg), hex(action));
+    Palette {
+        dark,
+        bg,
+        sidebar: hex(sidebar),
+        card: hex(card),
+        input: hex(input),
+        border: hex(border),
+        text: hex(text),
+        muted: hex(muted),
+        accent: hex(accent),
+        accent_soft: mix(bg, action, if dark { 0.32 } else { 0.18 }),
+        action,
+        on_accent: hex(on_accent),
+        ok: hex(ok),
+    }
+}
+
+/// Cores de um tema pelo id (desconhecido = igual ao Windows).
+pub fn theme_palette(id: &str) -> Palette {
+    match id {
+        "light" => palette(false),
+        "dark" => palette(true),
+        "conver" => fixed(false, 0xE8EBE4, 0xDCE0D7, 0xF5F6F2, 0xFFFFFF, 0xCCD0C6, 0x494947, 0x61625D, 0xC7261F, 0xD42A24, 0xFFFFFF, 0x267A34),
+        "midnight" => fixed(true, 0x0F172A, 0x0B1222, 0x1E293B, 0x172033, 0x334155, 0xF1F5F9, 0x94A3B8, 0x60A5FA, 0x2563EB, 0xFFFFFF, 0x4ADE80),
+        "forest" => fixed(true, 0x0F1F16, 0x0A1710, 0x17301F, 0x13281A, 0x2A4A33, 0xE8F5EC, 0xA3C2AD, 0x6EE7A0, 0x15803D, 0xFFFFFF, 0x86EFAC),
+        "amethyst" => fixed(true, 0x18141F, 0x120F18, 0x241E30, 0x1E1929, 0x3A3350, 0xF3EEFF, 0xB8AFD0, 0xC4B5FD, 0x7C3AED, 0xFFFFFF, 0x86EFAC),
+        "sand" => fixed(false, 0xF5EFE6, 0xECE3D6, 0xFBF8F3, 0xFFFFFF, 0xE0D5C4, 0x2B2520, 0x6B5E50, 0xA14A06, 0xB45309, 0xFFFFFF, 0x15803D),
+        "contrast" => fixed(true, 0x000000, 0x000000, 0x0A0A0A, 0x000000, 0xFFFFFF, 0xFFFFFF, 0xE6E6E6, 0xFFFF00, 0xFFFF00, 0x000000, 0x3FF23F),
+        _ => palette(system_dark()),
+    }
+}
+
 // ------------------------------------------------------------------ ferramentas
 
 /// Todas as ferramentas do menu: página, nome e seção (índice em `NAV`).
@@ -388,10 +442,7 @@ impl ConverApp {
             }
             for (s, (section, items)) in NAV.iter().enumerate() {
                 let title = crate::i18n::tr(*section);
-                let mut cap = title.to_lowercase();
-                if let Some(c) = cap.get(..1).map(str::to_uppercase) {
-                    cap.replace_range(..1, &c);
-                }
+                let cap = crate::widgets::capitalize(&title);
                 section_title(ui, &p, &cap);
                 let list: Vec<(Page, &str)> = items.iter().map(|(pg, l)| (*pg, *l)).collect();
                 if let Some(pg) = grid(ui, &p, &list) {

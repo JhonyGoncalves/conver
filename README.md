@@ -5,7 +5,8 @@
 <h1 align="center">Conver</h1>
 
 <p align="center">
-  <b>Conversor universal para Windows</b> — imagens, vídeos, áudios, PDFs e downloads num só programa, rápido e sem anúncios.
+  <b>Conversor universal para Windows</b> — imagem, vídeo, áudio, PDF e downloads, com IA rodando no próprio PC.
+  Gratuito, sem anúncios e sem telemetria.
 </p>
 
 <p align="center">
@@ -16,221 +17,172 @@
 
 ![Tela inicial do Conver com dois arquivos soltos e as ferramentas que servem para eles](docs/inicio.png)
 
-## Download
+## Como funciona
 
-Na página de [releases](https://github.com/JhonyGoncalves/conver/releases/latest) há duas opções:
+Solte, cole (Ctrl+V) ou escolha arquivos na tela inicial: aparecem só as ferramentas que servem para eles. **Ctrl+K**
+acha qualquer ferramenta pelo nome ou pelo que você quer fazer ("tirar fundo", "aparar"). A **Fila** mostra as tarefas
+de todas as ferramentas, e dá para começar várias ao mesmo tempo.
+
+## Ferramentas
+
+**Imagem**
+
+| Ferramenta | O que faz |
+|---|---|
+| Remover fundo | Recorte com IA em fotos; em logos e desenhos, pela cor do fundo, mantendo o interior. Precisão, borda, pincel para manter ou tirar e remover um objeto com um clique |
+| Apagar objeto | Pinte uma pessoa, texto ou marca d'água e a IA preenche com o fundo |
+| Gerar imagem | Imagem a partir de uma descrição, na placa de vídeo, sem limite (DreamShaper, SDXL Lightning ou Z-Image Turbo) |
+| Editar imagem | Escreva o que mudar ("deixe de noite"), pinte uma área e diga o que pôr ali, ou crie variações |
+| Ampliar com IA | 2× ou 4× sem borrar (Real-ESRGAN) |
+| Desfocar rostos | Desfoque, pixelado ou tarja, em fotos e vídeos |
+| Texto de imagem (OCR) | Lê o texto de prints e fotos, sem internet |
+| Escanear documento | Foto de papel vira documento reto e limpo, em imagem ou PDF |
+| Básicas | Redimensionar, comprimir, converter (PNG, JPG, WEBP, BMP, GIF, TIFF, ICO), girar e recortar, ajustes de cor, remover metadados, imagens → PDF |
+
+**Vídeo**
+
+| Ferramenta | O que faz |
+|---|---|
+| Cortar trecho | Vários trechos para manter ou tirar, um dentro do outro, numa linha do tempo. Modo Inteligente: corte exato sem regravar o vídeo inteiro. Os cortes podem vir de um arquivo JSON |
+| Legendas | Transcreve a fala (Whisper) e grava legendas paradas ou animadas palavra por palavra, com estilos prontos |
+| Traduzir e dublar | Traduz as legendas com IA local e gera a dublagem com vozes naturais, no tempo da legenda |
+| Gravar a tela | Tela inteira, monitor, janela ou área, com microfone e pausa |
+| Básicas | Converter, comprimir (por nível ou tamanho final), juntar, velocidade, girar e recortar para 9:16 / 1:1 / 4:5, cor e desfoque, vídeo → GIF, queimar legenda, música de fundo, tirar áudio ou extrair frames |
+
+**Áudio**
+
+| Ferramenta | O que faz |
+|---|---|
+| Transcrever | Fala → texto e legendas (.txt, .srt, .vtt), em dezenas de idiomas, sem internet |
+| Ditado ao vivo | O texto aparece enquanto você fala |
+| Texto para voz | Narração com vozes naturais (Kokoro e Piper) |
+| Separar voz e instrumental | Karaokê ou só a voz, com IA |
+| Melhorar voz / Remover ruído | Som de podcast num clique; tira chiado e barulho de fundo, também em vídeos |
+| Básicas | Gravador, converter (MP3, WAV, FLAC, OGG, M4A, OPUS), cortar, juntar, normalizar e comprimir |
+
+**PDF:** juntar, dividir, organizar páginas com miniaturas, comprimir, PDF → imagens, senha (pôr e tirar), PDF
+pesquisável (OCR) e tabelas para Excel, inclusive de PDFs escaneados.
+
+**Downloads:** YouTube, TikTok, Instagram, X, SoundCloud e centenas de outros sites ([yt-dlp](https://github.com/yt-dlp/yt-dlp)),
+em MP4 ou MP3, com playlists, legendas e capa.
+
+**Automação:** fluxos por nodes (abaixo), pasta vigiada, predefinições, renomear em lote, marca d'água em lote,
+linha de comando e servidor MCP para agentes de IA.
+
+## Veja em ação
+
+**Um fluxo de automação rodando:** episódios de podcast entram, são cortados pelo `.cortes.json` de cada um, têm a voz
+melhorada, viram vídeos verticais com legenda animada e logo, comprimidos até 50 MB. Em paralelo, cada um é transcrito,
+dublado em inglês e ganha título e descrição escritos pela IA.
+
+![Fluxo com 14 nodes no meio de uma execução](docs/fluxo.png)
+
+| | |
+|---|---|
+| ![Remover fundo de um desenho de contorno, mantendo o interior](docs/remover-fundo.png) | ![Cortar trecho com três trechos na linha do tempo, um deles dentro de outro](docs/cortar.png) |
+| **Remover fundo** (tema Ametista) | **Cortar trecho** com corte dentro de corte (tema Meia-noite) |
+| ![Busca central com Ctrl+K](docs/busca.png) | ![Os nove temas nas Configurações](docs/temas.png) |
+| **Busca central** (Ctrl+K) | **Temas:** igual ao Windows, claro, escuro e mais seis |
+
+## Download
 
 | Arquivo | Para quem |
 |---|---|
-| `Conver-x.y.z-instalador.exe` | Instala o Conver no seu usuário (não pede administrador), cria atalhos e pode adicionar **"Abrir com Conver"** ao menu do botão direito. |
-| `Conver-x.y.z-portatil.zip` | Não instala nada: extraia em qualquer pasta (ou pendrive) e abra o `Conver.exe`. As configurações ficam na própria pasta. |
+| `Conver-x.y.z-instalador.exe` | Instala no seu usuário (sem administrador), cria atalhos e pode pôr **"Abrir com Conver"** no botão direito |
+| `Conver-x.y.z-portatil.zip` | Não instala nada: extraia e abra o `Conver.exe`. As configurações ficam na própria pasta |
 
-Requisitos: Windows 10 ou 11, 64 bits. O FFmpeg, o yt-dlp e o modelo do removedor de fundo já vêm junto — não é preciso instalar mais nada.
+Windows 10 ou 11, 64 bits. FFmpeg, yt-dlp e o modelo de remover fundo já vêm junto. Os modelos de IA maiores são
+baixados só quando você usa a ferramenta (ou pelas Configurações), com a assinatura conferida.
 
-> **Aviso do Windows SmartScreen:** como o Conver é novo e não tem assinatura digital paga, o Windows pode mostrar "O Windows protegeu o computador". Clique em **Mais informações → Executar assim mesmo**. Os arquivos de cada versão têm a soma SHA-256 publicada na release, para você conferir.
+> **SmartScreen:** sem assinatura digital paga, o Windows pode avisar "O Windows protegeu o computador". Clique em
+> **Mais informações → Executar assim mesmo**. Cada release publica o SHA-256 dos arquivos.
 
-## O que o Conver faz
+O Conver se atualiza sozinho com um clique e está em 20 idiomas.
 
-**Começa pelo arquivo.** Solte, cole (Ctrl+V) ou escolha arquivos na tela inicial e o Conver mostra só as ferramentas
-que servem para eles, com as usadas por último no topo. **Ctrl+K** busca qualquer ferramenta, e a **Fila** mostra todas
-as tarefas em andamento, de qualquer ferramenta, para começar várias sem esperar uma acabar. A interface segue o
-Windows 11: cor de destaque e tema claro ou escuro do sistema. A interface clássica continua nas Configurações.
+## Fluxos de automação
 
-**Imagem**
-- **Ampliar com IA** (2× ou 4×, Real-ESRGAN): fotos pequenas, prints e imagens antigas sem borrar
-- **Remover fundo** com IA, no próprio computador e sem internet: fundo transparente (PNG) ou de uma cor, borda definida ou suave; logos e desenhos recortados pela cor do fundo, sem perder o interior; e remover um objeto com um clique, deixando transparente
-- **Gerar imagem** com IA a partir de uma descrição, usando a placa de vídeo, sem internet e sem limite (Stable Diffusion)
-- **Apagar objeto**: pinte por cima de uma pessoa, um texto ou uma marca d'água e a IA preenche o fundo
-- **Desfocar rostos** em fotos e vídeos (desfoque, pixelado ou tarja), sem internet
-- Redimensionar (porcentagem ou pixels), comprimir, diminuir qualidade e converter entre PNG, JPG, WEBP, BMP, GIF, TIFF e ICO
-- Girar, espelhar e recortar (1:1, 4:3, 16:9, 9:16…)
-- Ajustes de cor: brilho, contraste, saturação, preto e branco, sépia
-- Remover metadados (EXIF, localização GPS) sem perder qualidade
-- Juntar imagens num PDF
-- **Texto de imagem (OCR)** com o reconhecimento do próprio Windows, sem internet — inclusive colando um print (Win+Shift+S)
-- Prévia do resultado antes de salvar
+Ligue nodes num quadro: o resultado de um vai para o próximo. Toda ferramenta do Conver vira node, e há nodes de:
 
-**Vídeo**
-- Converter (MP4, MKV, AVI, MOV, WEBM, FLV, WMV, GIF, MP3) e comprimir (por nível ou pelo tamanho final em MB)
-- Cortar trecho, juntar vídeos, mudar velocidade (0,25× a 4×)
-- Girar e recortar para 9:16 (Reels/TikTok), 1:1, 4:5 e 16:9
-- Cor e desfoque: preto e branco, sépia, inverter, desfoque, brilho, contraste e saturação
-- Vídeo → GIF de um trecho, queimar legenda (.srt/.ass/.vtt), música de fundo
-- **Traduzir e dublar**: legendas traduzidas por uma IA local e, se quiser, a dublagem com as vozes naturais do Kokoro, no tempo da legenda
-- **Legendas** com o Whisper: automáticas ou revisando o texto antes, paradas ou animadas palavra por palavra (estilo Reels/TikTok), com estilos prontos e ajuste de fonte, cores, contorno, faixa e posição
-- Remover o áudio ou extrair frames
-- **Gravar a tela** (inteira, um monitor, uma janela ou uma área) em MP4, com ou sem microfone, com prévia ao vivo, pausa e escolha de qualidade e resolução
+- **IA: instrução** — descrever, resumir, traduzir, escrever títulos; a resposta segue como texto ou vira arquivo
+- **IA: avaliar** — manda cada arquivo para "sim" ou "não" conforme um critério
+- **IA local: classificar** — sem internet: separa imagens, sons e textos por opções que você escreve
+- **Condição** — por orientação, duração, tamanho, páginas ou se tem som
+- **Renomear com padrão** — `{opção}_{data}_{n}`
 
-**Áudio**
-- Gravador de áudio (microfone) em MP3, WAV ou M4A, com faixa de áudio e medidor de nível ao vivo (mostra quando o som estoura) e teste do microfone antes de gravar
-- **Transcrever / legendar** com o Whisper, sem internet: fala → texto (.txt) e legendas (.srt/.vtt), em dezenas de idiomas
-- **Ditado ao vivo**: o texto aparece na tela enquanto você fala
-- **Texto para voz**: narração com voz natural a partir de textos e legendas, em português e mais 5 idiomas (Piper)
-- **Remover ruído** de gravações de voz (chiado, ventilador, barulho de fundo), também em vídeos
-- **Melhorar voz**: som de podcast num clique (ruído, equalização, compressão e volume padrão)
-- **Separar voz e instrumental** com IA (karaokê ou só a voz)
-- Converter (MP3, WAV, FLAC, OGG, M4A, OPUS), cortar, juntar, normalizar volume e comprimir
+Os nodes de IA usam a API que você configurar (Claude ou qualquer API compatível com a da OpenAI, inclusive Ollama).
+Um fluxo pode rodar sozinho quando chega arquivo numa pasta ou num horário, guarda o histórico e repete só o que falhou.
 
-**PDF**
-- Juntar PDFs e dividir (páginas como `1-3, 7` ou uma página por arquivo)
-- **Organizar páginas**: arrastar, girar e apagar vendo as miniaturas
-- **Editar imagem com IA**: escreva o que mudar, pinte uma área e diga o que colocar, ou crie uma versão parecida
-- **Escanear documento**: foto de papel tirada com o celular vira documento reto e limpo, em imagem ou PDF
-- **Tabelas do PDF para Excel** (.xlsx ou .csv), inclusive de PDFs escaneados
-- **Comprimir PDF**, **PDF → imagens** (PNG/JPG), **proteger com senha** e **tirar a senha**
-- **PDF pesquisável (OCR)**: o texto de PDFs escaneados passa a poder ser pesquisado e copiado
+## Cortes por arquivo JSON
 
-**Downloads**
-- YouTube, YouTube Music, TikTok, Instagram, X/Twitter, Facebook, Dailymotion, SoundCloud e centenas de outros sites (via [yt-dlp](https://github.com/yt-dlp/yt-dlp))
-- MP4 ou MP3 com escolha de qualidade, playlists, vários links de uma vez, legendas e capa
-- Login do navegador para sites que pedem conta
-- Botão para atualizar o yt-dlp quando algum site mudar
+Em **Cortar trecho**, solte um JSON junto com o vídeo, use **Ler arquivo de cortes** ou deixe `<nome do vídeo>.cortes.json`
+ao lado dele:
 
-**Ferramentas**
-- Informações do arquivo (resolução, duração, codecs, câmera, GPS…)
-- Pasta vigiada: converte automaticamente tudo que cair numa pasta
-- Renomear em lote (com prévia e desfazer)
-- Gerador de QR Code
-- Histórico de conversões e downloads
-- **Modelos de IA sob demanda**: na primeira vez, o Conver pergunta para que você vai usá-lo e sugere só os modelos que fazem sentido; em Configurações dá para baixar ou apagar cada um
-- **Predefinições**: salve suas configurações favoritas (ex.: "WhatsApp até 16 MB") e use com um clique
-- **Marca d'água em lote**: logo ou texto em imagens, vídeos e PDFs de uma vez
+```json
+{
+  "output": "separate",
+  "mode": "smart",
+  "cuts": [
+    { "start": "0:10", "end": "1:00" },
+    { "start": "0:20", "end": "0:30", "action": "remove" },
+    { "start": "2:00", "end": "3:30" }
+  ]
+}
+```
 
-**No dia a dia**
-- **Busca de ferramentas** (Ctrl+F): ache pelo que você quer fazer ("cortar", "tirar fundo", "youtube"), não só pelo nome exato
-- Arraste arquivos para a janela (ou para o ícone do Conver) e eles vão para a ferramenta certa
-- Em **Cortar trecho**, um arquivo JSON pode dizer todos os cortes: solte ele junto com o vídeo, use **Ler arquivo de cortes**, ou deixe
-  `<nome do vídeo>.cortes.json` ao lado do vídeo. **Salvar arquivo de cortes** gera um pronto para editar:
+`start` é obrigatório; sem `end`, vai até o fim. `action`: `keep` (padrão) ou `remove`. `output`: `together` ou
+`separate`. `mode`: `fast`, `smart` ou `precise`. Tempos em segundos ou como `1:30`.
 
-  ```json
-  {
-    "output": "separate",
-    "mode": "smart",
-    "cuts": [
-      { "start": "0:10", "end": "1:00" },
-      { "start": "0:20", "end": "0:30", "action": "remove" },
-      { "start": "2:00", "end": "3:30" }
-    ]
-  }
-  ```
+## Linha de comando e agentes de IA (MCP)
 
-  `start` é obrigatório; sem `end`, vai até o fim do vídeo. `action` é `keep` (padrão) ou `remove`, `output` é `together` ou `separate`, `mode` é `fast`, `smart` ou `precise`.
-  Tempos em segundos ou como 1:30.
-- Tire um print e aperte Ctrl+V em uma ferramenta: ele entra direto, sem salvar antes
-- "Abrir com Conver" no menu do botão direito
-- **20 idiomas** (Configurações → Idioma): português, inglês, chinês, espanhol, árabe, francês, russo, indonésio, urdu, alemão, japonês, vietnamita, turco, hauçá, coreano, italiano, persa, suaíli, polonês e ucraniano
-- Tema claro, escuro ou igual ao do Windows, aviso com som e notificação ao terminar tarefas longas
-- Avisa quando sai uma versão nova e **se atualiza sozinho** com um clique (baixa, confere a assinatura, instala e reabre)
-
-![Configurações do Conver](docs/configuracoes.png)
-
-## Fluxos de automação (nodes)
-
-Na seção **Automação**, você monta um fluxo ligando nodes num quadro: o resultado de um vai para o próximo
-(ex.: *fotos → remover fundo → IA confere o recorte → aprovadas numa pasta, o resto em outra*). Todas as
-ferramentas do Conver viram nodes, além de entrada, texto, filtro e "Salvar em pasta". Os nodes de IA usam a API
-que você configurar (Anthropic/Claude ou qualquer API compatível com a da OpenAI, inclusive Ollama no próprio PC):
-
-- **IA: instrução** — descrever imagens, resumir transcrições, escrever legendas, traduzir… (a resposta segue
-  adiante como texto e pode ser salva como .txt, .md, .srt…)
-- **IA: avaliar** — confere cada arquivo contra um critério e manda para a saída "sim" ou "não"
-- **IA local: classificar** — sem internet e sem API: olha cada imagem (ou um quadro do vídeo), ouve cada som ou lê
-  cada texto e manda para a saída da opção que combina mais ("documento", "selfie", "música", "reclamação"…), ou
-  para "incerto"
-- **Renomear com padrão** — nomes como `{opção}_{data}_{n}`, usando o que a IA escolheu
-
-Cada fluxo pode **rodar sozinho** quando chega um arquivo numa pasta ou num horário marcado (pelo Agendador de Tarefas
-do Windows, até com o Conver fechado), e guarda o **histórico** das execuções, com um botão para repetir só o que falhou.
-
-Os fluxos ficam salvos e também rodam pela linha de comando (`conver-cli flow_run --name "Meu fluxo" fotos\*`)
-e pelo MCP, onde agentes de IA podem criar e editar fluxos (`flow_node_types`, `flow_save`, `flow_run`).
-
-## Automação: linha de comando e agentes de IA (MCP)
-
-Tudo o que o Conver faz também funciona sem abrir a janela, pelo `conver-cli.exe` (fica ao lado do `Conver.exe`):
+Tudo funciona sem abrir a janela, pelo `conver-cli.exe`:
 
 ```powershell
 conver-cli list                                        # todas as ferramentas
 conver-cli help video_compress                         # opções de uma ferramenta
-conver-cli image_convert fotos*.png --format webp
 conver-cli video_compress aula.mp4 --target_mb 50 --resolution 720p
-conver-cli transcribe entrevista.mp3 --language pt --formats srt,txt
-conver-cli preset "WhatsApp (vídeo até 16 MB)" video.mp4
-conver-cli pdf_ocr digitalizado.pdf --json             # resultado em JSON
+conver-cli media_trim podcast.mp4 --cuts_file auto --cut_mode smart
+conver-cli flow_run --name "Meu fluxo" fotos\*
 ```
 
-**Agentes de IA** (Claude Desktop, Claude Code, Cursor, VS Code e outros compatíveis com MCP) podem usar as mais de 50 ferramentas do Conver. Adicione ao arquivo de configuração de MCP do agente (o caminho certo aparece em Configurações → Automação, com um botão para copiar):
+Agentes compatíveis com MCP (Claude Desktop, Claude Code, Cursor, VS Code…) usam as mais de 50 ferramentas e criam e
+rodam fluxos. O caminho certo e um botão para copiar ficam em Configurações → Automação:
 
 ```json
-{
-  "mcpServers": {
-    "conver": {
-      "command": "C:\\Users\\voce\\AppData\\Local\\Programs\\Conver\\conver-cli.exe",
-      "args": ["mcp"]
-    }
-  }
-}
+{ "mcpServers": { "conver": { "command": "C:\\Users\\voce\\AppData\\Local\\Programs\\Conver\\conver-cli.exe", "args": ["mcp"] } } }
 ```
-
-O servidor MCP usa stdio, informa o progresso das tarefas longas, aceita cancelamento e devolve os caminhos de cada arquivo gerado (e o texto, no OCR e na transcrição).
 
 ## Privacidade
 
-Tudo é feito no seu computador. O Conver só acessa a internet quando você usa os downloads, quando atualiza o yt-dlp, na primeira vez que usa uma ferramenta de IA que precisa de um modelo maior — transcrição, ditado, legendas animadas, separação de voz, texto para voz, gerar imagem e apagar objeto — (para baixar o modelo, conferindo a assinatura); a tradução do pedido em Gerar imagem usa a IA que você configurou e, se a opção estiver ligada, para ver se há uma versão nova (uma consulta à API do GitHub). Não há telemetria.
+Tudo roda no seu computador. O Conver só acessa a internet nos downloads, para atualizar o yt-dlp, para baixar um modelo
+de IA na primeira vez que ele é usado, nos nodes de IA que usam a API que você configurou e, se ligado, para ver se há
+versão nova. Não há telemetria. Use os downloads só para conteúdos que você tem direito de baixar.
 
-Use os downloads apenas para conteúdos que você tem direito de baixar.
+## Compilar
 
-## Compilar a partir do código
-
-O Conver é escrito em [Rust](https://www.rust-lang.org/) com a interface [egui](https://github.com/emilk/egui).
+Rust + [egui](https://github.com/emilk/egui). As ferramentas externas (FFmpeg, yt-dlp, ONNX Runtime, whisper.cpp, Piper,
+stable-diffusion.cpp) e os modelos embutidos vão em `Conver\bin` e `Conver\modelos`; as versões estão em
+[THIRD-PARTY.md](THIRD-PARTY.md).
 
 ```powershell
-# 1. ferramentas
 winget install Rustlang.Rustup Gyan.FFmpeg JRSoftware.InnoSetup
-# 2. coloque em Conver\bin o yt-dlp.exe (https://github.com/yt-dlp/yt-dlp/releases) e o onnxruntime.dll
-#    (pasta lib do onnxruntime-win-x64-1.22.0.zip, https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0)
-#    e em Conver\modelos o silueta.onnx (https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
-#    e o realesr-general-x4v3.onnx (exportado do .pth oficial do Real-ESRGAN v0.2.5.0)
-#    e em Conver\bin\whisper o whisper-cli.exe, o whisper-server.exe e as DLLs do whisper-bin-x64.zip (whisper.cpp v1.9.2)
-#    e em Conver\bin\piper o piper_windows_amd64.zip (Piper 2023.11.14-2) e em Conver\bin\sd o sd-cli.exe e as DLLs
-#    da versão Vulkan do stable-diffusion.cpp (master-1050-58bb3c1); em Conver\modelos o rnnoise-sh.rnnn
-#    (https://github.com/GregorR/rnnoise-models)
-# 3. compile e gere a versão portátil e o instalador em dist\
-powershell -ExecutionPolicy Bypass -File build.ps1
+cargo run --release                                    # rodar
+cargo test --release -- --test-threads 1               # testes
+powershell -ExecutionPolicy Bypass -File build.ps1     # portátil e instalador em dist\
 ```
-
-Para só rodar durante o desenvolvimento: `cargo run --release` (com `ffmpeg.exe` e `yt-dlp.exe` no PATH). Os testes ficam em `src/tests*.rs`: `cargo test --release -- --test-threads 1`.
-
-### Estrutura
-
-| Arquivo | O que tem |
-|---|---|
-| `src/main.rs` | Janela, menu lateral, configurações |
-| `src/pages.rs`, `media_page.rs`, `extras*.rs` | As telas de cada ferramenta |
-| `src/imaging.rs` | Imagens (redimensionar, comprimir, metadados, PDF…) |
-| `src/video.rs`, `media.rs`, `media_extra.rs` | Vídeo e áudio com o FFmpeg |
-| `src/download.rs` | Downloads com o yt-dlp |
-| `src/pdf.rs`, `ocr.rs`, `info.rs`, `recorder.rs` | PDF, OCR, informações e gravador |
-| `src/bgremove.rs`, `upscale.rs`, `separate.rs`, `ai.rs` | IA: remover fundo, ampliar, separar voz; ONNX Runtime e download de modelos |
-| `src/transcribe.rs`, `dictation.rs`, `captions.rs` | Transcrição com o whisper.cpp, ditado ao vivo e legendas (tela em `captions_page.rs`) |
-| `src/tts.rs`, `imagegen.rs`, `inpaint.rs` | Texto para voz (Piper), gerar imagem (stable-diffusion.cpp) e apagar objeto (LaMa) |
-| `src/pdf_extra.rs` | Comprimir, senha, PDF → imagens e OCR de PDF |
-| `src/screenrec.rs` | Gravação de tela |
-| `src/ops.rs`, `cli.rs`, `presets.rs` | Núcleo das ferramentas (JSON), linha de comando, servidor MCP e predefinições |
-| `src/i18n.rs`, `i18n/*.txt` | Idiomas: o texto em português do código é a chave; cada idioma tem linhas `número\|tradução` alinhadas com `i18n/keys.txt` |
-| `src/integration.rs` | Menu do botão direito, atualizações, instância única |
-| `installer/conver.iss` | Script do instalador (Inno Setup) |
 
 ## Apoie o projeto
 
-O Conver é gratuito, sem anúncios e sem telemetria. Se ele te ajudou e você quiser contribuir com o desenvolvimento, aceito doações de qualquer valor por **Pix**:
+O Conver é gratuito, sem anúncios e sem telemetria. Se ele te ajudou, aceito doações de qualquer valor por **Pix**:
 
 <p align="center">
   <img src="docs/qrcode-pix.png" width="220" alt="QR Code Pix para doação">
 </p>
 
-Também ajuda muito dar uma ⭐ no repositório, relatar problemas e sugerir ferramentas nas [issues](https://github.com/JhonyGoncalves/conver/issues).
+Uma ⭐ no repositório, relatos de problemas e sugestões nas [issues](https://github.com/JhonyGoncalves/conver/issues)
+também ajudam muito.
 
 ## Licença
 
-O código do Conver está sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3), o yt-dlp (Unlicense), o ONNX Runtime (MIT), o whisper.cpp (MIT), o Piper (MIT, com o espeak-ng sob GPL v3), o stable-diffusion.cpp (MIT) e os modelos silueta (MIT/Apache 2.0), Real-ESRGAN (BSD-3) e RNNoise como componentes separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).
+Código sob a [licença MIT](LICENSE). Os downloads incluem o FFmpeg (GPL v3), o yt-dlp (Unlicense), o ONNX Runtime (MIT),
+o whisper.cpp (MIT), o Piper (MIT, com o espeak-ng sob GPL v3), o stable-diffusion.cpp (MIT) e os modelos silueta
+(MIT/Apache 2.0), Real-ESRGAN (BSD-3) e RNNoise como componentes separados — veja [THIRD-PARTY.md](THIRD-PARTY.md).

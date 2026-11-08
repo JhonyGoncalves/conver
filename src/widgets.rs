@@ -93,6 +93,13 @@ thread_local! {
 static GO_HOME: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// `None` = sem caminho (boas-vindas).
+/// "ÁUDIO" vira "Áudio" (os nomes das seções são em maiúsculas; letras acentuadas também contam).
+pub fn capitalize(s: &str) -> String {
+    let lower = s.to_lowercase();
+    let mut chars = lower.chars();
+    chars.next().map(|c| c.to_uppercase().chain(chars).collect()).unwrap_or_default()
+}
+
 pub fn set_crumb(section: Option<&'static str>) {
     CRUMB.with(|c| c.set(section));
 }
@@ -131,10 +138,7 @@ pub fn header(ui: &mut Ui, p: &Palette, title: &str, subtitle: &str) {
                 GO_HOME.store(true, std::sync::atomic::Ordering::Relaxed);
             }
             if !section.is_empty() {
-                let mut name = crate::i18n::tr(section).to_lowercase();
-                if let Some(c) = name.get(..1).map(str::to_uppercase) {
-                    name.replace_range(..1, &c);
-                }
+                let name = capitalize(&crate::i18n::tr(section));
                 ui.label(RichText::new(if rtl() { "‹" } else { "›" }).size(13.0).color(p.muted));
                 ui.label(RichText::new(name).size(13.0).color(p.muted));
             }

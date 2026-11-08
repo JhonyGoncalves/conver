@@ -31,6 +31,8 @@ pub struct FlowsPage {
     kinds: Vec<KindInfo>,
     names: Vec<String>,
     flow: Option<Flow>,
+    /// Fluxo de demonstração aberto (só nas capturas): não existe no disco, então não é recarregado nem gravado.
+    showcase: bool,
     /// Data do arquivo quando foi lido/salvo (para recarregar se o MCP mudar o fluxo).
     mtime: Option<SystemTime>,
     dirty: Option<Instant>,
@@ -65,6 +67,7 @@ impl FlowsPage {
             kinds: Vec::new(),
             names: Vec::new(),
             flow: None,
+            showcase: false,
             mtime: None,
             dirty: None,
             last_check: Instant::now() - Duration::from_secs(10),
@@ -94,6 +97,30 @@ impl FlowsPage {
         self.kinds = flow::kinds();
         flow::ensure_examples();
         self.load_list();
+        // CONVER_FLUXO=vitrine: o fluxo grande de demonstração, no meio da execução (não grava nada)
+        if std::env::var("CONVER_FLUXO").is_ok_and(|v| v == "vitrine") {
+            self.flow = Some(flow::showcase());
+            self.showcase = true;
+            self.sel = Some(Sel::Node(6));
+            self.fit_pending = true;
+            let mut r = self.run.lock().unwrap();
+            for (id, note) in [(1, "3 arquivo(s)"), (2, "7 corte(s)"), (3, "7 item(ns)"), (4, "5 sim, 2 não"), (5, "2 item(ns)"), (10, "7 legenda(s)"), (13, "7 texto(s)")] {
+                r.status.insert(id, Status::Done(note.into()));
+            }
+            r.status.insert(6, Status::Running(0.57));
+            r.status.insert(11, Status::Running(0.3));
+            for id in [7, 8, 9, 12, 14] {
+                r.status.insert(id, Status::Waiting);
+            }
+            r.status.insert(14, Status::Done("7 arquivo(s)".into()));
+            drop(r);
+            // a barra de baixo como no meio de uma execução de verdade
+            let mut st = self.job.state();
+            st.running = true;
+            st.progress = 0.62;
+            st.status = "Legendas animadas: corte 4 de 7…".into();
+            return;
+        }
         // CONVER_FLUXO=<nome>: abre esse fluxo com o node 2 escolhido
         if let Some(name) = std::env::var("CONVER_FLUXO").ok().filter(|n| self.names.contains(n)) {
             self.open(&name);
@@ -224,7 +251,7 @@ impl FlowsPage {
         }
         self.last_check = Instant::now();
         self.load_list();
-        if self.dirty.is_none() {
+        if self.dirty.is_none() && !self.showcase {
             if let Some(name) = self.flow.as_ref().map(|f| f.name.clone()) {
                 let m = std::fs::metadata(flow::path_of(&name)).and_then(|m| m.modified()).ok();
                 if m.is_none() {

@@ -191,7 +191,8 @@ impl TrimPanel {
         // quem mantém embaixo; quem tira por cima
         for keep in [true, false] {
             for c in cuts.iter().filter(|c| c.keep == keep) {
-                let color = if c.keep { p.ok } else { p.accent };
+                // tirar é sempre vermelho, em qualquer tema (o destaque pode ser azul ou roxo)
+                let color = if c.keep { p.ok } else { Color32::from_rgb(0xE5, 0x48, 0x4D) };
                 painter.rect_filled(span(c), 3, Color32::from_rgba_unmultiplied(color.r(), color.g(), color.b(), 110));
             }
         }

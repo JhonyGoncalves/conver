@@ -124,7 +124,9 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   `add_paths` na Home não roteia), busca central (`palette_ui`, `egui::Modal`) e Fila (`queue_ui`, com `job::all`: cada `Job::start`
   se registra com a ferramenta da tela, `job::set_origin`). `widgets::fluent()` muda o estilo de cabeçalho, botões, `segmented`,
   lista de arquivos e `action_bar` (`action_bar_fluent`); cores em `ui2::palette` (destaque e tema lidos do registro); ícones da
-  fonte Segoe Fluent Icons / MDL2 (`ui2::icon`, família `icons`). Capturas: `home`, `home_busca`, `home_fila`.
+  fonte Segoe Fluent Icons / MDL2 (`ui2::icon`, família `icons`). Temas: `ui2::THEMES` e `theme_palette` (`Config.theme`;
+  vazio = deduzido de `follow_system`/`dark`). Capturas: `home`, `home_busca`, `home_fila`; `CONVER_TEMA=<id>`, `CONVER_JANELA=1600x900`
+  e `CONVER_FLUXO=vitrine` (fluxo grande em execução, `flow::showcase`, nunca gravado). Prints do README em `docs\`.
 - `paste.rs`: Ctrl+V e botão Colar. O egui engole o Ctrl+V sem texto (nem `Event::Key` chega), por isso `main::handle_paste` olha a
   tecla com `GetKeyState`. Prints vão para Imagens\Conver\Prints e entram por `add_paths`, como arquivos soltos.
 - `media_extra::adjust_video` (`VideoAdjust`): cor e desfoque do vídeo inteiro por filtros do ffmpeg, com os mesmos intervalos e `Filter` de `image_adjust`; tela em `extras6.rs`, op `video_adjust`.

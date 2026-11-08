@@ -114,6 +114,8 @@ pub(crate) struct Config {
     follow_system: bool,
     /// Ferramentas usadas por último (ids de `page_id`), para a tela inicial.
     recent: Vec<String>,
+    /// Tema da interface 2.0 (id de `ui2::THEMES`); vazio = deduzir de `follow_system` e `dark` (configurações da 2.0.0).
+    theme: String,
 }
 
 fn sim() -> bool {
@@ -133,6 +135,7 @@ impl Default for Config {
             interface: 2,
             follow_system: true,
             recent: Vec::new(),
+            theme: "system".into(),
         }
     }
 }
@@ -143,10 +146,14 @@ fn config_path() -> PathBuf {
 
 impl Config {
     fn load() -> Self {
-        std::fs::read_to_string(config_path())
+        let mut c: Self = std::fs::read_to_string(config_path())
             .ok()
             .and_then(|s| serde_json::from_str(s.trim_start_matches('\u{feff}')).ok())
-            .unwrap_or_default()
+            .unwrap_or_default();
+        if c.theme.is_empty() {
+            c.theme = if c.follow_system { "system" } else if c.dark { "dark" } else { "light" }.into();
+        }
+        c
     }
 
     fn save(&self) {
@@ -403,7 +410,7 @@ impl ConverApp {
         theme::install_fonts(ctx);
         notify::configure(cfg.notify, cfg.sound);
         let v2 = ui2::decide(cfg.interface).then(|| ui2::State { recent: cfg.recent.iter().filter_map(|id| ui2::page_by_id(id)).collect(), ..Default::default() });
-        let pal = if v2.is_some() { ui2::palette(if cfg.follow_system { ui2::system_dark() } else { cfg.dark }) } else { Palette::new(cfg.dark) };
+        let pal = if v2.is_some() { ui2::theme_palette(&cfg.theme) } else { Palette::new(cfg.dark) };
         theme::apply(ctx, &pal);
 
         let logo_img = image::load_from_memory(LOGO_PNG).expect("logo").to_rgba8();
@@ -536,7 +543,12 @@ impl ConverApp {
         if cap.quadros == 0 {
             let cena = &cap.cenas[cap.atual];
             self.cfg.dark = cena.dark; // sem salvar
-            self.pal = if self.v2.is_some() { ui2::palette(cena.dark) } else { Palette::new(cena.dark) };
+            // CONVER_TEMA=<id>: captura com um dos temas da 2.0
+            self.pal = match (self.v2.is_some(), std::env::var("CONVER_TEMA")) {
+                (true, Ok(t)) => ui2::theme_palette(&t),
+                (true, _) => ui2::palette(cena.dark),
+                _ => Palette::new(cena.dark),
+            };
             theme::apply(ctx, &self.pal);
             i18n::set(&cena.lang);
             theme::install_fonts(ctx);
@@ -734,12 +746,20 @@ impl ConverApp {
         });
     }
 
-    /// Tema: na interface 2.0, `follow` acompanha o do Windows; a clássica usa só `dark`.
+    /// Tema da interface clássica (claro ou escuro).
     fn set_theme(&mut self, ctx: &egui::Context, follow: bool, dark: bool) {
         self.cfg.follow_system = follow;
         self.cfg.dark = dark;
         self.cfg.save();
-        self.pal = if self.v2.is_some() { ui2::palette(if follow { ui2::system_dark() } else { dark }) } else { Palette::new(dark) };
+        self.pal = if self.v2.is_some() { ui2::theme_palette(&self.cfg.theme) } else { Palette::new(dark) };
+        theme::apply(ctx, &self.pal);
+    }
+
+    /// Tema da interface 2.0 (id de `ui2::THEMES`).
+    fn set_theme2(&mut self, ctx: &egui::Context, id: &str) {
+        self.cfg.theme = id.into();
+        self.cfg.save();
+        self.pal = ui2::theme_palette(id);
         theme::apply(ctx, &self.pal);
     }
 
@@ -1024,24 +1044,18 @@ impl ConverApp {
             ui.label(RichText::new(crate::i18n::tr("Aparência")).family(bold()).size(16.0).color(p.text));
             ui.add_space(6.0);
             if self.v2.is_some() {
-                // 2.0: igual ao Windows, clara ou escura
-                let current = if self.cfg.follow_system { 0 } else if self.cfg.dark { 2 } else { 1 };
-                let mut chosen = current;
+                // 2.0: igual ao Windows, clara, escura e temas de cores próprias
+                let mut chosen = None;
                 ui.horizontal_wrapped(|ui| {
-                    for (i, name) in [(0, "Igual ao Windows"), (1, "Clara"), (2, "Escura")] {
-                        let preview = ui2::palette(match i {
-                            0 => ui2::system_dark(),
-                            1 => false,
-                            _ => true,
-                        });
-                        if theme_card(ui, &p, preview, name, current == i) {
-                            chosen = i;
+                    ui.spacing_mut().item_spacing = vec2(10.0, 10.0);
+                    for (id, name) in ui2::THEMES {
+                        if theme_card(ui, &p, ui2::theme_palette(id), name, self.cfg.theme == id) {
+                            chosen = Some(id);
                         }
-                        ui.add_space(8.0);
                     }
                 });
-                if chosen != current {
-                    self.set_theme(ui.ctx(), chosen == 0, chosen == 2);
+                if let Some(id) = chosen.filter(|id| *id != self.cfg.theme) {
+                    self.set_theme2(ui.ctx(), id);
                 }
             } else {
                 let mut dark = self.cfg.dark;
@@ -1689,7 +1703,7 @@ fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("Conver")
-            .with_inner_size([1140.0, 740.0])
+            .with_inner_size(captura::janela().unwrap_or([1140.0, 740.0]))
             .with_min_inner_size([920.0, 600.0])
             .with_drag_and_drop(true)
             .with_icon(Arc::new(icon)),

@@ -62,6 +62,13 @@ pub fn from_env() -> Option<Captura> {
     Some(Captura { dir, cenas, atual: 0, quadros: 0, pedida: false })
 }
 
+/// CONVER_JANELA=1600x1000: tamanho da janela nas capturas.
+pub fn janela() -> Option<[f32; 2]> {
+    let v = std::env::var("CONVER_JANELA").ok().filter(|_| active())?;
+    let (w, h) = v.split_once('x')?;
+    Some([w.trim().parse().ok()?, h.trim().parse().ok()?])
+}
+
 pub fn active() -> bool {
     cfg!(debug_assertions) && std::env::var_os("CONVER_CAPTURA").is_some()
 }
