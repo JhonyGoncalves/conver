@@ -204,7 +204,6 @@ Melhor
 não foi possível iniciar o yt-dlp: {e}
 Processando com o ffmpeg…
 {prefix}Baixando: {title}   {speed}
-este vídeo não tem legenda em português, inglês ou no idioma original.
 este vídeo não tem imagem de capa.
 este site pediu login. Em "Login do navegador", escolha o navegador em que você está logado no site e tente de novo.
 o download falhou.
@@ -998,6 +997,8 @@ Recortar
 Baixar a capa
 Contraste
 Login do navegador
+Idioma da legenda
+Formato da legenda
 Brilho
 Fundo
 Áudio (kbps)
@@ -1541,6 +1542,7 @@ Converter áudio
 Traduzir legendas e dublar
 Classificar com IA local
 Download
+Idiomas da legenda
 Microfones e janelas
 Listar predefinições
 Listar fluxos
@@ -1591,17 +1593,28 @@ Não foi possível abrir esta imagem.
 {} imagens
 {pages} página(s) • {}
 Não usar
+do vídeo
+automática
+tradução automática
+Original (o idioma falado no vídeo)
+Procurando os idiomas…
+este vídeo não tem legenda.
+{} idioma(s)
+Ver idiomas
+Arquivo:
+SRT (com os tempos)
+TXT (só o texto)
+Baixa uma legenda só, sem o vídeo: a do idioma falado, ou a que você escolher em Ver idiomas (as do vídeo e as traduções automáticas do YouTube). As automáticas saem sem as linhas repetidas.
 Baixar vídeos e músicas
 {n} links — serão baixados em fila
 Cole aqui o link do vídeo, música ou playlist (um ou vários, um por linha)
 MP4 (vídeo)
 MP3 (áudio)
-Baixa só a legenda (.srt) em português, inglês e no idioma original, sem o vídeo.
 Baixa só a imagem de capa (.jpg), sem o vídeo.
 Login do navegador:
 para sites que pedem conta (Instagram, Facebook). Feche o navegador antes de baixar.
 Baixar junto:
-Legendas (.srt, português e inglês)
+Legenda (.srt, no idioma original)
 Imagem de capa (.jpg)
 Baixar a playlist inteira (se o link for de uma playlist)
 Baixe apenas conteúdos que você tem direito de baixar.
@@ -1671,6 +1684,18 @@ só funciona com vídeo de 8 bits
 não funciona com vídeo entrelaçado
 não funciona com vídeo girado, como os de celular
 perfil de H.264 não aceito
+não foi possível ler as informações do vídeo.
+O YouTube pediu uma pausa; tentando de novo em {} s…
+o YouTube limitou os pedidos de tradução automática. Tente de novo em alguns minutos, ou baixe a do idioma original e use Traduzir e dublar.
+o YouTube limitou os pedidos. Tente de novo em alguns minutos.
+erro {} ao baixar a legenda
+o download da legenda falhou.
+a legenda veio num formato inesperado.
+a legenda veio vazia.
+não foi possível gravar a legenda: {}
+Procurando as legendas…
+Baixando a legenda: {}
+nenhuma legenda encontrada.
 {} → {} ({sign}{:.0}%)
 Equilibrado (264 MB)
 Preciso (574 MB)

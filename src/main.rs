@@ -63,6 +63,7 @@ mod search;
 mod paste;
 mod segment;
 mod sfx;
+mod subdl;
 mod smartcut;
 mod separate;
 mod theme;

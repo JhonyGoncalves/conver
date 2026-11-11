@@ -1,5 +1,13 @@
 # Lista de mudanças
 
+## 2.1.1
+
+- **Só a legenda, refeito:** baixa uma legenda só, a do idioma falado no vídeo, em vez de três. Em **Ver idiomas** aparecem as outras que o vídeo tiver (as do autor, a automática e as traduções automáticas do YouTube), com o nome de cada idioma na própria língua, e dá para escolher entre SRT, TXT (só o texto) ou VTT.
+- **Legendas automáticas sem repetição:** a legenda automática do YouTube repetia cada linha na fala seguinte. Agora ela é montada a partir do tempo de cada palavra, em frases de até duas linhas e sem tempos sobrepostos.
+- **Baixar junto com o vídeo:** a opção de legenda também baixa uma só, a do idioma original, já sem repetição.
+- **Pedidos demais:** quando o YouTube pede uma pausa (erro 429, comum nas traduções automáticas), o Conver espera e tenta de novo sozinho.
+- **MCP e linha de comando:** `download` aceita `subtitle_lang` (`original`, um código como `pt` ou um id da lista) e `subtitle_format` (`srt`, `txt`, `vtt`); a nova ferramenta `subtitles_list` mostra os idiomas de um vídeo.
+
 ## 2.1.0
 
 - **Cortar silêncios:** tira as pausas de vídeos e áudios sozinho, deixando a fala corrida (jump cut). Dá para ajustar a pausa mínima, o limite de volume e uma folga antes e depois da fala.

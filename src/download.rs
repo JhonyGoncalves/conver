@@ -11,7 +11,7 @@ use crate::tools;
 pub enum Kind {
     Mp4,
     Mp3,
-    /// Só as legendas (.srt), sem baixar o vídeo.
+    /// Só a legenda, sem baixar o vídeo (`subdl`).
     Subtitles,
     /// Só a imagem de capa (.jpg), sem baixar o vídeo.
     Thumbnail,
@@ -27,7 +27,7 @@ impl Kind {
 /// Arquivos extras baixados junto com o vídeo.
 #[derive(Clone, Copy, Default)]
 pub struct Extras {
-    /// Legendas em português e inglês (.srt), incluindo as automáticas.
+    /// A legenda do idioma original (.srt), a do autor ou, se não houver, a automática.
     pub subtitles: bool,
     /// Imagem de capa (.jpg).
     pub cover: bool,
@@ -57,6 +57,23 @@ fn field(v: Option<&str>) -> Option<&str> {
     v.filter(|s| !s.is_empty() && *s != "NA")
 }
 
+/// yt-dlp com o básico de todo pedido: UTF-8, sem avisos, o interpretador de JavaScript que o YouTube exige e o login do navegador.
+pub fn ytdlp_command(cookies: Option<&str>) -> Result<std::process::Command, String> {
+    let ytdlp = tools::find_tool("yt-dlp").ok_or("yt-dlp não encontrado (deveria estar na pasta bin).")?;
+    let mut cmd = tools::command(&ytdlp);
+    cmd.env("PYTHONIOENCODING", "utf-8").args(["--encoding", "utf-8", "--no-warnings"]);
+    for rt in ["deno", "node", "bun"] {
+        if let Some(p) = tools::find_in_path(rt) {
+            cmd.arg("--js-runtimes").arg(format!("{rt}:{}", p.display()));
+        }
+    }
+    // login do navegador, para sites que exigem conta (Instagram, Facebook…)
+    if let Some(browser) = cookies {
+        cmd.args(["--cookies-from-browser", browser]);
+    }
+    Ok(cmd)
+}
+
 pub fn download(
     url: &str,
     out_dir: &Path,
@@ -67,13 +84,14 @@ pub fn download(
     extras: Extras,
     ctl: &Ctl,
 ) -> Result<Vec<PathBuf>, String> {
-    let ytdlp = tools::find_tool("yt-dlp").ok_or("yt-dlp não encontrado (deveria estar na pasta bin).")?;
+    if kind == Kind::Subtitles {
+        return crate::subdl::download(url, "", crate::subdl::Format::Srt, playlist, cookies, out_dir, ctl);
+    }
     let started = std::time::SystemTime::now();
     let ffmpeg = tools::find_tool("ffmpeg").ok_or("ffmpeg não encontrado (deveria estar na pasta bin).")?;
 
-    let mut cmd = tools::command(&ytdlp);
-    cmd.env("PYTHONIOENCODING", "utf-8")
-        .args(["--encoding", "utf-8", "--quiet", "--progress", "--newline", "--no-warnings"])
+    let mut cmd = ytdlp_command(cookies)?;
+    cmd.args(["--quiet", "--progress", "--newline"])
         .args(["--windows-filenames", "--no-overwrites", "--no-mtime"])
         .arg(if playlist { "--yes-playlist" } else { "--no-playlist" })
         .arg("--ffmpeg-location")
@@ -87,34 +105,15 @@ pub fn download(
             "download:PROG|%(progress.downloaded_bytes)s|%(progress.total_bytes)s|%(progress.total_bytes_estimate)s|%(progress._speed_str)s|%(info.playlist_index)s|%(info.n_entries)s|%(info.title)s",
         ])
         .args(["--print", "after_move:DONE|%(filepath)s"]);
-
-    // O YouTube exige um interpretador de JavaScript; usa o que estiver instalado.
-    for rt in ["deno", "node", "bun"] {
-        if let Some(p) = tools::find_in_path(rt) {
-            cmd.arg("--js-runtimes").arg(format!("{rt}:{}", p.display()));
-        }
-    }
-
-    // login do navegador, para sites que exigem conta (Instagram, Facebook…)
-    if let Some(browser) = cookies {
-        cmd.args(["--cookies-from-browser", browser]);
-    }
     // um item com problema (ou uma legenda que falhou) não interrompe o resto
     cmd.arg("--ignore-errors");
-    // legendas: português, inglês e a do idioma original (as automáticas também, que são as únicas de muitos vídeos)
-    let subs = ["--write-subs", "--write-auto-subs", "--sub-langs", "pt.*,en.*,.*-orig,-live_chat", "--convert-subs", "srt"];
     let thumb = ["--write-thumbnail", "--convert-thumbnails", "jpg"];
-    if extras.subtitles && !kind.only_extra() {
-        cmd.args(subs);
-    }
     if extras.cover && !kind.only_extra() {
         cmd.args(thumb);
     }
 
     match kind {
-        Kind::Subtitles => {
-            cmd.arg("--skip-download").args(subs);
-        }
+        Kind::Subtitles => unreachable!(),
         Kind::Thumbnail => {
             cmd.arg("--skip-download").args(thumb);
         }
@@ -183,7 +182,7 @@ pub fn download(
     let errors = err_thread.join().unwrap_or_default();
     // sem baixar o vídeo o yt-dlp não avisa os arquivos gravados: são os novos na pasta
     if kind.only_extra() {
-        let exts: &[&str] = if kind == Kind::Subtitles { &["srt", "vtt"] } else { &["jpg", "jpeg", "png", "webp"] };
+        let exts: &[&str] = &["jpg", "jpeg", "png", "webp"];
         if let Ok(rd) = std::fs::read_dir(out_dir) {
             for e in rd.flatten() {
                 let p = e.path();
@@ -195,7 +194,7 @@ pub fn download(
             }
         }
         if files.is_empty() && errors.iter().all(|l| !l.starts_with("ERROR")) {
-            return Err(if kind == Kind::Subtitles { "este vídeo não tem legenda em português, inglês ou no idioma original.".into() } else { "este vídeo não tem imagem de capa.".into() });
+            return Err("este vídeo não tem imagem de capa.".into());
         }
     }
     for e in errors.iter().filter(|l| l.starts_with("ERROR")) {
@@ -215,6 +214,13 @@ pub fn download(
             .find(|l| l.starts_with("ERROR"))
             .map(|l| l.trim_start_matches("ERROR: ").to_string())
             .unwrap_or_else(|| "o download falhou.".into()));
+    }
+    // a legenda junto com o vídeo: uma só, a do idioma original, montada sem as repetições da automática
+    if extras.subtitles && !files.is_empty() {
+        match crate::subdl::download(url, "", crate::subdl::Format::Srt, playlist, cookies, out_dir, ctl) {
+            Ok(subs) => files.extend(subs),
+            Err(e) => ctl.log(LogKind::Err, format!("✖ {e}")),
+        }
     }
     Ok(files)
 }

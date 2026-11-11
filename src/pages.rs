@@ -623,6 +623,29 @@ pub struct DownloadPage {
     browser: usize,
     pub out: OutDir,
     job: Job,
+    /// "Só a legenda": faixa escolhida (id de `subdl::Track`; vazio = a do idioma original), formato e a lista de idiomas.
+    sub_choice: String,
+    sub_format: crate::subdl::Format,
+    sub_list: std::sync::Arc<std::sync::Mutex<SubList>>,
+    /// Captura de tela (`CONVER_LEGENDA=<link>`): já abre em "Só a legenda" e lista os idiomas.
+    auto_list: bool,
+}
+
+#[derive(Default)]
+enum SubList {
+    #[default]
+    None,
+    Loading(String),
+    Ready(String, Vec<crate::subdl::Video>),
+    Failed(String, String),
+}
+
+fn source_label(s: crate::subdl::Source) -> &'static str {
+    match s {
+        crate::subdl::Source::Manual => "do vídeo",
+        crate::subdl::Source::Auto => "automática",
+        crate::subdl::Source::Translated => "tradução automática",
+    }
 }
 
 impl DownloadPage {
@@ -637,7 +660,110 @@ impl DownloadPage {
             browser: 0,
             out: OutDir::fixed(folder),
             job: Job::default(),
+            sub_choice: String::new(),
+            sub_format: crate::subdl::Format::Srt,
+            sub_list: Default::default(),
+            auto_list: false,
         }
+        .with_capture()
+    }
+
+    fn with_capture(mut self) -> Self {
+        if let Some(url) = std::env::var("CONVER_LEGENDA").ok().filter(|_| crate::captura::active()) {
+            self.url = url;
+            self.kind = Kind::Subtitles;
+            self.auto_list = true;
+            self.sub_choice = std::env::var("CONVER_LEGENDA_ID").unwrap_or_default();
+        }
+        self
+    }
+
+    /// Idioma e formato da legenda, no modo "Só a legenda".
+    fn subtitle_ui(&mut self, ui: &mut Ui, p: &Palette) {
+        use crate::i18n::tr;
+        let first = download::parse_links(&self.url).into_iter().next().unwrap_or_default();
+        let cookies = BROWSERS[self.browser].1;
+        // a lista vale para o link de agora
+        {
+            let mut g = self.sub_list.lock().unwrap();
+            let stale = match &*g {
+                SubList::Loading(u) | SubList::Ready(u, _) | SubList::Failed(u, _) => *u != first,
+                SubList::None => false,
+            };
+            if stale {
+                *g = SubList::None;
+                self.sub_choice.clear();
+            }
+        }
+        let (tracks, loading, failed, listed) = {
+            let g = self.sub_list.lock().unwrap();
+            match &*g {
+                SubList::Ready(_, v) => (v.first().map(|v| v.tracks.clone()).unwrap_or_default(), false, None, true),
+                SubList::Loading(_) => (Vec::new(), true, None, false),
+                SubList::Failed(_, e) => (Vec::new(), false, Some(e.clone()), false),
+                SubList::None => (Vec::new(), false, None, false),
+            }
+        };
+        let original = tr("Original (o idioma falado no vídeo)");
+        row(ui, p, "Idioma:", |ui| {
+            let label = |t: &crate::subdl::Track| format!("{} — {}", t.name, tr(source_label(t.source)));
+            let selected = tracks.iter().find(|t| t.id() == self.sub_choice).map(label).unwrap_or_else(|| original.clone());
+            egui::ComboBox::from_id_salt("sub_lang").selected_text(selected).width(300.0).height(360.0).show_ui(ui, |ui| {
+                ui.selectable_value(&mut self.sub_choice, String::new(), original.clone());
+                let mut last = None;
+                for t in &tracks {
+                    if last != Some(t.source) {
+                        ui.separator();
+                        last = Some(t.source);
+                    }
+                    ui.selectable_value(&mut self.sub_choice, t.id(), label(t));
+                }
+            });
+            if loading {
+                ui.spinner();
+                hint(ui, p, "Procurando os idiomas…");
+            } else if listed {
+                if tracks.is_empty() {
+                    hint(ui, p, "este vídeo não tem legenda.");
+                } else {
+                    let real = tracks.iter().filter(|t| t.source != crate::subdl::Source::Translated).count();
+                    let mut text = tr(format!("{} idioma(s)", real));
+                    if real < tracks.len() {
+                        text = format!("{} • {}", text, tr("tradução automática"));
+                    }
+                    ui.label(RichText::new(text).size(12.5).color(p.muted));
+                }
+            } else {
+                if widgets::secondary(ui, p, "Ver idiomas", !first.is_empty()) || std::mem::take(&mut self.auto_list) {
+                    *self.sub_list.lock().unwrap() = SubList::Loading(first.clone());
+                    let (slot, url, playlist, ctx) = (self.sub_list.clone(), first.clone(), self.playlist, ui.ctx().clone());
+                    let cookies = cookies.map(str::to_string);
+                    std::thread::spawn(move || {
+                        let r = crate::subdl::list(&url, playlist, cookies.as_deref());
+                        let mut g = slot.lock().unwrap();
+                        if matches!(&*g, SubList::Loading(u) if *u == url) {
+                            *g = match r {
+                                Ok(v) => SubList::Ready(url, v),
+                                Err(e) => SubList::Failed(url, e),
+                            };
+                        }
+                        ctx.request_repaint();
+                    });
+                }
+                if let Some(e) = &failed {
+                    ui.label(RichText::new(format!("⚠ {}", tr(e.as_str()))).size(12.5).color(p.action));
+                }
+            }
+        });
+        row(ui, p, "Arquivo:", |ui| {
+            use crate::subdl::Format;
+            segmented(ui, p, &mut self.sub_format, &[(Format::Srt, "SRT (com os tempos)"), (Format::Txt, "TXT (só o texto)"), (Format::Vtt, "VTT")]);
+        });
+        hint(
+            ui,
+            p,
+            "Baixa uma legenda só, sem o vídeo: a do idioma falado, ou a que você escolher em Ver idiomas (as do vídeo e as traduções automáticas do YouTube). As automáticas saem sem as linhas repetidas.",
+        );
     }
 
     pub fn ui(&mut self, ui: &mut Ui, p: &Palette) {
@@ -682,14 +808,16 @@ impl DownloadPage {
                     self.quality = 0;
                 }
             });
-            if !self.kind.only_extra() {
+            if self.kind == Kind::Subtitles {
+                self.subtitle_ui(ui, p);
+            } else if !self.kind.only_extra() {
                 row(ui, p, "Qualidade:", |ui| {
                     let list = if self.kind == Kind::Mp3 { download::MP3_QUALITIES } else { download::MP4_QUALITIES };
                     let opts: Vec<(usize, &str)> = list.iter().enumerate().map(|(i, s)| (i, *s)).collect();
                     segmented(ui, p, &mut self.quality, &opts);
                 });
             } else {
-                hint(ui, p, if self.kind == Kind::Subtitles { "Baixa só a legenda (.srt) em português, inglês e no idioma original, sem o vídeo." } else { "Baixa só a imagem de capa (.jpg), sem o vídeo." });
+                hint(ui, p, "Baixa só a imagem de capa (.jpg), sem o vídeo.");
             }
             row(ui, p, "Login do navegador:", |ui| {
                 egui::ComboBox::from_id_salt("cookies").selected_text(crate::i18n::tr(BROWSERS[self.browser].0)).width(140.0).show_ui(
@@ -704,7 +832,7 @@ impl DownloadPage {
             });
             if !self.kind.only_extra() {
                 row(ui, p, "Baixar junto:", |ui| {
-                    crate::widgets::check(ui, &mut self.subtitles, crate::i18n::tr("Legendas (.srt, português e inglês)"));
+                    crate::widgets::check(ui, &mut self.subtitles, crate::i18n::tr("Legenda (.srt, no idioma original)"));
                     ui.add_space(8.0);
                     crate::widgets::check(ui, &mut self.cover, crate::i18n::tr("Imagem de capa (.jpg)"));
                 });
@@ -725,6 +853,11 @@ impl DownloadPage {
                 let (kind, quality, playlist) = (self.kind, self.quality, self.playlist);
                 let cookies = BROWSERS[self.browser].1;
                 let extras = download::Extras { subtitles: self.subtitles, cover: self.cover };
+                let (sub_choice, sub_format) = (self.sub_choice.clone(), self.sub_format);
+                let listed = match &*self.sub_list.lock().unwrap() {
+                    SubList::Ready(u, v) => Some((u.clone(), v.clone())),
+                    _ => None,
+                };
                 self.job.start(ui.ctx(), move |ctl| {
                     let n = links.len();
                     let (mut total, mut failed) = (0, 0);
@@ -737,7 +870,15 @@ impl DownloadPage {
                         ctl.status(format!("{prefix}Buscando informações…"));
                         ctl.progress(0.0);
                         ctl.log(LogKind::Info, format!("{prefix}{url}"));
-                        match download::download(url, &folder, kind, quality, playlist, cookies, extras, ctl) {
+                        let r = if kind == Kind::Subtitles {
+                            match &listed {
+                                Some((u, v)) if u == url => crate::subdl::download_listed(v, &sub_choice, sub_format, &folder, ctl),
+                                _ => crate::subdl::download(url, &sub_choice, sub_format, playlist, cookies, &folder, ctl),
+                            }
+                        } else {
+                            download::download(url, &folder, kind, quality, playlist, cookies, extras, ctl)
+                        };
+                        match r {
                             Ok(files) => {
                                 for f in &files {
                                     history::record("Download", url, f, &tools::human_size(tools::file_size(f)));

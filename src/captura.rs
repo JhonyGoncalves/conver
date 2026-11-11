@@ -9,6 +9,7 @@
 //! CONVER_BUSCA=cortar                                      (opcional: texto na busca do menu)
 //! CONVER_ESPERA=300                                        (opcional: quadros de espera por cena; padrão 45)
 //! CONVER_DEMO_AUDIO=1                                      (opcional: o gravador de áudio mostra um som gerado)
+//! CONVER_LEGENDA=<link> [+ CONVER_LEGENDA_ID=tr:pt]          (opcional: Download em "Só a legenda", com os idiomas listados)
 //! ```
 
 use std::path::PathBuf;

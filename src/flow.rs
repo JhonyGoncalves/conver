@@ -181,7 +181,7 @@ pub struct KindInfo {
 }
 
 /// Ferramentas que não fazem sentido dentro de um fluxo.
-const HIDDEN_TOOLS: &[&str] = &["list_devices", "preset_list", "preset_save"];
+const HIDDEN_TOOLS: &[&str] = &["list_devices", "preset_list", "preset_save", "subtitles_list"];
 
 fn tool_category(name: &str) -> &'static str {
     if name.starts_with("image") || name == "qr_code" {

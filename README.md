@@ -70,7 +70,7 @@ de todas as ferramentas, e dá para começar várias ao mesmo tempo.
 pesquisável (OCR) e tabelas para Excel, inclusive de PDFs escaneados.
 
 **Downloads:** YouTube, TikTok, Instagram, X, SoundCloud e centenas de outros sites ([yt-dlp](https://github.com/yt-dlp/yt-dlp)),
-em MP4 ou MP3, com playlists, legendas e capa, ou só a legenda ou só a capa.
+em MP4 ou MP3, com playlists, legenda e capa. Também baixa só a capa, ou só a legenda, no idioma original ou em outro que o vídeo tenha (SRT, TXT ou VTT, sem as linhas repetidas das automáticas).
 
 **Automação:** fluxos por nodes (abaixo), pasta vigiada, predefinições, renomear em lote, marca d'água em lote,
 linha de comando e servidor MCP para agentes de IA.

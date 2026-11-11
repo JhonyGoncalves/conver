@@ -138,6 +138,10 @@ Se existir `portatil.txt` ao lado do exe, os dados vão para `dados\` em vez de 
   favicon), `cloud.rs` (pastas do OneDrive/Google Drive/Dropbox e webhook; nodes `cloud` e `webhook` em `flow.rs`), `sfx.rs`
   (som ao soltar, WAV gerado e `PlaySoundW`, `Config.drop_sound`). `download::Kind::{Subtitles, Thumbnail}` usam
   `--skip-download`. `ai_api::PRESETS`, `url_problem` e `list_models` (Testar conexão). `ui2::tool_icon`: ícone MDL2 por tela.
+- `subdl.rs`: "Só a legenda" como o DownSub. `list` (yt-dlp `-J`) → `Track` (`Source`: do autor, automática `-orig`, tradução; nome
+  nativo pelo `Windows.Globalization.Language`), `pick` (padrão: o idioma falado; tradução só se pedida), `fetch` direto da URL com
+  nova tentativa no 429. A automática vem em json3 e é remontada pelas palavras (`regroup`); .vtt/.srt de outros sites passam por
+  `tidy` (tira as linhas que "rolam"). `download::ytdlp_command` tem o básico de todo pedido. Captura: `CONVER_LEGENDA=<link>`.
 - `pdf_extra.rs`: comprimir, senha (AES-128: o leitor de PDF do Windows não abre o AES-256 gerado pelo lopdf),
   PDF → imagens e OCR (os dois pelo `Windows.Data.Pdf`). `screenrec.rs`: gravação de tela (gdigrab).
 - Testes: `src/tests*.rs` (`tests_v11.rs` = remover fundo e idiomas; `tests_v12.rs` = PDF, IA, tela, núcleo/MCP;

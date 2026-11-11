@@ -1618,6 +1618,14 @@ fn arg_hidden(kind: &str, key: &str, args: &Map<String, Value>) -> bool {
         "tool:files_rename" => matches!(key, "start" | "digits" | "separator") && !args.get("numbering").and_then(Value::as_bool).unwrap_or(false),
         "tool:subtitle_translate" => matches!(key, "voice" | "original_volume" | "video") && !args.get("dub").and_then(Value::as_bool).unwrap_or(false),
         "tool:document_scan" => key == "name" && s("format") != "pdf",
+        "tool:download" => {
+            let k = s("kind");
+            match key {
+                "subtitle_lang" | "subtitle_format" => k != "subtitles",
+                "quality" | "subtitles" | "cover" => k == "subtitles" || k == "thumbnail",
+                _ => false,
+            }
+        }
         _ => false,
     }
 }
@@ -1901,6 +1909,8 @@ pub(crate) fn arg_label(key: &str) -> &str {
         "contrast" => "Contraste",
         "color" => "Cor",
         "browser_cookies" => "Login do navegador",
+        "subtitle_lang" => "Idioma da legenda",
+        "subtitle_format" => "Formato da legenda",
         "brightness" => "Brilho",
         "blur" => "Desfoque",
         "background" => "Fundo",

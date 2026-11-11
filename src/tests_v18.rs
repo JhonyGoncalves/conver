@@ -1641,3 +1641,87 @@ fn flow_audio_link_becomes_music() {
     assert_eq!(results.len(), 1, "{r}");
     assert!(crate::video::probe(std::path::Path::new(results[0]["file"].as_str().unwrap())).has_video, "{r}");
 }
+
+#[test]
+fn subtitles_without_repetition() {
+    use crate::subdl::*;
+    // automática do YouTube em json3: palavras com tempo e linhas que "rolam"
+    let json3 = r#"{"events":[{"tStartMs":0,"dDurationMs":90000,"id":1},
+        {"tStartMs":1000,"dDurationMs":4000,"wWinId":1,"segs":[{"utf8":"so"},{"utf8":" in","tOffsetMs":200}]},
+        {"tStartMs":1900,"dDurationMs":10,"wWinId":1,"aAppend":1,"segs":[{"utf8":"\n"}]},
+        {"tStartMs":2000,"dDurationMs":5000,"wWinId":1,"segs":[{"utf8":"college"},{"utf8":" I","tOffsetMs":400},{"utf8":" was","tOffsetMs":600},{"utf8":" a","tOffsetMs":800},{"utf8":" government","tOffsetMs":1000},{"utf8":" major.","tOffsetMs":1500}]},
+        {"tStartMs":6000,"dDurationMs":3000,"wWinId":1,"segs":[{"utf8":"which"},{"utf8":" means","tOffsetMs":300}]}]}"#;
+    let cues = parse_json3(json3).unwrap();
+    let all: Vec<String> = cues.iter().flat_map(|c| c.text.split_whitespace().map(str::to_string).collect::<Vec<_>>()).collect();
+    assert_eq!(all.join(" "), "so in college I was a government major. which means", "{cues:?}");
+    assert_eq!(cues.len(), 2, "quebra no fim da frase: {cues:?}");
+    assert!(cues.windows(2).all(|w| w[0].end <= w[1].start), "{cues:?}");
+
+    // a mesma em .vtt (outros sites, ou sem json3): a linha de cima repete a fala anterior
+    let vtt = "WEBVTT\n\n00:00:01.000 --> 00:00:01.900 align:start position:0%\n \nso<00:00:01.200><c> in</c>\n\n\
+               00:00:01.900 --> 00:00:01.910 align:start position:0%\nso in\n \n\n\
+               00:00:01.910 --> 00:00:04.000 align:start position:0%\nso in\ncollege<00:00:02.400><c> I</c><c> was</c>\n\n\
+               00:00:04.000 --> 00:00:04.010\ncollege I was\n \n\n\
+               00:00:04.010 --> 00:00:06.000\ncollege I was\na government major\n";
+    let cues = parse_text(vtt);
+    let texts: Vec<&str> = cues.iter().map(|c| c.text.as_str()).collect();
+    assert_eq!(texts, ["so in", "college I was", "a government major"], "{cues:?}");
+
+    // a do autor fica como veio
+    let manual = r#"{"events":[{"tStartMs":12320,"dDurationMs":1695,"segs":[{"utf8":"Na faculdade,"}]},{"tStartMs":15199,"dDurationMs":1698,"segs":[{"utf8":"fiz a especialização\nem Governo,"}]}]}"#;
+    let cues = parse_json3(manual).unwrap();
+    assert_eq!(cues.len(), 2);
+    let srt = render(&cues, Format::Srt);
+    assert!(srt.starts_with("1\n00:00:12,320 --> 00:00:14,015\nNa faculdade,\n\n2\n00:00:15,199"), "{srt}");
+    assert_eq!(render(&cues, Format::Txt), "Na faculdade, fiz a especialização em Governo,\n");
+    assert!(render(&cues, Format::Vtt).starts_with("WEBVTT\n\n00:00:12.320 --> "));
+
+    // escolha: sem pedir nada, o idioma falado; tradução só quando pedida
+    let info = serde_json::json!({ "title": "t", "language": "en",
+        "subtitles": { "pt-BR": [{ "ext": "json3", "url": "u1" }], "en": [{ "ext": "vtt", "url": "u2" }], "live_chat": [{ "ext": "json", "url": "x" }] },
+        "automatic_captions": { "en-orig": [{ "ext": "json3", "url": "u3", "name": "English (Original)" }], "en": [{ "ext": "json3", "url": "u4" }],
+            "pt": [{ "ext": "json3", "url": "u5" }], "ja": [{ "ext": "json3", "url": "u6" }] } });
+    let v = tracks_from_info(&info);
+    assert_eq!(v.tracks.len(), 5, "{:?}", v.tracks);
+    assert_eq!(pick(&v, "").unwrap().id(), "en");
+    assert_eq!(pick(&v, "original").unwrap().id(), "en");
+    assert_eq!(pick(&v, "pt").unwrap().id(), "pt-BR");
+    assert_eq!(pick(&v, "ja").unwrap().id(), "tr:ja");
+    assert_eq!(pick(&v, "auto:en").unwrap().id(), "auto:en");
+    assert!(v.tracks.iter().all(|t| !t.name.is_empty()));
+    // só a automática: ela é a original
+    let only_auto = serde_json::json!({ "title": "t", "automatic_captions": { "pt-orig": [{ "ext": "json3", "url": "a" }], "pt": [{ "ext": "json3", "url": "b" }], "en": [{ "ext": "json3", "url": "c" }] } });
+    let v = tracks_from_info(&only_auto);
+    assert_eq!(pick(&v, "").unwrap().id(), "auto:pt");
+    assert_eq!(v.tracks.len(), 2, "o pt traduzido do próprio pt não entra: {:?}", v.tracks);
+}
+
+/// Com internet: `CONVER_LEGENDA=<link do YouTube>`.
+#[test]
+#[ignore]
+fn subtitles_from_youtube() {
+    let url = std::env::var("CONVER_LEGENDA").unwrap_or_else(|_| "https://www.youtube.com/watch?v=arj7oStGLkU".into());
+    let dir = std::env::temp_dir().join("conver_legenda_teste");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let videos = crate::subdl::list(&url, false, None).unwrap();
+    for t in &videos[0].tracks {
+        println!("{:<14} {:?} {}", t.id(), t.source, t.name);
+    }
+    let job = crate::job::Job::default();
+    let ctl = crate::job::Ctl::headless(&job);
+    for (want, f) in [("", crate::subdl::Format::Srt), (videos[0].tracks.iter().find(|t| t.source == crate::subdl::Source::Auto).map(|t| t.id()).unwrap_or_default().as_str(), crate::subdl::Format::Srt), ("", crate::subdl::Format::Txt)] {
+        let files = crate::subdl::download_listed(&videos, want, f, &dir, &ctl).unwrap();
+        assert_eq!(files.len(), 1, "uma legenda só: {files:?}");
+        let text = std::fs::read_to_string(&files[0]).unwrap();
+        println!("== {} ({} bytes)\n{}", files[0].display(), text.len(), text.chars().take(700).collect::<String>());
+        // nenhuma linha igual à anterior
+        let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty() && !l.contains("-->") && l.parse::<u32>().is_err()).collect();
+        let repeats = lines.windows(2).filter(|w| w[0] == w[1]).count();
+        assert_eq!(repeats, 0, "linhas repetidas em {}", files[0].display());
+        if f == crate::subdl::Format::Srt {
+            let cues = crate::subdl::parse_text(&text);
+            assert!(cues.windows(2).all(|w| w[0].end <= w[1].start), "tempos sobrepostos em {}", files[0].display());
+        }
+    }
+}

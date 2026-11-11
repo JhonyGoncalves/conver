@@ -1340,6 +1340,8 @@ fn t_download(a: &Args, ctx: &Ctx) -> Result<Value, String> {
     let extras = download::Extras { subtitles: a.bool_or("subtitles", false)?, cover: a.bool_or("cover", false)? };
     let cookies = a.str("browser_cookies").filter(|s| !s.trim().is_empty());
     let dir = a.out_dir()?.or_else(dirs_downloads).ok_or("informe \"out_dir\".")?;
+    let sub_lang = a.str_or("subtitle_lang", "original");
+    let sub_format = a.choice("subtitle_format", &[("srt", crate::subdl::Format::Srt), ("txt", crate::subdl::Format::Txt), ("vtt", crate::subdl::Format::Vtt)], crate::subdl::Format::Srt)?;
 
     let job = crate::job::Job::default();
     let mut items = Vec::new();
@@ -1351,10 +1353,14 @@ fn t_download(a: &Args, ctx: &Ctx) -> Result<Value, String> {
         // o download roda numa thread; aqui só repassamos o progresso e o cancelamento
         let r = std::thread::scope(|s| {
             let job2 = job.clone();
-            let (u, d, c) = (url.clone(), dir.clone(), cookies.clone());
+            let (u, d, c, lang) = (url.clone(), dir.clone(), cookies.clone(), sub_lang.clone());
             let h = s.spawn(move || {
                 let ctl = crate::job::Ctl::headless(&job2);
-                download::download(&u, &d, kind, quality, playlist, c.as_deref(), extras, &ctl)
+                if kind == download::Kind::Subtitles {
+                    crate::subdl::download(&u, &lang, sub_format, playlist, c.as_deref(), &d, &ctl)
+                } else {
+                    download::download(&u, &d, kind, quality, playlist, c.as_deref(), extras, &ctl)
+                }
             });
             while !h.is_finished() {
                 if (ctx.cancelled)() {
@@ -1419,6 +1425,21 @@ fn t_screen_record(a: &Args, ctx: &Ctx) -> Result<Value, String> {
         }
     };
     single("Gravar tela", "tela", screenrec::record_for(&o, &dst, seconds, ctx.progress, ctx.cancelled))
+}
+
+fn t_subtitles_list(a: &Args, _ctx: &Ctx) -> Result<Value, String> {
+    let url = a.str("url").filter(|u| u.starts_with("http")).ok_or("informe o link em \"url\".")?;
+    let cookies = a.str("browser_cookies").filter(|s| !s.trim().is_empty());
+    let videos = crate::subdl::list(&url, false, cookies.as_deref())?;
+    let v = videos.first().ok_or("o link não tem vídeo.")?;
+    let kind = |s: crate::subdl::Source| match s {
+        crate::subdl::Source::Manual => "author",
+        crate::subdl::Source::Auto => "automatic",
+        crate::subdl::Source::Translated => "automatic_translation",
+    };
+    let tracks: Vec<Value> = v.tracks.iter().map(|t| json!({ "id": t.id(), "language": t.code, "name": t.name, "source": kind(t.source) })).collect();
+    let default = crate::subdl::pick(v, "original").map(|t| t.id());
+    Ok(json!({ "title": v.title, "language": v.language, "default": default, "tracks": tracks }))
 }
 
 fn t_list_devices(_a: &Args, _ctx: &Ctx) -> Result<Value, String> {
@@ -1832,11 +1853,15 @@ pub static TOOLS: &[Tool] = &[
             "skip_pages_with_text": bool_prop("Skip pages that already have text.", true) }), &["files"]), t_pdf_ocr),
     tool!("download", "Download", "Download videos (MP4) or music (MP3) from YouTube, YouTube Music, TikTok, Instagram, X and hundreds of sites (yt-dlp). Only for content you have the right to download.",
         json!({ "type": "object", "properties": { "urls": json!({ "type": "array", "items": { "type": "string" }, "description": "Links." }),
-            "kind": enum_prop("mp4 (video), mp3 (audio), subtitles (only the .srt subtitles in Portuguese, English and the original language) or thumbnail (only the cover image), the last two without downloading the video.", &["mp4", "mp3", "subtitles", "thumbnail"], "mp4"),
+            "kind": enum_prop("mp4 (video), mp3 (audio), subtitles (only one subtitle file, see subtitle_lang) or thumbnail (only the cover image), the last two without downloading the video.", &["mp4", "mp3", "subtitles", "thumbnail"], "mp4"),
+            "subtitle_lang": str_prop("For kind=subtitles: \"original\" (default: the spoken language, the author's subtitle or else the automatic one), a language code (\"pt\", \"en\"; uses YouTube's automatic translation if the video has no such subtitle) or an id from subtitles_list (\"pt-BR\", \"auto:en\", \"tr:es\"). Automatic captions are rebuilt without the repeated lines."),
+            "subtitle_format": enum_prop("For kind=subtitles: srt (with timings), txt (plain text) or vtt.", &["srt", "txt", "vtt"], "srt"),
             "quality": str_prop("mp4: best, 1080p, 720p, 480p, 360p. mp3: 320, 192, 128."), "playlist": bool_prop("Download the whole playlist.", false),
-            "subtitles": bool_prop("Also save subtitles.", false), "cover": bool_prop("Also save the thumbnail.", false),
+            "subtitles": bool_prop("Also save the subtitle in the original language (.srt).", false), "cover": bool_prop("Also save the thumbnail.", false),
             "browser_cookies": str_prop("Browser to take the login from (chrome, edge, firefox) for sites that need an account."),
             "out_dir": str_prop("Folder (default: Downloads).") }, "required": ["urls"] }), t_download),
+    tool!("subtitles_list", "Idiomas da legenda", "List the subtitle languages of a video link (the author's, the automatic one in the spoken language and YouTube's automatic translations), with the ids to pass to download as subtitle_lang.",
+        json!({ "type": "object", "properties": { "url": str_prop("Video link."), "browser_cookies": str_prop("Browser to take the login from, for sites that need an account.") }, "required": ["url"] }), t_subtitles_list),
     tool!("file_info", "Informações do arquivo", "Show details of files: resolution, duration, codecs, camera, GPS, pages…",
         schema(json!({ "files": files_prop("files") }), &["files"]), t_info),
     tool!("screen_record", "Gravar a tela", "Record the screen (whole desktop, one monitor, one window or a region) to MP4 for a number of seconds, optionally with a microphone, at a chosen quality and maximum resolution.",
