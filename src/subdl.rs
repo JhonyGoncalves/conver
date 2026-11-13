@@ -137,8 +137,17 @@ pub fn tracks_from_info(info: &Value) -> Video {
         }
     }
     if let Some(m) = info["automatic_captions"].as_object() {
-        // a do idioma falado vem como "<código>-orig"; sem ela, é a do idioma do vídeo
-        let orig: Option<String> = m.keys().find(|k| k.ends_with("-orig")).cloned().or_else(|| language.clone().filter(|l| m.contains_key(l)));
+        // a do idioma falado vem como "<código>-orig"; sem ela, é a do idioma do vídeo. Com a dublagem automática do
+        // YouTube pode haver mais de uma ("en-orig" da faixa dublada e "pt-orig"): vale a do idioma do vídeo.
+        let base = |c: &str| c.split('-').next().unwrap_or(c).to_lowercase();
+        let origs: Vec<&String> = m.keys().filter(|k| k.ends_with("-orig")).collect();
+        let lang_base = language.as_deref().map(base);
+        let orig: Option<String> = origs
+            .iter()
+            .find(|k| lang_base.is_some() && Some(base(k)) == lang_base)
+            .or_else(|| origs.first())
+            .map(|k| k.to_string())
+            .or_else(|| language.clone().filter(|l| m.contains_key(l)));
         let spoken = orig.as_deref().map(|o| o.trim_end_matches("-orig").to_string());
         for (code, list) in m {
             let list = list.as_array().map(Vec::as_slice).unwrap_or(&[]);
@@ -147,6 +156,8 @@ pub fn tracks_from_info(info: &Value) -> Video {
                 Source::Auto
             } else if spoken.as_deref() == Some(code.as_str()) {
                 continue; // a mesma fala "traduzida" para o próprio idioma
+            } else if code.ends_with("-orig") && m.contains_key(code.trim_end_matches("-orig")) {
+                continue; // a "original" de uma faixa dublada: a tradução para esse idioma já está na lista
             } else {
                 Source::Translated
             };

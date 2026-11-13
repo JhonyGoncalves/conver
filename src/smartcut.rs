@@ -142,11 +142,18 @@ fn encode_piece(src: &Path, p: &Params, a: f64, b: f64, dst: &Path, cancelled: &
     encode_to(input, output, dst, None, &|_| {}, cancelled)
 }
 
-/// Copia do quadro-chave `k1` até antes do `k2`, em MPEG-TS.
+/// Copia do quadro-chave `k1` até antes do `k2`, em MPEG-TS, com dois cuidados:
+/// - `dump_extra`: o `h264_mp4toannexb` só repete SPS/PPS antes de quadro IDR. Em vídeos cujo quadro-chave é um I sem
+///   IDR (o Papo de Elite, por exemplo), a parte copiada seria lida com o PPS do x264 da parte anterior ("reference
+///   count overflow"). Repetir os parâmetros em todo quadro-chave resolve.
+/// - sem SEI: há vídeos (o Flow, por exemplo) com um SEI depois da fatia do quadro-chave; o leitor de MPEG-TS toma esse
+///   SEI como o começo do quadro seguinte, que fica sem tempo de apresentação, e o MKV da emenda recusa o pacote
+///   ("Error muxing a packet"). Sem SEI a imagem é a mesma.
 fn copy_piece(src: &Path, k1: f64, k2: f64, dst: &Path, cancelled: &dyn Fn() -> bool) -> Result<(), String> {
     let n = packets_between(src, k1, k2)?;
     let input = s(&["-ss", &format!("{:.3}", k1 + SEEK_SLACK), "-i", &path_s(src)]);
-    let output = s(&["-map", "0:v:0", "-c", "copy", "-frames:v", &n.to_string(), "-bsf:v", "h264_mp4toannexb", "-f", "mpegts"]);
+    let bsf = "h264_mp4toannexb,dump_extra=freq=keyframe,filter_units=remove_types=6";
+    let output = s(&["-map", "0:v:0", "-c", "copy", "-frames:v", &n.to_string(), "-bsf:v", bsf, "-f", "mpegts"]);
     encode_to(input, output, dst, None, &|_| {}, cancelled)
 }
 

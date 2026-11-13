@@ -1694,6 +1694,19 @@ fn subtitles_without_repetition() {
     let v = tracks_from_info(&only_auto);
     assert_eq!(pick(&v, "").unwrap().id(), "auto:pt");
     assert_eq!(v.tracks.len(), 2, "o pt traduzido do próprio pt não entra: {:?}", v.tracks);
+    // dublagem automática: duas "originais" (en-orig vem antes na ordem alfabética); vale a do idioma do vídeo
+    let dubbed = serde_json::json!({ "title": "t", "language": "pt-BR",
+        "automatic_captions": { "en-orig": [{ "ext": "json3", "url": "a" }], "en": [{ "ext": "json3", "url": "b" }],
+            "pt-orig": [{ "ext": "json3", "url": "c" }], "pt": [{ "ext": "json3", "url": "d" }] } });
+    let v = tracks_from_info(&dubbed);
+    assert_eq!(pick(&v, "original").unwrap().id(), "auto:pt", "{:?}", v.tracks);
+    assert_eq!(pick(&v, "").unwrap().id(), "auto:pt");
+    assert_eq!(v.tracks.iter().filter(|t| t.code == "en").count(), 1, "o en aparece uma vez só: {:?}", v.tracks);
+    // e com a legenda do autor em pt-BR, ela ganha
+    let with_manual = serde_json::json!({ "title": "t", "language": "pt-BR",
+        "subtitles": { "en": [{ "ext": "vtt", "url": "m1" }], "pt-BR": [{ "ext": "vtt", "url": "m2" }] },
+        "automatic_captions": { "en-orig": [{ "ext": "json3", "url": "a" }], "pt-orig": [{ "ext": "json3", "url": "c" }] } });
+    assert_eq!(pick(&tracks_from_info(&with_manual), "original").unwrap().id(), "pt-BR");
 }
 
 /// Com internet: `CONVER_LEGENDA=<link do YouTube>`.

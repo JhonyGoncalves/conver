@@ -1,5 +1,10 @@
 # Lista de mudanças
 
+## 2.1.2
+
+- **Corte inteligente em mais vídeos:** em alguns vídeos o corte Inteligente falhava e o Conver refazia tudo no modo Preciso, bem mais devagar. Eram dois casos: vídeos com um bloco de informação (SEI) depois do quadro-chave, como os do Flow ("Error muxing a packet"), e vídeos cujo quadro-chave não é IDR, como os do Papo de Elite ("reference count overflow"). Os dois agora saem no modo Inteligente.
+- **Legenda no idioma certo:** em vídeos com dublagem automática do YouTube, a legenda "original" podia vir em inglês. Agora vem a do idioma do vídeo.
+
 ## 2.1.1
 
 - **Só a legenda, refeito:** baixa uma legenda só, a do idioma falado no vídeo, em vez de três. Em **Ver idiomas** aparecem as outras que o vídeo tiver (as do autor, a automática e as traduções automáticas do YouTube), com o nome de cada idioma na própria língua, e dá para escolher entre SRT, TXT (só o texto) ou VTT.
